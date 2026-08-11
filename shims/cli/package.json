@@ -1,0 +1,24 @@
+{
+  "name": "@aletheia/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "aletheia": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit false --emitDeclarationOnly",
+    "test": "vitest run --passWithNoTests",
+    "aletheia": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@aletheia/diff-engine": "workspace:*",
+    "@aletheia/shared": "workspace:*",
+    "pngjs": "^7.0.0",
+    "@aletheia/runner": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5"
+  }
+}

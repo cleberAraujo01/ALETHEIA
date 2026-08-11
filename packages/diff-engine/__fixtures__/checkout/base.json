@@ -1,0 +1,153 @@
+{
+  "captureVersion": "0.1.0",
+  "captureId": "cap_checkout_base",
+  "target": {
+    "label": "base",
+    "baseUrl": "https://base.loja.example",
+    "commit": "aaaa111",
+    "capturedAtUtc": "2026-01-10T12:00:00.000Z"
+  },
+  "observations": [
+    {
+      "observationId": "checkout.summary",
+      "route": "/checkout",
+      "url": "https://base.loja.example/checkout",
+      "dom": {
+        "tag": "main",
+        "attributes": { "class": "page checkout css-a1b2c3" },
+        "text": null,
+        "role": "main",
+        "accessibleName": null,
+        "children": [
+          {
+            "tag": "h1",
+            "attributes": {},
+            "text": "Resumo do pedido",
+            "role": "heading",
+            "accessibleName": "Resumo do pedido",
+            "children": []
+          },
+          {
+            "tag": "ul",
+            "attributes": { "data-testid": "cart-items", "id": "mui-4821" },
+            "text": null,
+            "role": "list",
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "li",
+                "attributes": { "class": "item css-9z8y7x" },
+                "text": "Camiseta — R$ 60,00",
+                "role": "listitem",
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "li",
+                "attributes": { "class": "item css-9z8y7x" },
+                "text": "Caneca — R$ 40,00",
+                "role": "listitem",
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "div",
+            "attributes": { "data-testid": "totals" },
+            "text": null,
+            "role": null,
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "p",
+                "attributes": {},
+                "text": "Subtotal: R$ 100,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "p",
+                "attributes": { "data-testid": "discount" },
+                "text": "Desconto (15%): -R$ 15,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "p",
+                "attributes": { "data-testid": "total" },
+                "text": "Total: R$ 85,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "button",
+            "attributes": { "data-testid": "apply-coupon", "type": "button" },
+            "text": "Aplicar cupom",
+            "role": "button",
+            "accessibleName": "Aplicar cupom",
+            "children": []
+          },
+          {
+            "tag": "button",
+            "attributes": { "data-testid": "checkout", "type": "submit" },
+            "text": "Finalizar compra",
+            "role": "button",
+            "accessibleName": "Finalizar compra",
+            "children": []
+          }
+        ]
+      },
+      "network": [
+        {
+          "method": "GET",
+          "url": "https://base.loja.example/api/cart/3f2a1b0c-1111-4a2b-8c3d-4e5f60718293?_=1736510400000",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": {
+            "requestId": "req_5f3a91",
+            "subtotal": 10000,
+            "discountPct": 15,
+            "freight": 990,
+            "total": 8500,
+            "items": [
+              { "sku": "CAM-01", "price": 6000 },
+              { "sku": "CAN-02", "price": 4000 }
+            ]
+          },
+          "durationMs": 84
+        },
+        {
+          "method": "GET",
+          "url": "https://base.loja.example/api/products/101",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 101, "name": "Camiseta", "price": 6000 },
+          "durationMs": 31
+        },
+        {
+          "method": "POST",
+          "url": "https://base.loja.example/api/checkout",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": { "cartId": "3f2a1b0c-1111-4a2b-8c3d-4e5f60718293", "couponCode": "BLACK15" },
+          "responseBody": {
+            "orderId": "8c7d6e5f-2222-4b3c-9d4e-5f6071829304",
+            "status": "CONFIRMED",
+            "createdAt": "2026-01-10T12:00:03.120Z",
+            "paid": true
+          },
+          "durationMs": 412
+        }
+      ],
+      "console": []
+    }
+  ]
+}

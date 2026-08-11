@@ -1,0 +1,26 @@
+{
+  "name": "@aletheia/diff-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit false --emitDeclarationOnly",
+    "test": "vitest run",
+    "suppression:validate": "tsx src/suppress/validate-cli.ts"
+  },
+  "dependencies": {
+    "@aletheia/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "pngjs": "^7.0.0"
+  }
+}

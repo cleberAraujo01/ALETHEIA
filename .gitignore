@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.turbo/
+coverage/
+
+# Artefatos de execução — evidências e relatórios nunca entram no repositório.
+# Retenção é responsabilidade do storage de evidências (RN-EXE-004).
+.aletheia/
+*.aletheia-run.json

@@ -1,0 +1,14 @@
+{
+  "journeyVersion": "0.1.0",
+  "name": "juventude-smoke",
+  "viewport": { "width": 1280, "height": 800 },
+  "observations": [
+    { "observationId": "home", "path": "/" },
+    { "observationId": "escolinha", "path": "/escolinha" },
+    { "observationId": "time", "path": "/time" },
+    { "observationId": "quem-somos", "path": "/quem-somos" },
+    { "observationId": "canais", "path": "/canais" },
+    { "observationId": "contato", "path": "/contato" },
+    { "observationId": "parceiros", "path": "/parceiros" }
+  ]
+}

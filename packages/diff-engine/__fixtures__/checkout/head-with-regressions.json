@@ -1,0 +1,184 @@
+{
+  "captureVersion": "0.1.0",
+  "captureId": "cap_checkout_head",
+  "target": {
+    "label": "head",
+    "baseUrl": "https://pr-4471.loja.example",
+    "commit": "bbbb222",
+    "capturedAtUtc": "2026-01-10T12:07:41.000Z"
+  },
+  "observations": [
+    {
+      "observationId": "checkout.summary",
+      "route": "/checkout",
+      "url": "https://pr-4471.loja.example/checkout",
+      "dom": {
+        "tag": "main",
+        "attributes": { "class": "checkout css-77aa99 page" },
+        "text": null,
+        "role": "main",
+        "accessibleName": null,
+        "children": [
+          {
+            "tag": "h1",
+            "attributes": {},
+            "text": "Resumo do pedido",
+            "role": "heading",
+            "accessibleName": "Resumo do pedido",
+            "children": []
+          },
+          {
+            "tag": "ul",
+            "attributes": { "data-testid": "cart-items", "id": "mui-9034" },
+            "text": null,
+            "role": "list",
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "li",
+                "attributes": { "class": "item css-4b5c6d" },
+                "text": "Camiseta — R$ 60,00",
+                "role": "listitem",
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "li",
+                "attributes": { "class": "item css-4b5c6d" },
+                "text": "Caneca — R$ 40,00",
+                "role": "listitem",
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "div",
+            "attributes": { "data-testid": "totals" },
+            "text": null,
+            "role": null,
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "p",
+                "attributes": {},
+                "text": "Subtotal: R$ 100,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "p",
+                "attributes": { "data-testid": "discount" },
+                "text": "Desconto (10%): -R$ 10,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "p",
+                "attributes": { "data-testid": "total" },
+                "text": "Total: R$ 90,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "button",
+            "attributes": { "data-testid": "checkout", "type": "submit", "disabled": "" },
+            "text": "Finalizar compra",
+            "role": "button",
+            "accessibleName": "Finalizar compra",
+            "children": []
+          }
+        ]
+      },
+      "network": [
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/cart/71bd90ee-3333-4c4d-ae5f-607182930415?_=1736510861000",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": {
+            "requestId": "req_c04f18",
+            "subtotal": 10000,
+            "discountPct": 10,
+            "total": 9000,
+            "items": [
+              { "sku": "CAM-01", "price": 6000 },
+              { "sku": "CAN-02", "price": 4000 }
+            ]
+          },
+          "durationMs": 91
+        },
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/products/101",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 101, "name": "Camiseta", "price": 6000 },
+          "durationMs": 29
+        },
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/products/102",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 102, "name": "Caneca", "price": 4000 },
+          "durationMs": 27
+        },
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/products/103",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 103, "name": "Adesivo", "price": 500 },
+          "durationMs": 25
+        },
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/products/104",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 104, "name": "Boné", "price": 3500 },
+          "durationMs": 26
+        },
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/products/105",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 105, "name": "Meia", "price": 1500 },
+          "durationMs": 24
+        },
+        {
+          "method": "GET",
+          "url": "https://pr-4471.loja.example/api/products/106",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 106, "name": "Bolsa", "price": 8900 },
+          "durationMs": 33
+        },
+        {
+          "method": "POST",
+          "url": "https://pr-4471.loja.example/api/checkout",
+          "status": 500,
+          "resourceType": "xhr",
+          "requestBody": { "cartId": "71bd90ee-3333-4c4d-ae5f-607182930415", "couponCode": "BLACK15" },
+          "responseBody": { "error": "InternalServerError" },
+          "durationMs": 1204
+        }
+      ],
+      "console": []
+    }
+  ]
+}

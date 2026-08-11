@@ -1,0 +1,154 @@
+{
+  "_comment": "Mesma build da base, executada de novo em outro ambiente e outro instante. Tudo que difere aqui é ruído por construção: id gerado, hash de CSS, ordem de classe, uuid, timestamp, cache-buster, espaçamento. O motor precisa produzir ZERO deltas. Qualquer delta aqui é falso positivo.",
+  "captureVersion": "0.1.0",
+  "captureId": "cap_checkout_base_rerun",
+  "target": {
+    "label": "base-rerun",
+    "baseUrl": "https://base-2.loja.example",
+    "commit": "aaaa111",
+    "capturedAtUtc": "2026-01-10T18:44:02.000Z"
+  },
+  "observations": [
+    {
+      "observationId": "checkout.summary",
+      "route": "/checkout",
+      "url": "https://base-2.loja.example/checkout",
+      "dom": {
+        "tag": "main",
+        "attributes": { "class": "css-ff0011 checkout page", "data-reactroot": "" },
+        "text": null,
+        "role": "main",
+        "accessibleName": null,
+        "children": [
+          {
+            "tag": "h1",
+            "attributes": {},
+            "text": "Resumo do pedido",
+            "role": "heading",
+            "accessibleName": "Resumo do pedido",
+            "children": []
+          },
+          {
+            "tag": "ul",
+            "attributes": { "data-testid": "cart-items", "id": "mui-1207" },
+            "text": null,
+            "role": "list",
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "li",
+                "attributes": { "class": "css-0f0f0f item" },
+                "text": "Camiseta — R$ 60,00",
+                "role": "listitem",
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "li",
+                "attributes": { "class": "css-0f0f0f item" },
+                "text": "Caneca — R$ 40,00",
+                "role": "listitem",
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "div",
+            "attributes": { "data-testid": "totals" },
+            "text": null,
+            "role": null,
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "p",
+                "attributes": {},
+                "text": "Subtotal:  R$ 100,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "p",
+                "attributes": { "data-testid": "discount" },
+                "text": "Desconto (15%): -R$ 15,00\n",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              },
+              {
+                "tag": "p",
+                "attributes": { "data-testid": "total" },
+                "text": "Total: R$ 85,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "button",
+            "attributes": { "data-testid": "apply-coupon", "type": "button" },
+            "text": "Aplicar cupom",
+            "role": "button",
+            "accessibleName": "Aplicar cupom",
+            "children": []
+          },
+          {
+            "tag": "button",
+            "attributes": { "data-testid": "checkout", "type": "submit" },
+            "text": "Finalizar compra",
+            "role": "button",
+            "accessibleName": "Finalizar compra",
+            "children": []
+          }
+        ]
+      },
+      "network": [
+        {
+          "method": "GET",
+          "url": "https://base-2.loja.example/api/cart/c5d4e3f2-4444-4d5e-bf60-718293041526?_=1736534642000",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": {
+            "requestId": "req_ba7712",
+            "subtotal": 10000,
+            "discountPct": 15,
+            "freight": 990,
+            "total": 8500,
+            "items": [
+              { "sku": "CAM-01", "price": 6000 },
+              { "sku": "CAN-02", "price": 4000 }
+            ]
+          },
+          "durationMs": 77
+        },
+        {
+          "method": "GET",
+          "url": "https://base-2.loja.example/api/products/101",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": null,
+          "responseBody": { "id": 101, "name": "Camiseta", "price": 6000 },
+          "durationMs": 40
+        },
+        {
+          "method": "POST",
+          "url": "https://base-2.loja.example/api/checkout",
+          "status": 200,
+          "resourceType": "xhr",
+          "requestBody": { "cartId": "c5d4e3f2-4444-4d5e-bf60-718293041526", "couponCode": "BLACK15" },
+          "responseBody": {
+            "orderId": "1a2b3c4d-5555-4e6f-8071-829304152637",
+            "status": "CONFIRMED",
+            "createdAt": "2026-01-10T18:44:05.880Z",
+            "paid": true
+          },
+          "durationMs": 508
+        }
+      ],
+      "console": []
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    // A serialização de DOM roda dentro da página; sem `DOM` o TypeScript não
+    // consegue verificar o código que será avaliado no browser.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
+  "references": [{ "path": "../../packages/shared" }, { "path": "../../packages/diff-engine" }]
+}

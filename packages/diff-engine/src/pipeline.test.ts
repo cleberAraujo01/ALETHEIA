@@ -1,0 +1,176 @@
+import { readFileSync } from "node:fs";
+
+import { PlatformError, type RunMetadata } from "@aletheia/shared";
+import { describe, expect, it } from "vitest";
+
+import { parseCapture } from "./capture/validate.js";
+import { runDiff } from "./pipeline.js";
+import type { Capture } from "./types/capture.js";
+import type { Delta, DeltaKind } from "./types/delta.js";
+
+function loadFixture(name: string): Capture {
+  const url = new URL(`../__fixtures__/checkout/${name}.json`, import.meta.url);
+  return parseCapture(JSON.parse(readFileSync(url, "utf8")), name);
+}
+
+const METADATA: RunMetadata = {
+  runId: "run_test",
+  worldModelVersion: null,
+  irVersion: null,
+  runnerVersion: "0.0.0-test",
+  browserVersion: null,
+  seed: "0",
+  commit: "bbbb222",
+  baseRef: "main",
+  environment: "test",
+  confidenceMode: "ISOLATED",
+  autonomyLevel: 1,
+  startedAtUtc: "2026-01-10T12:10:00.000Z",
+};
+
+const find = (deltas: readonly Delta[], kind: DeltaKind, pathPart: string): Delta | undefined =>
+  deltas.find((delta) => delta.kind === kind && delta.path.includes(pathPart));
+
+describe("corpus checkout — head com regressões conhecidas", () => {
+  const report = runDiff(loadFixture("base"), loadFixture("head-with-regressions"), {
+    metadata: METADATA,
+  });
+
+  it("emite veredito bloqueante fundamentado no oráculo O5", () => {
+    expect(report.verdict.code).toBe("REGRESSION_DETECTED");
+    expect(report.verdict.blocking).toBe(true);
+    // RN-ORC-001: veredito sem oráculo identificado é inválido.
+    expect(report.oracle).toBe("O5");
+  });
+
+  it("detecta ao menos 5 regressões — o critério de saída da Fase 0", () => {
+    expect(report.summary.byClassification.REGRESSION).toBeGreaterThanOrEqual(5);
+  });
+
+  it("detecta a resposta que passou a falhar", () => {
+    const delta = find(report.deltas, "STATUS_CHANGED", "POST /api/checkout");
+    expect(delta?.severity).toBe("CRITICAL");
+    expect(delta?.before).toBe("200");
+    expect(delta?.after).toBe("500");
+  });
+
+  it("detecta o desconto que mudou de 15 para 10 sem intenção declarada", () => {
+    // O caso central do problema do oráculo: a tela renderiza, a API devolve
+    // 200 e o cálculo está errado.
+    const delta = find(report.deltas, "RESPONSE_FIELD_CHANGED", "/discountPct");
+    expect(delta?.before).toBe("15");
+    expect(delta?.after).toBe("10");
+    expect(delta?.classification).toBe("REGRESSION");
+  });
+
+  it("detecta o campo de contrato que desapareceu", () => {
+    const delta = find(report.deltas, "RESPONSE_FIELD_REMOVED", "/freight");
+    expect(delta?.severity).toBe("HIGH");
+    expect(delta?.classification).toBe("REGRESSION");
+  });
+
+  it("detecta o N+1 que surgiu", () => {
+    const delta = find(report.deltas, "REQUEST_COUNT_CHANGED", "/api/products/:id");
+    expect(delta?.before).toBe("1");
+    expect(delta?.after).toBe("6");
+    expect(delta?.facts["amplification"]).toBe(6);
+    expect(delta?.classification).toBe("REGRESSION");
+  });
+
+  it("detecta o botão interativo que sumiu", () => {
+    const delta = find(report.deltas, "DOM_NODE_REMOVED", "apply-coupon");
+    expect(delta?.severity).toBe("HIGH");
+    expect(delta?.classification).toBe("REGRESSION");
+  });
+
+  it("detecta o botão que passou a nascer desabilitado", () => {
+    const delta = find(report.deltas, "DOM_ATTRIBUTE_ADDED", 'checkout"]@disabled');
+    expect(delta?.severity).toBe("HIGH");
+    expect(delta?.classification).toBe("REGRESSION");
+  });
+
+  it("reporta mudança de texto como indeterminada, não como regressão", () => {
+    // Texto muda por copy legítimo com frequência alta demais para bloquear um
+    // PR sem fonte de intenção. UNDETERMINED nunca bloqueia (RN-ORC-009).
+    const delta = find(report.deltas, "DOM_TEXT_CHANGED", "discount");
+    expect(delta?.classification).toBe("UNDETERMINED");
+  });
+
+  it("não classifica nada como INTENDED_CHANGE nesta fase", () => {
+    // Não existe fonte de intenção (O1/O2/O3). Afirmar intenção seria inventar.
+    expect(report.summary.byClassification.INTENDED_CHANGE).toBe(0);
+  });
+
+  it("declara o que não foi validado", () => {
+    const layers = report.coverage.layersNotValidated.map((gap) => gap.layer);
+    expect(layers).toContain("VISUAL");
+    expect(layers).toContain("DATABASE");
+    expect(report.coverage.notes.join(" ")).toContain("não detecta defeito já presente");
+  });
+});
+
+describe("corpus checkout — mesma build reexecutada (teste de falso positivo)", () => {
+  const report = runDiff(loadFixture("base"), loadFixture("base-rerun"), { metadata: METADATA });
+
+  it("não produz nenhum delta", () => {
+    // Se este teste falhar, o motor está reportando ruído como divergência e a
+    // taxa de falso positivo do produto inteiro sobe junto.
+    expect(report.deltas.map((delta) => `${delta.kind} ${delta.path}`)).toEqual([]);
+  });
+
+  it("emite veredito não bloqueante", () => {
+    expect(report.verdict.code).toBe("NO_REGRESSION_DETECTED");
+    expect(report.verdict.blocking).toBe(false);
+  });
+
+  it("registra as normalizações que aplicou em vez de escondê-las", () => {
+    expect(report.normalization.total).toBeGreaterThan(0);
+    expect(Object.keys(report.normalization.byRule).length).toBeGreaterThan(0);
+  });
+});
+
+describe("determinismo (PA-12)", () => {
+  it("produz o mesmo relatório para a mesma entrada", () => {
+    const first = runDiff(loadFixture("base"), loadFixture("head-with-regressions"), {
+      metadata: METADATA,
+    });
+    const second = runDiff(loadFixture("base"), loadFixture("head-with-regressions"), {
+      metadata: METADATA,
+    });
+    expect(JSON.stringify(second)).toBe(JSON.stringify(first));
+  });
+});
+
+describe("distinção entre falha de plataforma e veredito de qualidade (RN-CI-005)", () => {
+  it("captura ilegível vira PlatformError, nunca reprovação do cliente", () => {
+    expect(() => parseCapture({ captureVersion: "0.1.0" }, "teste")).toThrow(PlatformError);
+  });
+
+  it("versão de captura não suportada vira PlatformError", () => {
+    try {
+      parseCapture({ captureVersion: "99.0.0" }, "teste");
+      expect.unreachable("deveria ter lançado");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PlatformError);
+      expect((error as PlatformError).code).toBe("CAPTURE_VERSION_UNSUPPORTED");
+    }
+  });
+
+  it("capturas sem observação em comum viram PlatformError, não veredito", () => {
+    const base = loadFixture("base");
+    const foreign: Capture = {
+      ...base,
+      observations: base.observations.map((observation) => ({
+        ...observation,
+        observationId: "outra.jornada",
+      })),
+    };
+    try {
+      runDiff(base, foreign, { metadata: METADATA });
+      expect.unreachable("deveria ter lançado");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PlatformError);
+      expect((error as PlatformError).code).toBe("CAPTURES_NOT_COMPARABLE");
+    }
+  });
+});
