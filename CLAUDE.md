@@ -332,7 +332,7 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 > Atualize esta seção a cada transição de fase.
 
-**Fase atual:** Fase 0 — Prova de vida do oráculo
+**Fase atual:** Fase 0 — Prova de vida do oráculo. **Critério de saída atingido em 2026-08-11** ([`docs/medicao-fase-0.md`](./docs/medicao-fase-0.md)): 5 defeitos distintos bloqueados de 9 presentes, 0% de falso positivo, e um PR real da mesma aplicação passou sem nenhum delta bloqueante.
 
 **Escopo permitido agora:**
 - Diff Engine (DOM, rede, visual)
@@ -342,6 +342,10 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 **Explicitamente fora de escopo nesta fase:** World Model, LLM em qualquer lugar, UI, capabilities de banco, shims além da CLI, integrações.
 
 **Critério de saída:** detectar ≥ 5 regressões reais em aplicação real com < 10% de falso positivo, sem uma única linha de teste escrita.
+
+**Antes de declarar a fase encerrada**, o item aberto mais importante é um **segundo corpus, de outra aplicação**. As duas regras de severidade que fecharam a medição (`href`/`action` → HIGH; nó com texto removido → HIGH) foram desenhadas depois de ver os dados de uma aplicação e um PR intencional. São hipóteses com evidência, não regras estabelecidas — §7 do relatório de medição diz o que pode derrubá-las.
+
+**Toda mudança no `diff-engine` reporta delta de precisão e recall nos DOIS corpora** — o de defeitos (`packages/diff-engine/__corpus__/juventude/`) e o de mudança intencional. Detectar mais é trivial se reprovar todo mundo for aceitável; o par de números é que diz alguma coisa.
 
 > Se lhe pedirem para construir algo fora do escopo da fase atual, **sinalize antes de implementar**. O maior risco de execução deste projeto é escopo simultâneo (R-14).
 

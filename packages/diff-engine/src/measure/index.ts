@@ -22,6 +22,19 @@ export interface LabelEntry {
   readonly label: HumanLabel;
   /** Por que o humano decidiu assim. Vira evidência de supressão depois. */
   readonly note?: string;
+  /**
+   * Identificador do defeito que causou este delta.
+   *
+   * Existe porque **um defeito produz muitos deltas**. Um link de menu que
+   * passa a apontar para rota inexistente aparece no cabeçalho e no rodapé de
+   * sete páginas: catorze deltas, um defeito. Contar deltas e anunciar
+   * "catorze regressões detectadas" seria inflar o número por catorze.
+   *
+   * O critério de saída da Fase 0 fala em "≥ 5 regressões reais" — regressão,
+   * não delta. Sem este campo não há como responder à pergunta que o critério
+   * faz, e a medição responderia a outra, mais fácil.
+   */
+  readonly defect?: string;
 }
 
 export type LabelSet = Readonly<Record<string, LabelEntry>>;
@@ -37,6 +50,27 @@ export interface ConfusionMatrix {
   readonly recall: number | null;
   /** FP / (TP + FP) — a taxa que o critério de saída da Fase 0 limita. */
   readonly falsePositiveRate: number | null;
+}
+
+/**
+ * Contagem por DEFEITO, não por delta. Um defeito é "detectado" quando pelo
+ * menos um dos deltas que ele causou foi apontado pelo motor — que é o que
+ * importa na prática: basta um delta chegar ao relatório para o time descobrir
+ * o problema.
+ */
+export interface DefectCoverage {
+  /** Defeitos reais presentes na amostra, segundo a rotulagem humana. */
+  readonly total: number;
+  /** Defeitos com ao menos um delta apontado pelo motor. */
+  readonly detected: number;
+  readonly detectedIds: readonly string[];
+  /** Defeitos que existiam e passaram inteiros — nenhum delta apontado. */
+  readonly missedIds: readonly string[];
+  /**
+   * Deltas rotulados como regressão sem defeito declarado. Não entram na
+   * contagem de defeitos: cobertura sem rastreabilidade não é cobertura.
+   */
+  readonly unattributed: number;
 }
 
 export interface Measurement {
@@ -56,20 +90,27 @@ export interface Measurement {
    * que bloqueia.
    */
   readonly surfaced: ConfusionMatrix;
+  /** Defeitos distintos alcançados pelo recorte bloqueante. */
+  readonly blockingDefects: DefectCoverage;
+  /** Defeitos distintos alcançados pelo recorte de triagem. */
+  readonly surfacedDefects: DefectCoverage;
   readonly exitCriteria: ExitCriteriaCheck;
 }
 
 /** §21.2 — critério de saída da Fase 0. */
 export interface ExitCriteriaCheck {
-  readonly requiredTruePositives: number;
+  readonly requiredDefects: number;
   readonly maxFalsePositiveRate: number;
+  /** Defeitos distintos bloqueados — a unidade que o critério nomeia. */
+  readonly defectsDetected: number;
+  /** Deltas verdadeiros positivos. Informativo; não é o critério. */
   readonly truePositives: number;
   readonly falsePositiveRate: number | null;
   readonly met: boolean;
   readonly reason: string;
 }
 
-export const PHASE_0_REQUIRED_TRUE_POSITIVES = 5;
+export const PHASE_0_REQUIRED_DEFECTS = 5;
 export const PHASE_0_MAX_FALSE_POSITIVE_RATE = 0.1;
 
 export function measure(deltas: readonly Delta[], labels: LabelSet): Measurement {
@@ -77,8 +118,10 @@ export function measure(deltas: readonly Delta[], labels: LabelSet): Measurement
     .filter((delta) => labels[delta.deltaId] === undefined)
     .map((delta) => delta.deltaId);
 
-  const blocking = confusion(deltas, labels, (classification) => classification === "REGRESSION");
+  const isBlocking = (classification: Classification): boolean => classification === "REGRESSION";
+  const blocking = confusion(deltas, labels, isBlocking);
   const surfaced = confusion(deltas, labels, () => true);
+  const blockingDefects = defectCoverage(deltas, labels, isBlocking);
 
   return {
     totalDeltas: deltas.length,
@@ -87,7 +130,39 @@ export function measure(deltas: readonly Delta[], labels: LabelSet): Measurement
     unlabeledDeltaIds,
     blocking,
     surfaced,
-    exitCriteria: checkExitCriteria(blocking, unlabeledDeltaIds.length),
+    blockingDefects,
+    surfacedDefects: defectCoverage(deltas, labels, () => true),
+    exitCriteria: checkExitCriteria(blocking, blockingDefects, unlabeledDeltaIds.length),
+  };
+}
+
+function defectCoverage(
+  deltas: readonly Delta[],
+  labels: LabelSet,
+  isFlagged: (classification: Classification) => boolean,
+): DefectCoverage {
+  const all = new Set<string>();
+  const detected = new Set<string>();
+  let unattributed = 0;
+
+  for (const delta of deltas) {
+    const entry = labels[delta.deltaId];
+    if (entry === undefined || entry.label !== "REGRESSION") continue;
+    if (entry.defect === undefined || entry.defect.length === 0) {
+      unattributed += 1;
+      continue;
+    }
+    all.add(entry.defect);
+    if (isFlagged(delta.classification)) detected.add(entry.defect);
+  }
+
+  const detectedIds = [...detected].sort();
+  return {
+    total: all.size,
+    detected: detected.size,
+    detectedIds,
+    missedIds: [...all].filter((defect) => !detected.has(defect)).sort(),
+    unattributed,
   };
 }
 
@@ -130,10 +205,15 @@ function confusion(
   };
 }
 
-function checkExitCriteria(blocking: ConfusionMatrix, unlabeled: number): ExitCriteriaCheck {
+function checkExitCriteria(
+  blocking: ConfusionMatrix,
+  defects: DefectCoverage,
+  unlabeled: number,
+): ExitCriteriaCheck {
   const base = {
-    requiredTruePositives: PHASE_0_REQUIRED_TRUE_POSITIVES,
+    requiredDefects: PHASE_0_REQUIRED_DEFECTS,
     maxFalsePositiveRate: PHASE_0_MAX_FALSE_POSITIVE_RATE,
+    defectsDetected: defects.detected,
     truePositives: blocking.truePositives,
     falsePositiveRate: blocking.falsePositiveRate,
   };
@@ -147,14 +227,29 @@ function checkExitCriteria(blocking: ConfusionMatrix, unlabeled: number): ExitCr
       reason: `${unlabeled} delta(s) sem rótulo humano — a amostra está incompleta`,
     };
   }
-  if (blocking.truePositives < PHASE_0_REQUIRED_TRUE_POSITIVES) {
+  // Regressão rotulada sem defeito declarado não é contável: não dá para saber
+  // se dois deltas são o mesmo problema visto duas vezes.
+  if (defects.unattributed > 0) {
     return {
       ...base,
       met: false,
-      reason: `${blocking.truePositives} regressão(ões) real(is) detectada(s); o critério exige ${PHASE_0_REQUIRED_TRUE_POSITIVES}`,
+      reason: `${defects.unattributed} delta(s) rotulado(s) como regressão sem defeito declarado — impossível contar defeitos distintos`,
     };
   }
-  if (blocking.falsePositiveRate !== null && blocking.falsePositiveRate >= PHASE_0_MAX_FALSE_POSITIVE_RATE) {
+  if (defects.detected < PHASE_0_REQUIRED_DEFECTS) {
+    return {
+      ...base,
+      met: false,
+      reason:
+        `${defects.detected} defeito(s) distinto(s) bloqueado(s) de ${defects.total} presente(s); ` +
+        `o critério exige ${PHASE_0_REQUIRED_DEFECTS}` +
+        (defects.missedIds.length > 0 ? ` — passaram: ${defects.missedIds.join(", ")}` : ""),
+    };
+  }
+  if (
+    blocking.falsePositiveRate !== null &&
+    blocking.falsePositiveRate >= PHASE_0_MAX_FALSE_POSITIVE_RATE
+  ) {
     return {
       ...base,
       met: false,
@@ -165,7 +260,9 @@ function checkExitCriteria(blocking: ConfusionMatrix, unlabeled: number): ExitCr
   return {
     ...base,
     met: true,
-    reason: `${blocking.truePositives} regressões reais detectadas com ${((blocking.falsePositiveRate ?? 0) * 100).toFixed(1)}% de falso positivo`,
+    reason:
+      `${defects.detected} defeitos distintos bloqueados (de ${defects.total}) ` +
+      `com ${((blocking.falsePositiveRate ?? 0) * 100).toFixed(1)}% de falso positivo nos deltas`,
   };
 }
 
@@ -179,6 +276,7 @@ export function scaffoldLabels(deltas: readonly Delta[]): Record<string, unknown
   for (const delta of deltas) {
     entries[delta.deltaId] = {
       label: "",
+      defect: "",
       note: "",
       _motor: delta.classification,
       _tipo: delta.kind,
@@ -189,7 +287,10 @@ export function scaffoldLabels(deltas: readonly Delta[]): Record<string, unknown
   }
   return {
     _instrucoes:
-      "Preencha 'label' com REGRESSION, INTENDED_CHANGE ou NOISE. Campos com _ são contexto e são ignorados.",
+      "Preencha 'label' com REGRESSION, INTENDED_CHANGE ou NOISE. Em REGRESSION, preencha " +
+      "também 'defect' com um identificador do problema — deltas que vêm do mesmo problema " +
+      "usam o MESMO identificador, senão um defeito espalhado por sete páginas vira sete " +
+      "regressões na contagem. Campos com _ são contexto e são ignorados.",
     labels: entries,
   };
 }

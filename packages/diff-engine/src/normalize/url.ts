@@ -1,6 +1,7 @@
 import type { NormalizationLedger } from "./ledger.js";
 import {
   NORMALIZATION_RULES,
+  stripContentHash,
   PLACEHOLDER,
   isIdentifierPathSegment,
   isIsoTimestamp,
@@ -19,6 +20,26 @@ export interface UrlNormalizationOptions {
    * provedor externo é exatamente o tipo de regressão que queremos ver.
    */
   readonly selfOrigin: string | null;
+  /**
+   * Para que esta URL está sendo normalizada — e a distinção não é cosmética.
+   *
+   *   `ALIGNMENT` (rede): a URL é a **chave** que emparelha a requisição da
+   *   base com a do head. Aqui `/orders/1042` e `/orders/1043` precisam virar a
+   *   mesma chave, senão viram "uma sumiu, outra apareceu" e o diff de corpo,
+   *   que é onde mora o valor, nunca acontece.
+   *
+   *   `VALUE` (atributo de DOM): a URL é o **conteúdo** sendo comparado. O
+   *   `href` de um botão não emparelha nada — o nó já foi emparelhado pela
+   *   estrutura. Apagar o identificador aqui não compra alinhamento nenhum e
+   *   custa detecção.
+   *
+   * MEDIDO, não suposto: com `VALUE` normalizado como chave, o corpus real
+   * `juventude` perdeu inteiro o defeito do número de WhatsApp trocado
+   * (`wa.me/5511941126936` → `…939`). O segmento numérico virava `:id` nos dois
+   * lados e o motor não via absolutamente nada — falso negativo silencioso, que
+   * é a pior falha possível deste produto.
+   */
+  readonly purpose?: "ALIGNMENT" | "VALUE";
 }
 
 /** Extrai a origem (`scheme://host:port`) de uma URL, ou `null` se inválida. */
@@ -42,8 +63,20 @@ export function normalizeUrl(
     return rawUrl;
   }
 
+  const forAlignment = (options.purpose ?? "ALIGNMENT") === "ALIGNMENT";
+
   const segments = parsed.pathname.split("/").map((segment) => {
-    if (segment.length > 0 && isIdentifierPathSegment(segment)) {
+    if (segment.length === 0) return segment;
+    // Hash de conteúdo de bundle (`page-4f2a…8c.js`): é o MESMO módulo com
+    // outro nome, porque o build mudou. Vale nos dois propósitos — o nome é
+    // gerado, não escrito por ninguém, e comparar hash de build só produz
+    // barulho proporcional ao tamanho do bundler.
+    const withoutHash = stripContentHash(segment);
+    if (withoutHash !== segment) {
+      ledger.record(NORMALIZATION_RULES.NET_BUILD_CONTENT_HASH);
+      return withoutHash;
+    }
+    if (forAlignment && isIdentifierPathSegment(segment)) {
       ledger.record(NORMALIZATION_RULES.NET_PATH_IDENTIFIER);
       return PLACEHOLDER.ID_SEGMENT;
     }

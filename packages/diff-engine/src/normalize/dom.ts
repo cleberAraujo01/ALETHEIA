@@ -132,7 +132,10 @@ function normalizeAttributes(
     }
 
     if (URL_ATTRIBUTES.has(name)) {
-      result[name] = normalizeUrl(raw, urlOptions, ledger);
+      // `VALUE`: aqui a URL é o conteúdo comparado, não a chave de
+      // emparelhamento — o nó já foi emparelhado pela estrutura. Ver
+      // `UrlNormalizationOptions.purpose`.
+      result[name] = normalizeUrl(raw, { ...urlOptions, purpose: "VALUE" }, ledger);
       continue;
     }
 

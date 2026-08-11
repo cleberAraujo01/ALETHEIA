@@ -49,33 +49,100 @@ export const MUTATION_OBSERVER_SCRIPT = `
 })();
 `;
 
+/**
+ * Rastreio de rede em dois estados, e a distinção entre eles é o que separa
+ * "a aplicação ainda está trabalhando" de "a aplicação largou o corpo da
+ * resposta e não vai fazer mais nada":
+ *
+ *   - **aguardando resposta** — a requisição saiu e o servidor ainda não
+ *     respondeu. Enquanto houver uma destas, a aplicação pode mudar de estado a
+ *     qualquer instante: isto é trabalho pendente de verdade.
+ *   - **não drenada** — a resposta chegou (status, cabeçalhos) e o corpo nunca
+ *     terminou de ser baixado, porque quem pediu desistiu de ler. O browser
+ *     mantém a requisição "em voo" para sempre e `requestfinished` nunca
+ *     dispara.
+ *
+ * O segundo estado não é hipótese: apareceu na medição contra a aplicação real
+ * quando um link do menu passou a apontar para uma rota inexistente. O Next
+ * dispara o prefetch, recebe 404 e abandona o corpo. Tratar isso como trabalho
+ * pendente tornava a build INOBSERVÁVEL — a captura morria de
+ * `TIMEOUT_CONVERGENCE` e nenhum veredito era emitido sobre um defeito que o
+ * motor detectaria em segundos.
+ *
+ * A alternativa rejeitada foi esperar um tempo fixo pelo corpo. Além de violar
+ * PA-07, ela erra nos dois sentidos: espera à toa quando o corpo foi
+ * abandonado, e corta cedo quando o corpo é grande.
+ */
 export class NetworkTracker {
-  readonly #pending = new Set<Request>();
+  readonly #awaitingResponse = new Set<Request>();
+  readonly #undrained = new Set<Request>();
   #idleWaiters: (() => void)[] = [];
 
   attach(page: Page): void {
     page.on("request", (request) => {
-      this.#pending.add(request);
+      this.#awaitingResponse.add(request);
     });
+    page.on("response", (response) => this.#respond(response.request()));
     page.on("requestfinished", (request) => this.#settle(request));
     page.on("requestfailed", (request) => this.#settle(request));
   }
 
+  /** Requisições sem resposta — as únicas que representam trabalho pendente. */
   get pendingCount(): number {
-    return this.#pending.size;
+    return this.#awaitingResponse.size;
   }
 
-  /** Resolve imediatamente se não há nada pendente, senão ao esvaziar. */
+  /** Respostas recebidas cujo corpo a página nunca leu. Evidência, não silêncio. */
+  get undrainedCount(): number {
+    return this.#undrained.size;
+  }
+
+  /**
+   * Ler o corpo de uma resposta não drenada trava para sempre — o `body()` do
+   * Playwright espera um download que ninguém vai completar. Quem coleta
+   * evidência consulta isto antes de tentar.
+   */
+  isUndrained(request: Request): boolean {
+    return this.#undrained.has(request);
+  }
+
+  /**
+   * Contador monotônico de eventos de rede (resposta recebida, corpo concluído,
+   * requisição falhada). É o sinal de progresso que permite distinguir corpo
+   * ABANDONADO de corpo AINDA BAIXANDO sem consultar relógio: se este número
+   * não se moveu durante toda a janela de silêncio do DOM, nada aconteceu na
+   * rede naquele intervalo. Se moveu, houve trabalho e o laço roda outra volta.
+   */
+  get networkEventCount(): number {
+    return this.#events;
+  }
+
+  #events = 0;
+
+  /** Resolve imediatamente se nada aguarda resposta, senão ao esvaziar. */
   whenIdle(): Promise<void> {
-    if (this.#pending.size === 0) return Promise.resolve();
+    if (this.#awaitingResponse.size === 0) return Promise.resolve();
     return new Promise<void>((resolve) => {
       this.#idleWaiters.push(resolve);
     });
   }
 
+  #respond(request: Request): void {
+    this.#events += 1;
+    if (!this.#awaitingResponse.delete(request)) return;
+    this.#undrained.add(request);
+    this.#releaseIfIdle();
+  }
+
   #settle(request: Request): void {
-    this.#pending.delete(request);
-    if (this.#pending.size > 0) return;
+    this.#events += 1;
+    this.#awaitingResponse.delete(request);
+    this.#undrained.delete(request);
+    this.#releaseIfIdle();
+  }
+
+  #releaseIfIdle(): void {
+    if (this.#awaitingResponse.size > 0) return;
     const waiters = this.#idleWaiters;
     this.#idleWaiters = [];
     for (const resolve of waiters) resolve();
@@ -104,6 +171,11 @@ export async function waitForQuiescence(
     const domRemaining = deadlineAt - performance.now();
     if (domRemaining <= 0) break;
 
+    // Fotografia do estado da rede ANTES da janela de silêncio do DOM. Se este
+    // número mudar durante a janela, houve trabalho de rede e o silêncio do DOM
+    // não significa que a página terminou — roda outra volta.
+    const networkEventsBefore = tracker.networkEventCount;
+
     try {
       await page.waitForFunction(
         (quietWindowMs: number) => {
@@ -128,9 +200,14 @@ export async function waitForQuiescence(
     }
 
     // Uma mutação pode ter disparado requisição nova depois do silêncio de
-    // rede. Se ainda há pendência, roda outra volta; senão, convergiu.
-    if (tracker.pendingCount === 0) {
-      return { rounds: rounds + 1, elapsedMs: Math.round(performance.now() - startedAt) };
+    // rede, e um corpo ainda em download pode ter terminado (e executado)
+    // durante a janela. Qualquer um dos dois derruba a convergência.
+    if (tracker.pendingCount === 0 && tracker.networkEventCount === networkEventsBefore) {
+      return {
+        rounds: rounds + 1,
+        elapsedMs: Math.round(performance.now() - startedAt),
+        undrainedResponses: tracker.undrainedCount,
+      };
     }
   }
 
@@ -145,6 +222,11 @@ export async function waitForQuiescence(
 export interface QuiescenceOutcome {
   readonly rounds: number;
   readonly elapsedMs: number;
+  /**
+   * Respostas cujo corpo a página abandonou. Não impedem a convergência, mas
+   * são declaradas: o corpo delas não entra na evidência (PA-10).
+   */
+  readonly undrainedResponses: number;
 }
 
 /**

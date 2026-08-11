@@ -85,3 +85,42 @@ describe("severidade de rede — sinal próprio vs. ruído de terceiro", () => {
     ).toBe("MEDIUM");
   });
 });
+
+/**
+ * Estes casos vêm da medição de saída da Fase 0 contra o corpus `juventude`
+ * (par de builds com 9 defeitos + par de commits reais só com mudança
+ * intencional). Cada um trava uma distinção que a medição custou a produzir.
+ */
+describe("severidade de DOM — destino vs. entrega, conteúdo vs. estrutura", () => {
+  const dom = (kind: RawDelta["kind"], facts: RawDelta["facts"]): RawDelta =>
+    delta({ layer: "DOM", kind, path: "body > a", facts });
+
+  it("href que muda é destino de ação do usuário: bloqueia", () => {
+    expect(severityOf(dom("DOM_ATTRIBUTE_CHANGED", { attribute: "href" }))).toBe("HIGH");
+  });
+
+  it("src que muda é entrega do mesmo recurso: reporta, não bloqueia", () => {
+    // Um PR real da aplicação recomprimiu a imagem do banner (quality 60 → 50)
+    // e mudou `src` em cinco páginas. Tratar isso como href reprovaria o PR.
+    expect(severityOf(dom("DOM_ATTRIBUTE_CHANGED", { attribute: "src" }))).toBe("MEDIUM");
+    expect(severityOf(dom("DOM_ATTRIBUTE_CHANGED", { attribute: "srcset" }))).toBe("LOW");
+  });
+
+  it("nó com texto que some é conteúdo perdido", () => {
+    expect(
+      severityOf(dom("DOM_NODE_REMOVED", { tag: "li", carriesText: true })),
+    ).toBe("HIGH");
+  });
+
+  it("invólucro sem texto que some é refatoração de estrutura", () => {
+    expect(
+      severityOf(dom("DOM_NODE_REMOVED", { tag: "div", carriesText: false })),
+    ).toBe("MEDIUM");
+  });
+
+  it("elemento interativo que some bloqueia mesmo sem texto", () => {
+    expect(
+      severityOf(dom("DOM_NODE_REMOVED", { tag: "button", carriesText: false })),
+    ).toBe("HIGH");
+  });
+});

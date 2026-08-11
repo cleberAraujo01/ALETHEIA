@@ -32,6 +32,7 @@ export const NORMALIZATION_RULES = {
   NET_VOLATILE_JSON_KEY: "NORM-NET-004",
   NET_UUID_VALUE: "NORM-NET-005",
   NET_TIMESTAMP_VALUE: "NORM-NET-006",
+  NET_BUILD_CONTENT_HASH: "NORM-NET-007",
 } as const;
 
 /** Marcadores que substituem o valor volátil. Visíveis no relatório de propósito. */
@@ -42,6 +43,8 @@ export const PLACEHOLDER = {
   UUID: "<uuid>",
   TIMESTAMP: "<timestamp>",
   ID_SEGMENT: ":id",
+  CONTENT_HASH: "<hash>",
+  BUNDLE_CHUNK: "<chunk>",
 } as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -175,4 +178,45 @@ export function isIdentifierPathSegment(segment: string): boolean {
 
 export function collapseWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Nome de arquivo de bundle: `page-4f2a…8c.js`, `main.a1b2c3d4.css`,
+ * `index-DkG7f8Xz.js`, `528-9d84e3b3ba6f7f01.js`.
+ *
+ * O hash é função do CONTEÚDO do build: qualquer linha alterada em qualquer
+ * lugar troca o nome de vários arquivos de uma vez. Sem esta regra, todo PR que
+ * encosta no código produz dezenas de "requisição sumiu / requisição
+ * apareceu" que não dizem nada além de "o bundler rodou".
+ *
+ * MEDIDO no corpus real `juventude`: das 177 divergências de rede entre duas
+ * builds, 110 eram exatamente isto — 62% do ruído de rede vindo do bundler.
+ *
+ * Duas contenções para não virar cegueira:
+ *
+ *  - só extensões de código, estilo, mapa e fonte. Imagem fica de fora de
+ *    propósito: trocar `banner-antigo.webp` por `banner-novo.webp` é mudança
+ *    de conteúdo, e o produto precisa ver;
+ *  - o arquivo que **desaparece** continua aparecendo, porque o nome sem hash
+ *    continua distinto (`layout-<hash>.js` ≠ `page-<hash>.js`).
+ *
+ * O identificador numérico de chunk (`528-…`, `986-…`) é caso à parte: é
+ * posição no grafo de módulos do bundler, renumerada a cada build. Não existe
+ * "o chunk 528" atravessando duas builds, então o número também sai.
+ */
+const BUNDLE_ASSET = /^(.+?)[.-]([0-9A-Za-z_-]{8,})\.(js|mjs|cjs|css|map|woff2?|ttf|otf)$/;
+const NUMERIC_CHUNK = /^\d+$/;
+
+export function stripContentHash(segment: string): string {
+  const match = BUNDLE_ASSET.exec(segment);
+  if (match === null) return segment;
+
+  const [, name, hash, extension] = match;
+  if (name === undefined || hash === undefined || extension === undefined) return segment;
+  // Exige dígito no hash: separa `main.a1b2c3d4.js` de `plugin.controller.js`,
+  // onde o "hash" seria uma palavra e o arquivo, escrito por uma pessoa.
+  if (!/\d/.test(hash)) return segment;
+
+  const stableName = NUMERIC_CHUNK.test(name) ? PLACEHOLDER.BUNDLE_CHUNK : name;
+  return `${stableName}-${PLACEHOLDER.CONTENT_HASH}.${extension}`;
 }

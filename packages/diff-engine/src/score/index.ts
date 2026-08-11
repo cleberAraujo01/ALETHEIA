@@ -3,6 +3,7 @@ import type { Severity } from "../types/delta.js";
 import {
   BEHAVIORAL_ATTRIBUTES,
   INTERACTIVE_ROLES,
+  NAVIGATION_ATTRIBUTES,
   INTERACTIVE_TAGS,
   N_PLUS_ONE_AMPLIFICATION,
   NOTABLE_AMPLIFICATION,
@@ -73,8 +74,20 @@ export function severityOf(delta: RawDelta): Severity {
     case "RESPONSE_FIELD_ADDED":
       return "LOW";
 
-    case "DOM_NODE_REMOVED":
-      return isInteractive(delta) ? "HIGH" : "MEDIUM";
+    case "DOM_NODE_REMOVED": {
+      if (isInteractive(delta)) return "HIGH";
+      // Nó com texto que desaparece é conteúdo que o usuário deixou de
+      // receber — a turma que sumiu da listagem, o cartão que não renderizou
+      // mais. Invólucro sem texto é estrutura, e refatorar estrutura é rotina.
+      //
+      // EVIDÊNCIA (corpus `juventude`, 2026-08-11): no par de builds com
+      // defeitos, remoções com texto revelaram 3 defeitos distintos que antes
+      // não bloqueavam. No par de commits reais só com mudança intencional,
+      // NENHUM nó foi removido — zero falso positivo. Base estreita: um PR de
+      // uma aplicação. Enquanto não houver um segundo corpus, isto é hipótese
+      // com evidência, não regra estabelecida.
+      return delta.facts["carriesText"] === true ? "HIGH" : "MEDIUM";
+    }
     case "DOM_NODE_ADDED":
       return "LOW";
     case "DOM_TEXT_CHANGED":
@@ -93,7 +106,18 @@ export function severityOf(delta: RawDelta): Severity {
     case "DOM_ATTRIBUTE_CHANGED":
     case "DOM_ATTRIBUTE_REMOVED": {
       const attribute = stringFact(delta.facts["attribute"]);
-      return attribute !== null && BEHAVIORAL_ATTRIBUTES.has(attribute) ? "MEDIUM" : "LOW";
+      if (attribute === null) return "LOW";
+      // Destino de ação do usuário — para onde ele vai ao clicar, para onde o
+      // formulário envia. Mudou sem intenção declarada: ou é link morto, ou é
+      // dado errado no lugar certo (o WhatsApp do clube com um dígito trocado).
+      //
+      // EVIDÊNCIA (corpus `juventude`, 2026-08-11): o par com defeitos teve 2
+      // defeitos distintos revelados só por `href`. O par de commits reais
+      // mudou `src`, `srcset` e `loading` em cinco páginas — e nenhum `href`.
+      // É por isso que a regra separa DESTINO de ENTREGA: subir `src` junto
+      // teria bloqueado um PR legítimo que só recomprimiu uma imagem.
+      if (NAVIGATION_ATTRIBUTES.has(attribute)) return "HIGH";
+      return BEHAVIORAL_ATTRIBUTES.has(attribute) ? "MEDIUM" : "LOW";
     }
 
     case "DOM_CHILDREN_REORDERED":

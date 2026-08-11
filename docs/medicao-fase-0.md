@@ -1,0 +1,172 @@
+# Medição de saída da Fase 0
+
+**Data:** 2026-08-11
+**Critério (§21.2):** detectar ≥ 5 regressões reais com < 10% de falso positivo,
+sem uma única linha de teste escrita.
+**Resultado:** **atingido** — 5 defeitos distintos bloqueados de 9 presentes,
+0% de falso positivo no recorte bloqueante, 9 de 9 defeitos visíveis na triagem.
+Um PR legítimo da mesma aplicação passou sem nenhum delta bloqueante.
+
+Este documento existe para que o número acima possa ser contestado. Ele registra
+o que foi medido, contra o quê, o que ficou de fora e o que ainda não sabemos.
+
+---
+
+## 1. Aplicação e builds
+
+Aplicação real em produção: site institucional da Associação Atlética Juventude
+(Next.js 15, App Router, Tailwind 4). Sete rotas, ~350 nós de DOM por página,
+nenhum `data-testid`.
+
+Duas builds servidas localmente a partir de clones descartáveis do repositório:
+
+| Build | Origem |
+|---|---|
+| `base` | commit `7aeb5c3` — o código como está |
+| `head` | `7aeb5c3` + os 9 defeitos do corpus `juventude` |
+| `pr-antes` | commit `7755d4d` — o pai de `7aeb5c3` |
+
+O par `pr-antes` × `base` é um **PR real da aplicação**, com mudança apenas
+intencional. Ele existe porque sem ele metade da medição seria fantasia: um
+corpus onde toda diferença é defeito não consegue dizer nada sobre falso
+positivo. É fácil fazer um motor detectar tudo; o difícil é não reprovar quem
+não errou.
+
+## 2. Os defeitos
+
+Nove, declarados em `packages/diff-engine/__corpus__/juventude/faults.mjs`, com
+proveniência explícita:
+
+| Origem | Quantos | O que significa |
+|---|---|---|
+| `HISTORICO` | 5 | **Esteve em produção nesta aplicação** e foi corrigido por um commit real, cuja mensagem descreve o sintoma. Reconstituído no HEAD pela transformação inversa da correção |
+| `INJETADO` | 4 | Plantado por nós. Do tipo que este código comporta (rota com erro de digitação, atributo de validação perdido, dígito trocado em contato, off-by-one em listagem), mas nunca esteve em produção |
+
+Somar os dois e anunciar "9 regressões reais" seria mentira, por isso a tabela.
+
+A diferença em relação à medição anterior (`tools/mutate-capture.mjs`, que
+mutila o artefato de captura) é de natureza, não de grau: aqui o defeito está no
+**código-fonte** e atravessa build, renderização, navegador e captura. Foi
+justamente isso que revelou os dois achados da seção 4 — nenhum deles apareceria
+mutando JSON.
+
+## 3. Contagem por defeito, não por delta
+
+Um defeito produz muitos deltas. O link de menu quebrado aparece no cabeçalho e
+no rodapé de sete páginas: 27 deltas, um defeito.
+
+A medição anterior contava deltas. Pelo critério "≥ 5 regressões reais", esse
+único defeito atestaria a fase inteira seis vezes. A rotulagem agora declara o
+defeito de origem de cada delta (`LabelEntry.defect`) e a medição conta defeitos
+distintos; regressão rotulada sem defeito declarado impede a contagem em vez de
+passar batido.
+
+## 4. O que a medição encontrou no nosso próprio código
+
+**Um falso negativo silencioso.** O número de WhatsApp do clube trocado num
+dígito (`wa.me/5511941126936` → `…939`) produzia **zero deltas**. A normalização
+colapsava segmento numérico de path em `:id` — regra correta para alinhar
+`/orders/1042` com `/orders/1043` — e aplicava a mesma regra ao `href` de um
+link, onde não há nada a alinhar: o nó já foi emparelhado pela estrutura.
+Normalizar ali não comprava alinhamento e apagava o defeito.
+
+Corrigido separando o propósito da normalização (`ALIGNMENT` × `VALUE`). É o
+caso central do problema do oráculo: a página renderiza, o botão funciona, a
+conversa abre — no número errado.
+
+**Uma build inobservável.** O prefetch da rota quebrada recebe 404 e a aplicação
+abandona o corpo; a requisição fica em voo para sempre e a captura morria de
+`TIMEOUT_CONVERGENCE` nas sete páginas. Um defeito que o motor detecta em
+segundos impedia qualquer veredito. Corrigido em [ADR-014](./adr/ADR-014-resposta-nao-drenada-na-convergencia.md).
+
+## 5. Números
+
+Piso de ruído — duas capturas independentes da **mesma** build: **0 deltas**,
+incluindo camada visual.
+
+### Corpus de defeitos
+
+| | Antes | Depois |
+|---|---|---|
+| Deltas totais | 298 | 223 |
+| Deltas de ruído | 142 | **50** |
+| Precisão na triagem | 52,3% | **77,6%** |
+| Defeitos visíveis | 8 de 9 | **9 de 9** |
+| Defeitos bloqueados | 1 de 9 | **5 de 9** |
+| Falso positivo bloqueante | 0% | **0%** |
+
+"Antes" e "depois" separam quatro mudanças, todas com evidência medida:
+
+1. **Normalização de hash de bundle** (`NORM-NET-007`). Das 177 divergências de
+   rede, 110 eram `/_next/static/chunks/…-<hash>.js` — o mesmo módulo com outro
+   nome porque o bundler rodou. 62% do ruído de rede vinha daí. Imagem ficou de
+   fora de propósito: trocar a arte é mudança de conteúdo.
+2. **Propósito de normalização de URL** — o falso negativo da seção 4.
+3. **`href`/`action` que muda → HIGH.** Destino de ação do usuário. `src` ficou
+   fora: no PR real, `src`, `srcset` e `loading` mudaram em cinco páginas porque
+   a imagem do banner foi recomprimida. Subir `src` junto teria reprovado um PR
+   legítimo — o corpus intencional pagou por si nesta linha.
+4. **Nó com texto que desaparece → HIGH.** Conteúdo que o usuário deixou de
+   receber, distinto de invólucro removido em refatoração.
+
+### Corpus de mudança intencional (PR real)
+
+68 deltas, **nenhum bloqueante**. Nenhum delta visual. O gate não reprova quem
+não errou — que é a condição para o time do cliente continuar confiando nele.
+
+## 6. O que passou, e por quê
+
+Quatro defeitos aparecem na triagem mas não bloqueiam:
+
+| Defeito | Por que não bloqueia |
+|---|---|
+| `F1-splash-global` | Vive **antes da hidratação**. A captura observa o estado convergido, e a hidratação já desmontou o splash. Sobra o rastro da imagem que ele pede — um delta, `LOW` |
+| `F2-contraste-aa` | Troca de classe CSS. Sem régua de contraste, o motor vê `text-white` → `text-paper`, não "4,2:1 reprova AA" |
+| `F3-ticker-contraste` | Idem |
+| `F7-email-sem-required` | `required` perdido é `DOM_ATTRIBUTE_REMOVED` comportamental, `MEDIUM`. Subir todo atributo comportamental a `HIGH` reprovaria o PR real, que mexeu em `loading` |
+
+Os três primeiros são acessibilidade, e a leitura honesta é que **este motor não
+tem oráculo de acessibilidade**. Um verificador de contraste é conhecimento
+externo sobre a build, não diferença entre duas builds — cabe em invariantes
+(Fase 3), não aqui.
+
+## 7. Limites desta medição — leia antes de citar o número
+
+- **Uma aplicação, um PR intencional.** As duas regras de severidade novas
+  foram desenhadas depois de ver estes dados. Isso as torna hipóteses com
+  evidência, não regras estabelecidas. Um segundo corpus, de outra aplicação,
+  pode derrubá-las — e é o próximo experimento que o projeto deve rodar.
+- **4 dos 9 defeitos são injetados.** Os 5 bloqueados são F4, F5, F6, F8, F9 —
+  três históricos e dois injetados.
+- **O corpus de defeitos não mede falso positivo de mudança intencional**, e o
+  corpus intencional não mede detecção. Os dois números vêm de corpora
+  diferentes e não devem ser somados.
+- **A rotulagem é automática**, por assinatura de defeito
+  (`__corpus__/juventude/label.mjs`), e não consulta o veredito do motor. Ela
+  fecha para baixo: delta que não casa com nenhuma assinatura é ruído, sempre.
+  Todo erro dela pesa contra o motor, nunca a favor.
+- **Camadas não validadas:** console (capturado, não comparado), banco e trace.
+- **O oráculo é O5.** Defeito que já existia na base é invisível por construção.
+
+## 8. Reproduzir
+
+```bash
+# 1. duas cópias descartáveis da aplicação; aplicar os defeitos numa delas
+node packages/diff-engine/__corpus__/juventude/apply-faults.mjs <cópia-head>
+
+# 2. build e serve de cada cópia (portas distintas), depois capturar as duas
+node shims/cli/dist/main.js capture --url http://localhost:3101 \
+  --journey apps/runner/__fixtures__/journeys/juventude.json \
+  --out .aletheia/fase0/base --label base --seed 42
+
+# 3. comparar, rotular e medir
+node shims/cli/dist/main.js diff --base .aletheia/fase0/base/capture.json \
+  --head .aletheia/fase0/head/capture.json --out .aletheia/fase0/relatorio
+node packages/diff-engine/__corpus__/juventude/label.mjs \
+  .aletheia/fase0/relatorio/report.json .aletheia/fase0/relatorio/labels.json
+node shims/cli/dist/main.js measure --report .aletheia/fase0/relatorio/report.json \
+  --labels .aletheia/fase0/relatorio/labels.json
+```
+
+As capturas e relatórios não são versionados: pesam, contêm screenshots de
+página inteira e são reconstituíveis pelos comandos acima.

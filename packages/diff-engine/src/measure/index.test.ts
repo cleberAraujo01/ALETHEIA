@@ -19,7 +19,20 @@ const delta = (deltaId: string, classification: Classification): Delta => ({
 });
 
 const labels = (entries: Record<string, "REGRESSION" | "INTENDED_CHANGE" | "NOISE">): LabelSet =>
-  Object.fromEntries(Object.entries(entries).map(([id, label]) => [id, { label }]));
+  Object.fromEntries(
+    Object.entries(entries).map(([id, label]) => [
+      id,
+      // Todo rótulo de regressão precisa declarar o defeito de origem; nos
+      // testes que não estão medindo defeito, cada delta é um defeito próprio.
+      label === "REGRESSION" ? { label, defect: `defeito-${id}` } : { label },
+    ]),
+  );
+
+/** Rotulagem com atribuição explícita: vários deltas para o mesmo defeito. */
+const labelsWithDefects = (entries: Record<string, string>): LabelSet =>
+  Object.fromEntries(
+    Object.entries(entries).map(([id, defect]) => [id, { label: "REGRESSION" as const, defect }]),
+  );
 
 describe("medição de precisão e recall", () => {
   it("separa acerto, falso positivo e falso negativo", () => {
@@ -79,6 +92,46 @@ describe("medição de precisão e recall", () => {
     expect(result.blocking.truePositives).toBe(5);
     expect(result.exitCriteria.met).toBe(false);
     expect(result.exitCriteria.reason).toContain("sem rótulo humano");
+  });
+
+  it("nove deltas do mesmo defeito não valem nove regressões", () => {
+    // O caso real que motivou a contagem por defeito: um link de menu quebrado
+    // aparece no cabeçalho e no rodapé de sete páginas. Contando deltas, o
+    // critério de saída da fase seria atestado por UM defeito.
+    const deltas = Array.from({ length: 9 }, (_, index) => delta(`d${index}`, "REGRESSION"));
+    const result = measure(
+      deltas,
+      labelsWithDefects(Object.fromEntries(deltas.map((d) => [d.deltaId, "link-do-menu"]))),
+    );
+
+    expect(result.blocking.truePositives).toBe(9);
+    expect(result.blockingDefects.detected).toBe(1);
+    expect(result.exitCriteria.met).toBe(false);
+    expect(result.exitCriteria.reason).toContain("1 defeito(s) distinto(s)");
+  });
+
+  it("regressão sem defeito declarado impede a contagem", () => {
+    const deltas = Array.from({ length: 6 }, (_, index) => delta(`d${index}`, "REGRESSION"));
+    const labelSet: LabelSet = Object.fromEntries(
+      deltas.map((d) => [d.deltaId, { label: "REGRESSION" as const }]),
+    );
+
+    const result = measure(deltas, labelSet);
+
+    expect(result.blockingDefects.unattributed).toBe(6);
+    expect(result.exitCriteria.met).toBe(false);
+    expect(result.exitCriteria.reason).toContain("sem defeito declarado");
+  });
+
+  it("defeito visto só como UNDETERMINED conta na triagem e não no bloqueio", () => {
+    const result = measure(
+      [delta("bloqueado", "REGRESSION"), delta("exibido", "UNDETERMINED")],
+      labelsWithDefects({ bloqueado: "F1", exibido: "F2" }),
+    );
+
+    expect(result.blockingDefects.detected).toBe(1);
+    expect(result.blockingDefects.missedIds).toEqual(["F2"]);
+    expect(result.surfacedDefects.detected).toBe(2);
   });
 
   it("atesta o critério da Fase 0 quando há 5 regressões reais e FP abaixo de 10%", () => {

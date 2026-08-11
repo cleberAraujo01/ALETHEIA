@@ -138,9 +138,8 @@ async function captureObservation(
 ): Promise<Observation> {
   const page = await context.newPage();
   const tracker = new NetworkTracker();
-  const exchanges: NetworkExchange[] = [];
+  const responses: Response[] = [];
   const consoleEntries: ConsoleEntry[] = [];
-  const pendingBodies: Promise<void>[] = [];
 
   tracker.attach(page);
   page.on("console", (message) => {
@@ -150,8 +149,11 @@ async function captureObservation(
       text: message.text().slice(0, 2000),
     });
   });
+  // A troca é montada depois da convergência, não aqui: ler o corpo de uma
+  // resposta que a página abandonou trava para sempre, e só depois de convergir
+  // se sabe quais foram abandonadas.
   page.on("response", (response) => {
-    pendingBodies.push(collectExchange(response, exchanges));
+    responses.push(response);
   });
 
   const url = new URL(step.path, options.baseUrl).toString();
@@ -178,10 +180,14 @@ async function captureObservation(
       rounds: outcome.rounds,
       // RN-EXE-012: tempo de convergência é métrica de primeira classe.
       convergenceMs: outcome.elapsedMs,
+      undrainedResponses: outcome.undrainedResponses,
     });
 
     const dom = await page.evaluate(serializeDomInPage);
-    await Promise.all(pendingBodies);
+    const exchanges: NetworkExchange[] = [];
+    for (const response of responses) {
+      exchanges.push(await collectExchange(response, tracker.isUndrained(response.request())));
+    }
 
     const screenshot = options.screenshots
       ? await captureScreenshot(page, step, options)
@@ -232,17 +238,19 @@ function readPngDimensions(buffer: Buffer): { width: number; height: number } {
   return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
 }
 
-async function collectExchange(response: Response, out: NetworkExchange[]): Promise<void> {
+async function collectExchange(response: Response, undrained: boolean): Promise<NetworkExchange> {
   const request = response.request();
   const resourceType = request.resourceType();
 
   let responseBody: JsonValue | null = null;
   if (BODY_RESOURCE_TYPES.has(resourceType)) {
-    responseBody = await readBody(response);
+    // Mesma convenção do corpo grande demais: o marcador diz por que a
+    // evidência não está aqui, em vez de fingir que a resposta não tinha corpo.
+    responseBody = undrained ? "<undrained>" : await readBody(response);
   }
 
   const timing = request.timing();
-  out.push({
+  return {
     method: request.method(),
     url: request.url(),
     status: response.status(),
@@ -251,7 +259,7 @@ async function collectExchange(response: Response, out: NetworkExchange[]): Prom
     responseBody,
     durationMs:
       timing.responseEnd > 0 ? Math.round(timing.responseEnd - timing.startTime) : null,
-  });
+  };
 }
 
 async function readBody(response: Response): Promise<JsonValue | null> {

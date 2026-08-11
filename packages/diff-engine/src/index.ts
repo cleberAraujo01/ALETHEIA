@@ -59,10 +59,11 @@ export {
   measure,
   scaffoldLabels,
   PHASE_0_MAX_FALSE_POSITIVE_RATE,
-  PHASE_0_REQUIRED_TRUE_POSITIVES,
+  PHASE_0_REQUIRED_DEFECTS,
 } from "./measure/index.js";
 export type {
   ConfusionMatrix,
+  DefectCoverage,
   ExitCriteriaCheck,
   HumanLabel,
   LabelEntry,

@@ -100,7 +100,16 @@ function walk(
       path: `${path} > ${baseLabels.get(item) ?? describeNode(item)}`,
       before: truncateValue(summarize(item)),
       after: null,
-      facts: { tag: item.tag, subtreeSize: item.subtreeSize, baseIndex: index },
+      facts: {
+        tag: item.tag,
+        subtreeSize: item.subtreeSize,
+        baseIndex: index,
+        // Separa perda de CONTEÚDO de mudança de ESTRUTURA: um invólucro que
+        // some numa refatoração não custa nada ao usuário; um trecho de texto
+        // que some é informação que ele deixou de receber. A severidade usa
+        // esta distinção (ver `severityOf`).
+        carriesText: hasText(item),
+      },
     });
   }
 
@@ -217,6 +226,12 @@ function disambiguate(nodes: readonly NormalizedDomNode[]): Map<NormalizedDomNod
 }
 
 /** Resumo curto de uma subárvore, para o campo `before`/`after` do relatório. */
+/** Há texto visível em qualquer ponto da subárvore? */
+function hasText(node: NormalizedDomNode): boolean {
+  if (node.text !== null && node.text.trim().length > 0) return true;
+  return node.children.some(hasText);
+}
+
 function summarize(node: NormalizedDomNode): string {
   const parts: string[] = [];
   const collect = (current: NormalizedDomNode): void => {

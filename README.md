@@ -50,7 +50,11 @@ Códigos de saída — o contrato com os shims de CI (RN-CI-005):
 ## Medir precisão e recall
 
 O critério de saída da Fase 0 é numérico, então precisa de instrumento. Depois
-de um `diff`, gere o esqueleto de rotulagem, preencha à mão e meça:
+de um `diff`, gere o esqueleto de rotulagem, preencha à mão e meça. O critério
+fala em **regressões**, não em deltas: ao rotular `REGRESSION`, preencha também
+`defect` com um identificador do problema, e repita o mesmo identificador em
+todos os deltas que vierem dele — senão um link quebrado que aparece em sete
+páginas atesta a fase sozinho.
 
 ```powershell
 node shims/cli/dist/main.js measure --report .aletheia/relatorio/report.json --emit-labels .aletheia/relatorio/labels.json
@@ -68,28 +72,35 @@ Um delta `UNDETERMINED` que era regressão de verdade é falso negativo no
 primeiro recorte e acerto no segundo — a distância entre os dois números é a
 medida de quanto o motor ainda depende de humano.
 
-## Medição contra aplicação real
+## Medição de saída da Fase 0
 
-Medido em 2026-08-10 contra uma aplicação Next.js em produção — 7 rotas, ~350
-nós de DOM por página, 33 requisições, screenshots de página inteira (a maior,
-1280×5613), sem um único `data-testid`:
+**Critério atingido em 2026-08-11.** Relatório completo, com limites e o que
+ficou de fora: [`docs/medicao-fase-0.md`](./docs/medicao-fase-0.md).
+
+Duas builds reais de uma aplicação Next.js em produção (7 rotas, ~350 nós de DOM
+por página, sem um único `data-testid`), servidas localmente:
 
 | Experimento | Resultado |
 |---|---|
-| Mesma build, duas capturas independentes | **1 delta** — um script de analytics de terceiro. Zero deltas de DOM e zero visuais |
-| 8 regressões injetadas no artefato (`tools/mutate-capture.mjs`) | **8 de 8 detectadas**, 4 como `REGRESSION` bloqueante |
-| Convergência por observação | 435–872 ms, sem nenhum `sleep` |
+| Mesma build, duas capturas independentes | **0 deltas**, incluindo camada visual |
+| 9 defeitos no código-fonte — 5 reconstituídos do histórico real da aplicação, 4 injetados | **9 de 9 visíveis**, **5 bloqueados**, 0% de falso positivo |
+| PR real da aplicação, só com mudança intencional | 68 deltas, **nenhum bloqueante** |
+| Convergência por observação | 442–1776 ms, sem nenhum `sleep` |
 
-O falso positivo remanescente é reportado como `UNDETERMINED` e não bloqueia.
-Ele produziu uma correção de calibração real, travada em teste: recurso de
-terceiro que some não tem o mesmo peso que endpoint próprio que some.
+Os dois últimos são medidos em corpora distintos e não se somam: um mede
+detecção, o outro mede se o gate reprova quem não errou.
 
-Para reproduzir a medição de recall:
+A medição encontrou dois defeitos nossos que nenhuma mutação de artefato
+encontraria: um **falso negativo silencioso** (número de telefone trocado num
+dígito ficava invisível, porque a normalização de identificador de path era
+aplicada também ao `href` de um link) e uma **build inobservável** (uma rota
+quebrada travava a convergência e impedia qualquer veredito —
+[ADR-014](./docs/adr/ADR-014-resposta-nao-drenada-na-convergencia.md)).
 
-```bash
-node packages/diff-engine/tools/mutate-capture.mjs \
-  .aletheia/base/capture.json .aletheia/mutado/capture.json
-```
+O corpus vive em `packages/diff-engine/__corpus__/juventude/`; a medição é
+reproduzível pelos comandos da §8 do relatório. `tools/mutate-capture.mjs`
+continua existindo para exercitar o motor isoladamente, mas **não** serve como
+evidência de saída de fase: mutar o artefato não passa por build nem navegador.
 
 ## Estado do código
 
@@ -97,7 +108,8 @@ node packages/diff-engine/tools/mutate-capture.mjs \
 |---|---|
 | `packages/shared` | Erros canônicos, metadados de execução, log estruturado |
 | `packages/diff-engine` | Pipeline de 6 estágios; camadas DOM, rede e visual |
-| `apps/runner` | Captura via Playwright, convergência sem sleep ([ADR-012](./docs/adr/ADR-012-convergencia-sem-sleep-na-captura.md)) |
+| `apps/runner` | Captura via Playwright, convergência sem sleep ([ADR-012](./docs/adr/ADR-012-convergencia-sem-sleep-na-captura.md), [ADR-014](./docs/adr/ADR-014-resposta-nao-drenada-na-convergencia.md)) |
+| `__corpus__/juventude` | Corpus real de 9 defeitos + medição de saída da fase |
 | `shims/cli` | Comandos `capture` e `diff`; relatórios JSON e HTML |
 | Camada de console | Capturada como evidência, **sem diff** — lacuna declarada |
 | Ações na jornada | **Fora de escopo na Fase 0** — depende da IR (Fase 1) |
