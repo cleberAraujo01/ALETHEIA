@@ -71,3 +71,40 @@ describe("hash de conteúdo de bundle", () => {
     expect(norm("/assets/index-DkG7f8Xz.js", "VALUE")).toBe("/assets/index-<hash>.js");
   });
 });
+
+/**
+ * Estes casos vêm da primeira aplicação DESCONHECIDA que o motor encontrou: a
+ * tela de SSO da ANBIMA (Keycloak). Duas capturas da mesma build produziram
+ * dois deltas bloqueantes — e os dois eram token de uso único.
+ */
+describe("token de uso único em query string", () => {
+  const norm = (url: string): string => normalizeUrl(url, opts, createLedger());
+
+  it("session_code do Keycloak sai do diff", () => {
+    const a = norm("/login-actions/authenticate?session_code=soFbAY67UBW3_xJeR2MXrS0Kpsffb3DwmQLmt8rjfe0");
+    const b = norm("/login-actions/authenticate?session_code=eBLQ3P6xie_kEuXgCoraF5NGMLKKcoyqW_bje9LpnmQ");
+    expect(a).toBe(b);
+    expect(a).toContain("<token>");
+  });
+
+  it("tab_id sai mesmo com 11 caracteres, porque o NOME é de protocolo", () => {
+    expect(norm("/reset?tab_id=FLQAJ0n7Qoo")).toBe(norm("/reset?tab_id=OTbn5RUDMjM"));
+  });
+
+  it("state=SP continua sendo comparado — nome de protocolo, valor de negócio", () => {
+    // A conjunção nome+forma existe por isto: `state` é parâmetro de OAuth e é
+    // também unidade federativa numa aplicação brasileira.
+    expect(norm("/busca?state=SP")).not.toBe(norm("/busca?state=RJ"));
+  });
+
+  it("id de vídeo do YouTube continua sendo comparado", () => {
+    // 11 caracteres do mesmo alfabeto de token. Um piso menor que 20 apagaria a
+    // troca de um vídeo na página — falso negativo criado para curar um falso
+    // positivo, que é o pior negócio possível neste produto.
+    expect(norm("/embed?v=dQw4w9WgXcQ")).not.toBe(norm("/embed?v=aB3dE5fG7hI"));
+  });
+
+  it("valor opaco longo sai mesmo em parâmetro de nome desconhecido", () => {
+    expect(norm("/x?ticket=A7bC9dE1fG3hI5jK7lM9nO1pQ3rS5t")).toContain("<token>");
+  });
+});

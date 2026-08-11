@@ -14,7 +14,7 @@ Resultado e leitura completa: [`docs/medicao-fase-0.md`](../../../../docs/medica
 | `label.mjs` | Atribui cada delta do relatório a um defeito, ou a ruído |
 
 O que **não** tem: capturas, relatórios e screenshots. Pesam, e são
-reconstituíveis — ver §8 do documento de medição.
+reconstituíveis — ver §9 do documento de medição.
 
 ## Duas propriedades que sustentam a medição
 

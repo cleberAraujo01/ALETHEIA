@@ -98,7 +98,7 @@ quebrada travava a convergência e impedia qualquer veredito —
 [ADR-014](./docs/adr/ADR-014-resposta-nao-drenada-na-convergencia.md)).
 
 O corpus vive em `packages/diff-engine/__corpus__/juventude/`; a medição é
-reproduzível pelos comandos da §8 do relatório. `tools/mutate-capture.mjs`
+reproduzível pelos comandos da §9 do relatório. `tools/mutate-capture.mjs`
 continua existindo para exercitar o motor isoladamente, mas **não** serve como
 evidência de saída de fase: mutar o artefato não passa por build nem navegador.
 

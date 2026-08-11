@@ -145,10 +145,59 @@ externo sobre a build, não diferença entre duas builds — cabe em invariantes
   (`__corpus__/juventude/label.mjs`), e não consulta o veredito do motor. Ela
   fecha para baixo: delta que não casa com nenhuma assinatura é ruído, sempre.
   Todo erro dela pesa contra o motor, nunca a favor.
+- **Um piso de ruído contra stack desconhecida** (§8) já derrubou uma das duas regras novas antes de qualquer segundo corpus. Repetir esse teste barato a cada regra nova.
 - **Camadas não validadas:** console (capturado, não comparado), banco e trace.
 - **O oráculo é O5.** Defeito que já existia na base é invisível por construção.
 
-## 8. Reproduzir
+## 8. Adendo — primeira aplicação desconhecida (2026-08-11, mesmo dia)
+
+Tela de SSO da ANBIMA (`sso.cer.anbima.cloud`, ambiente de teste), Keycloak.
+Stack que não escrevemos e contra a qual nada foi calibrado. Uma página, duas
+capturas, **mesma build**.
+
+**Resultado inicial: 3 deltas, 2 deles BLOQUEANTES.** A mesma build seria
+reprovada por ela mesma. E os dois bloqueavam por causa da regra `href`/`action`
+→ HIGH criada horas antes: a hipótese calibrada contra uma aplicação encontrou
+seu contraexemplo na primeira aplicação estranha que viu.
+
+| Delta | Valor |
+|---|---|
+| `a[FORGOT_PASSWORD]@href` | `tab_id=FLQAJ0n7Qoo` → `OTbn5RUDMjM` |
+| `form#kc-form-login@action` | `session_code=soFbAY…fe0` → `eBLQ3P…nmQ` |
+
+Tokens de uso único, gerados por request. O `execution=<uuid>` ao lado deles já
+era normalizado; estes escapavam por não terem formato de UUID.
+
+O conserto **não** foi reverter a regra de `href` — ela sustenta a detecção do
+defeito de contato trocado. Foi fechar a lacuna de normalização
+(`NORM-NET-008`), com uma conjunção que quase virou o erro oposto: o nome do
+parâmetro sozinho apagaria `state=SP` numa aplicação brasileira, e um piso de
+comprimento menor apagaria id de vídeo do YouTube — que a aplicação do corpus
+`juventude` tem. Ambos travados em teste.
+
+| Corpus | Antes | Depois |
+|---|---|---|
+| ANBIMA, mesma build | 3 deltas, 2 bloqueantes | **1 delta, 0 bloqueantes** |
+| Juventude, mesma build | 0 | 0 |
+| Juventude, PR real | 68, nenhum bloqueante | 68, nenhum bloqueante |
+| Juventude, 9 defeitos | 5 bloqueados, 0% FP | 5 bloqueados, 0% FP |
+
+O delta remanescente é o corpo do HTML, que traz os mesmos tokens embutidos.
+Fica como `UNDETERMINED` e não bloqueia. Normalizar token dentro de HTML seria
+apagar conteúdo às cegas — a lacuna é declarada, não fechada.
+
+**O que este adendo NÃO é.** Não é o segundo corpus pedido na §7: uma página,
+uma build, zero defeitos. Mede piso de ruído contra stack desconhecida, e nada
+sobre detecção. Mas já custou uma lição barata: **regra de severidade nova
+merece um piso de ruído numa aplicação estranha antes de ser considerada
+estável** — duas capturas de uma página só, e o contraexemplo apareceu.
+
+Também confirmou dois limites de escopo, sem surpresa: a área autenticada é
+inalcançável porque a jornada da Fase 0 não tem ações (isso é IR, Fase 1), e
+uma aplicação em produção sozinha não tem `base` e `head` — o oráculo O5 não
+tem contra o que julgar.
+
+## 9. Reproduzir
 
 ```bash
 # 1. duas cópias descartáveis da aplicação; aplicar os defeitos numa delas

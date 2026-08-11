@@ -5,6 +5,8 @@ import {
   PLACEHOLDER,
   isIdentifierPathSegment,
   isIsoTimestamp,
+  isOpaqueToken,
+  isSingleUseProtocolValue,
   isUuid,
   isVolatileQueryParam,
 } from "./volatile.js";
@@ -88,6 +90,15 @@ export function normalizeUrl(
   for (const [name, value] of parsed.searchParams.entries()) {
     if (isVolatileQueryParam(name)) {
       removedParam = true;
+      continue;
+    }
+    // Token de uso único: ou o nome é de parâmetro de protocolo com valor
+    // opaco, ou o valor é opaco por si só (≥ 20 caracteres de alfabeto de
+    // token). Ver `isSingleUseProtocolValue` — a conjunção existe para não
+    // apagar `state=SP` nem id de vídeo do YouTube.
+    if (isSingleUseProtocolValue(name, value) || isOpaqueToken(value)) {
+      ledger.record(NORMALIZATION_RULES.NET_SINGLE_USE_TOKEN);
+      params.push([name, PLACEHOLDER.TOKEN]);
       continue;
     }
     params.push([name, normalizeScalarValue(value, ledger)]);

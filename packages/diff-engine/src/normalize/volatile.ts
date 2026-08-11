@@ -33,10 +33,12 @@ export const NORMALIZATION_RULES = {
   NET_UUID_VALUE: "NORM-NET-005",
   NET_TIMESTAMP_VALUE: "NORM-NET-006",
   NET_BUILD_CONTENT_HASH: "NORM-NET-007",
+  NET_SINGLE_USE_TOKEN: "NORM-NET-008",
 } as const;
 
 /** Marcadores que substituem o valor volátil. Visíveis no relatório de propósito. */
 export const PLACEHOLDER = {
+  TOKEN: "<token>",
   GENERATED: "<generated>",
   HASHED: "<hashed>",
   VOLATILE: "<volatile>",
@@ -92,6 +94,50 @@ const FRAMEWORK_ATTRIBUTE_PREFIXES = ["data-v-", "data-astro-cid-", "data-n-"];
 const VOLATILE_QUERY_PARAMS = new Set(["_", "cb", "cachebuster", "nonce", "t", "ts", "timestamp", "_t"]);
 
 /**
+ * Parâmetros de uso único de fluxo de autenticação. O valor deles é criado por
+ * request e morre no mesmo request: comparar dois é comparar dois números de
+ * senha da fila.
+ *
+ * MEDIDO: duas capturas da MESMA build da tela de SSO da ANBIMA (Keycloak)
+ * produziram dois deltas BLOQUEANTES — `tab_id` no link de "esqueci a senha" e
+ * `session_code` no `action` do formulário. O `execution=<uuid>` ao lado deles
+ * já era normalizado pela regra de UUID; estes dois escapavam por não terem
+ * formato de UUID. Falso positivo em cima da mesma build é o pior tipo: destrói
+ * a confiança no gate sem nem precisar de um deploy.
+ *
+ * O NOME SOZINHO NÃO BASTA, e é aqui que a regra quase virou falso negativo:
+ * `state` é nome de parâmetro de OAuth **e** é `state=SP` numa aplicação
+ * brasileira. Por isso normalizar exige nome desta lista **e** valor com cara
+ * de token opaco (ver `isOpaqueToken`). `state=SP` continua sendo comparado.
+ */
+const SINGLE_USE_PROTOCOL_PARAMS = new Set([
+  "state",
+  "session_state",
+  "session_code",
+  "tab_id",
+  "execution",
+  "code_challenge",
+  "code_verifier",
+  "auth_session_id",
+  "login_session_id",
+  "request_uri",
+]);
+
+/**
+ * Cadeia opaca: alfabeto de token (base64url), comprimento que nenhum humano
+ * digita e mistura de letras e dígitos.
+ *
+ * O PISO DE 20 CARACTERES TEM MOTIVO CONCRETO: id de vídeo do YouTube tem
+ * exatamente 11 caracteres deste mesmo alfabeto. Um piso menor apagaria a troca
+ * de um vídeo na página — e a aplicação do corpus `juventude` tem uma grade de
+ * vídeos do YouTube. Seria falso negativo criado para resolver falso positivo.
+ *
+ * Abaixo de 20 caracteres, só normaliza se o NOME do parâmetro também disser
+ * que é token de protocolo (é o caso do `tab_id`, com 11).
+ */
+const OPAQUE_TOKEN = /^[A-Za-z0-9_-]{20,}$/;
+
+/**
  * Chaves de JSON reconhecidamente de infraestrutura.
  *
  * `duration` foi deliberadamente EXCLUÍDA: é nome plausível de campo de
@@ -137,6 +183,23 @@ export function isVolatileJsonKey(key: string): boolean {
 
 export function isVolatileQueryParam(name: string): boolean {
   return VOLATILE_QUERY_PARAMS.has(name.toLowerCase());
+}
+
+/** Cadeia sem forma legível: alfabeto de token, ≥ 20 caracteres, letra e dígito. */
+export function isOpaqueToken(value: string): boolean {
+  return OPAQUE_TOKEN.test(value) && /[A-Za-z]/.test(value) && /\d/.test(value);
+}
+
+/**
+ * O par nome+valor caracteriza token de uso único de protocolo?
+ *
+ * Conjunção deliberada: nome de protocolo com valor curto e legível (`state=SP`)
+ * continua sendo comparado; valor opaco em parâmetro de negócio também. Só sai
+ * do diff o que é as duas coisas ao mesmo tempo.
+ */
+export function isSingleUseProtocolValue(name: string, value: string): boolean {
+  if (!SINGLE_USE_PROTOCOL_PARAMS.has(name.toLowerCase())) return false;
+  return /^[A-Za-z0-9_.~-]{8,}$/.test(value);
 }
 
 export function isFrameworkAttribute(name: string): boolean {
