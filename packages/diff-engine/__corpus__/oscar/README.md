@@ -47,14 +47,19 @@ renderiza com referrer, e a jornada navega direto por URL). Escolher defeito por
 detectabilidade é como se produz número bonito e vazio; descartar defeito que
 não se manifesta é outra coisa, e precisa ficar escrito qual dos dois aconteceu.
 
-**A ponte para a camada visual foi medida, não suposta.** Atribuir delta de pixel
-a um defeito por proximidade é fabricar acerto. O defeito `O7-miniatura-sem-alt`
-não tem efeito visual óbvio — remover `alt` não deveria mover nada. Antes de
-declará-lo com efeito de pixel, ele foi aplicado **sozinho**: a altura da página
-mudou exatamente nas páginas com listagem de produto e exatamente na mesma
-medida do conjunto completo (`/en-gb/offers/`: 10737 → 10755 px nos dois casos).
-A causa é que imagem ainda não pintada renderiza o texto do `alt`, que ocupa
-espaço. Sem essa medição, os 132 deltas visuais daquela página seriam ruído.
+**A ponte para a camada visual exige medição, e uma medição correta não basta se
+o ambiente estiver errado.** Atribuir delta de pixel a um defeito por
+proximidade é fabricar acerto, então `O7-miniatura-sem-alt` — que não deveria
+mover pixel nenhum — foi aplicado **sozinho** antes de ser declarado com efeito
+visual. A altura de toda página com listagem mudou, e na mesma medida do
+conjunto completo. Evidência aparentemente sólida.
+
+Estava errada: o sandbox tinha sido montado sem `npm run build`, o CSS respondia
+404, e sem CSS nada fixa a dimensão da miniatura — imagem não pintada renderiza
+o texto do `alt` e ocupa espaço. Com os assets compilados, nenhuma altura muda e
+os 452 deltas visuais viram 33. Ver §10.3.1 do documento de medição. **Se o
+`curl` do `styles.css` não devolver 200, qualquer número desta medição vale
+nada.**
 
 ## Alterar este corpus
 

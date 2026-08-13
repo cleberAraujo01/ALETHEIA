@@ -330,9 +330,9 @@ referrer).
 
 | | Resultado |
 |---|---|
-| Deltas totais | 708 (DOM 244 · rede 12 · visual 452) |
+| Deltas totais | 289 (DOM 244 · rede 12 · visual 33) |
 | Deltas de ruído | **10** |
-| Precisão na triagem | **98,6%** |
+| Precisão na triagem | **96,5%** |
 | Defeitos visíveis | **7 de 7** |
 | Defeitos bloqueados | **4 de 7** |
 | Falso positivo bloqueante | **0%** |
@@ -341,10 +341,48 @@ Os 10 deltas de ruído são corpos de resposta HTML, que o relatório guarda
 elididos: não dá para confirmar que a marca do defeito está lá dentro, então
 contam contra o motor. É a mesma lacuna da §8.
 
-**O recall de 3,7% no recorte bloqueante não é um número sobre qualidade.** Ele
-mede deltas, e 452 dos 708 são regiões de pixel de uma página de 10 mil pixels de
-altura — um defeito que desloca o layout produz centenas de regiões, todas
-verdadeiras e nenhuma bloqueante. A unidade do critério é defeito distinto.
+**O recall de 9,3% no recorte bloqueante não é um número sobre qualidade.** Ele
+mede deltas, e um único defeito produz muitos — as 210 perdas de `alt` são um
+defeito só. A unidade do critério é defeito distinto.
+
+### 10.3.1 Um ambiente pela metade fabricou um mecanismo plausível e falso
+
+A primeira rodada desta medição foi feita com o sandbox montado **sem compilar
+os assets** (`npm run build`, que o `make sandbox` do django-oscar faz e a
+receita inicial aqui não fazia). `styles.css` respondia 404 e as páginas
+renderizavam sem CSS. O servidor devolvia 200 em tudo, a jornada convergia, nada
+denunciava o problema — foi o log do servidor, lido por outro motivo, que o
+revelou.
+
+O efeito sobre o número não foi ruído aleatório, que é o que se esperaria. Foi
+**um mecanismo coerente e falso**:
+
+| | Sem assets | Com assets |
+|---|---|---|
+| Deltas totais | 708 | **289** |
+| Deltas visuais | 452 | **33** |
+| Páginas com altura alterada | 7 de 10 | **nenhuma** |
+| Precisão na triagem | 98,6% | **96,5%** |
+| Defeitos bloqueados | 4 de 7 | **4 de 7** |
+
+Sem CSS, nada fixa a dimensão da miniatura, então imagem ainda não pintada
+renderiza o texto do `alt` e ocupa espaço. Remover o `alt` mudava a altura de
+toda página com listagem de produto. O efeito era real, reprodutível, e foi
+confirmado com o defeito aplicado **isolado** (`/en-gb/offers/`: 10737 → 10755
+px, medida idêntica à do conjunto completo). Passou no teste de evidência que
+este corpus exige antes de atribuir delta visual a um defeito — e estava errado
+assim mesmo, porque o ambiente é que estava errado.
+
+Com os assets compilados a miniatura tem dimensão fixa: nenhuma altura muda, os
+452 deltas visuais viram 33, e todos eles caem nas quatro páginas que têm `O2`
+ou `O6`. Os 132 deltas visuais de `/en-gb/offers/` eram artefato de ambiente.
+
+Duas coisas a levar: a exigência de medir antes de atribuir **funcionou** — sem
+ela a atribuição teria sido por proximidade e ninguém saberia de nada. E
+**medição só vale contra ambiente montado direito**: um sandbox pela metade não
+produz barulho evidente, produz explicação plausível. As conclusões por defeito
+sobreviveram intactas às duas rodadas; as conclusões por delta não. É mais uma
+razão para a unidade do critério ser defeito.
 
 ### 10.4 O que passou, e a comparação com o primeiro corpus
 
@@ -389,6 +427,8 @@ aplicação só.
 - **Três dos sete defeitos foram desenhados espelhando o primeiro corpus**, o
   que os torna menos independentes do que a contagem sugere.
 - **Camadas não validadas continuam as mesmas:** console, banco e trace.
+- **A camada visual quase não foi exercitada aqui.** São 33 deltas, todos nas
+  quatro páginas de listagem. O corpus mede sobretudo DOM.
 - **O oráculo continua sendo O5.** Defeito que já existia na base é invisível
   por construção — inclusive defeitos reais do django-oscar que estejam em
   produção agora.
@@ -429,8 +469,20 @@ python -m venv venv --upgrade-deps
 ./venv/Scripts/python.exe sandbox/manage.py loaddata sandbox/fixtures/pages.json \
   sandbox/fixtures/ranges.json sandbox/fixtures/offers.json
 ./venv/Scripts/python.exe sandbox/manage.py update_index catalogue
+# OS DOIS PASSOS ABAIXO NÃO SÃO OPCIONAIS — ver §10.3.1. Sem eles o CSS responde
+# 404, a aplicação renderiza sem estilo, e a camada visual mede outra coisa.
+npm install && npm run build
+cp src/oscar/static/oscar/img/image_not_found.jpg sandbox/public/media/
 ./venv/Scripts/python.exe sandbox/manage.py collectstatic --noinput
 ./venv/Scripts/python.exe sandbox/manage.py runserver 3201 --noreload --insecure
+```
+
+Confira antes de capturar — a aplicação responde 200 mesmo sem os assets, então
+este é o único sinal barato de que o ambiente está inteiro:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3201/static/oscar/css/styles.css
+# 200 esperado; 404 significa que os assets não foram compilados
 ```
 
 Depois, capturar as duas builds. Django recarrega template a quente, então não

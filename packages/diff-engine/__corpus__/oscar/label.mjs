@@ -34,24 +34,31 @@ if (reportPath === undefined || outPath === undefined) {
 const report = JSON.parse(await readFile(resolve(reportPath), "utf8"));
 
 /**
- * Defeitos que comprovadamente movem pixel.
+ * Defeitos que comprovadamente movem pixel: O2 troca o eixo de empilhamento da
+ * lista lateral de categorias, O6 remove um produto da listagem.
  *
- * O2 e O6 são óbvios: um troca o eixo de empilhamento da lista de categorias, o
- * outro remove um produto da listagem.
+ * `O7-miniatura-sem-alt` NÃO está aqui, e a história de por que quase esteve é
+ * a lição mais cara deste corpus.
  *
- * O7 (miniatura sem `alt`) NÃO é óbvio, e por isso foi MEDIDO antes de entrar
- * aqui: com o defeito aplicado sozinho, a altura da página muda exatamente nas
- * páginas que têm listagem de produto e exatamente na mesma medida do conjunto
- * completo (`/en-gb/offers/`: 10737 → 10755 px nos dois casos). A causa é que
- * imagem ainda não pintada renderiza o texto do `alt`, que ocupa espaço; sem o
- * atributo não há o que renderizar. Sem essa medição, atribuir os 132 deltas
- * visuais de `/en-gb/offers/` ao defeito seria fabricar acerto por proximidade.
+ * Na primeira medição, o sandbox foi montado sem compilar os assets (`npm run
+ * build`), então `styles.css` respondia 404 e as páginas renderizavam SEM CSS.
+ * Nessa condição a remoção do `alt` mudava a altura de toda página com listagem
+ * de produto — imagem ainda não pintada renderiza o texto do `alt`, que ocupa
+ * espaço quando nada fixa a dimensão dela. O efeito era real, reprodutível e
+ * medido com o defeito isolado (`/en-gb/offers/`: 10737 → 10755 px, idêntico ao
+ * conjunto completo). Parecia evidência sólida.
+ *
+ * Com os assets compilados, a miniatura tem dimensão fixa por CSS: **nenhuma
+ * altura de página muda**, e os 452 deltas visuais viram 33, todos nas quatro
+ * páginas que têm O2 ou O6. Os 132 deltas visuais de `/en-gb/offers/` eram
+ * artefato de ambiente, não consequência de defeito.
+ *
+ * Duas coisas a levar daqui. A exigência de medir antes de atribuir funcionou —
+ * sem ela, a atribuição teria sido por proximidade e ninguém saberia. E medição
+ * só vale contra ambiente montado direito: um sandbox pela metade não produz
+ * ruído aleatório, produz mecanismo plausível e falso.
  */
-const DEFEITOS_COM_PIXEL = new Set([
-  "O2-categorias-empilhadas",
-  "O6-listagem-off-by-one",
-  "O7-miniatura-sem-alt",
-]);
+const DEFEITOS_COM_PIXEL = new Set(["O2-categorias-empilhadas", "O6-listagem-off-by-one"]);
 
 /** Assinaturas de cada defeito. A primeira que casar decide. */
 const ASSINATURAS = [
