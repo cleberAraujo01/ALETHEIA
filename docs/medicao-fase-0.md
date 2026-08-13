@@ -485,6 +485,15 @@ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3201/static/oscar/css/
 # 200 esperado; 404 significa que os assets não foram compilados
 ```
 
+E, depois de capturar, confira o log do servidor: **qualquer 404 invalida a
+medição**. Foi esse o sinal que denunciou o ambiente pela metade, e é mais
+barato que qualquer inspeção da página.
+
+```bash
+grep -oE '" [0-9]{3} ' <log do runserver> | sort | uniq -c
+# esperado: só 200 e 304. Nenhum 404, nenhum 500.
+```
+
 Depois, capturar as duas builds. Django recarrega template a quente, então não
 há passo de build entre aplicar o defeito e observar:
 
