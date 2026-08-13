@@ -16,8 +16,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test",
-    "suppression:validate": "pnpm --filter @aletheia/diff-engine run suppression:validate"
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm arch:check",
+    "suppression:validate": "pnpm --filter @aletheia/diff-engine run suppression:validate",
+    "arch:check": "node scripts/arch-check.mjs",
+    "arch:check:selftest": "node scripts/arch-check.selftest.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -31,3 +31,10 @@ pre-push:
       run: pnpm typecheck
     - name: test
       run: pnpm test
+    # Barato (não compila nada, só lê fontes) e é o único gate que verifica
+    # RELAÇÃO entre pacotes. O auto-teste vai junto: verificador que sempre
+    # passa é indistinguível de verificador quebrado.
+    - name: arch-check
+      run: pnpm arch:check
+    - name: arch-check-selftest
+      run: pnpm arch:check:selftest
