@@ -72,10 +72,18 @@ export function createLogger(options: LoggerOptions): Logger {
     };
 
     return {
-      debug: (message, fields) => emit("debug", message, fields),
-      info: (message, fields) => emit("info", message, fields),
-      warn: (message, fields) => emit("warn", message, fields),
-      error: (message, fields) => emit("error", message, fields),
+      debug: (message, fields) => {
+        emit("debug", message, fields);
+      },
+      info: (message, fields) => {
+        emit("info", message, fields);
+      },
+      warn: (message, fields) => {
+        emit("warn", message, fields);
+      },
+      error: (message, fields) => {
+        emit("error", message, fields);
+      },
       child: (extra) => build({ ...bound, ...extra }),
     };
   };

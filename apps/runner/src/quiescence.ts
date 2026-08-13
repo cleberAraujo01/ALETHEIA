@@ -82,9 +82,15 @@ export class NetworkTracker {
     page.on("request", (request) => {
       this.#awaitingResponse.add(request);
     });
-    page.on("response", (response) => this.#respond(response.request()));
-    page.on("requestfinished", (request) => this.#settle(request));
-    page.on("requestfailed", (request) => this.#settle(request));
+    page.on("response", (response) => {
+      this.#respond(response.request());
+    });
+    page.on("requestfinished", (request) => {
+      this.#settle(request);
+    });
+    page.on("requestfailed", (request) => {
+      this.#settle(request);
+    });
   }
 
   /** Requisições sem resposta — as únicas que representam trabalho pendente. */
@@ -241,18 +247,16 @@ async function raceDeadline(
   signal: string,
 ): Promise<void> {
   let timer: NodeJS.Timeout | undefined;
-  const deadline = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () =>
-        reject(
-          new PlatformError("TIMEOUT_CONVERGENCE", {
-            observationId,
-            signal,
-            deadlineMs: remainingMs,
-          }),
-        ),
-      remainingMs,
-    );
+  const deadline = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(
+        new PlatformError("TIMEOUT_CONVERGENCE", {
+          observationId,
+          signal,
+          deadlineMs: remainingMs,
+        }),
+      );
+    }, remainingMs);
   });
 
   try {

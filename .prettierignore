@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.turbo/
+.aletheia/
+pnpm-lock.yaml
+
+# Corpus e fixtures: o conteúdo é dado de medição, não código. Reformatar um
+# fixture muda o artefato que o teste compara e invalida a comparação.
+packages/diff-engine/__fixtures__/
+packages/diff-engine/__corpus__/**/*.json
+
+# Markdown fica de fora, e a decisão foi tomada depois de medir o estrago:
+# `prettier --write .` realinhou todas as tabelas de CLAUDE.md, ARQUITETURA.md e
+# medicao-fase-0.md de uma vez. São documentos escritos à mão, revisados linha a
+# linha, e o único efeito seria um diff gigante que atrapalha a leitura de todo
+# diff futuro nos arquivos que governam o projeto. Formatação automática precisa
+# ganhar o lugar que ocupa; aqui ela não ganha.
+*.md

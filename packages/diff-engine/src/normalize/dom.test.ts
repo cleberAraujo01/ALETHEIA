@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { DomNode } from "../types/capture.js";
+
 import { normalizeDom } from "./dom.js";
 import { createLedger } from "./ledger.js";
 import { NORMALIZATION_RULES } from "./volatile.js";

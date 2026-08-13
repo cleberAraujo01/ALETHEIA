@@ -65,7 +65,9 @@ describe("alinhamento por identidade semântica", () => {
       { id: "b", text: "B" },
       { id: "c", text: "C" },
     ];
-    const head: Item[] = [base[2], base[0], base[1]].filter((item): item is Item => item !== undefined);
+    const head: Item[] = [base[2], base[0], base[1]].filter(
+      (item): item is Item => item !== undefined,
+    );
 
     const alignment = alignByKeys(base, head, [strong, weak]);
 

@@ -1,6 +1,7 @@
 import { stableHash } from "@aletheia/shared";
 
 import type { JsonValue, NetworkExchange } from "../types/capture.js";
+
 import type { NormalizationLedger } from "./ledger.js";
 import { normalizeScalarValue, normalizeUrl, type UrlNormalizationOptions } from "./url.js";
 import { NORMALIZATION_RULES, PLACEHOLDER, isVolatileJsonKey } from "./volatile.js";

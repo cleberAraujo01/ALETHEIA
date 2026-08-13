@@ -1,6 +1,7 @@
 import { alignByKeys } from "../align/generic.js";
 import { describeNode, type NormalizedDomNode } from "../normalize/dom.js";
-import { DeltaBudget, truncateValue, type RawDelta } from "./types.js";
+
+import { type DeltaBudget, truncateValue, type RawDelta } from "./types.js";
 
 /**
  * Diferenciação de DOM — estágio 3 do pipeline.

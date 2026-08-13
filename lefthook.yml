@@ -1,0 +1,33 @@
+# Hooks de git.
+#
+# ORÇAMENTO, e ele é o ponto: pre-commit ≤ 5s, pre-push ≤ 60s. Hook lento é
+# hook que alguém contorna com `--no-verify`, e hook contornado não protege
+# nada. Por isso o pre-commit só formata — lint com informação de tipo precisa
+# montar o programa TypeScript inteiro e nunca caberia em 5 segundos.
+#
+# A divisão segue a mesma lógica dos Tiers de execução que vendemos ao cliente
+# (ARQUITETURA.md §15.3): barato e frequente perto do teclado, caro e completo
+# antes de publicar.
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      glob: "*.{ts,mjs,js,json,md,yml,yaml}"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: npx commitlint --edit {1}
+
+pre-push:
+  parallel: false
+  jobs:
+    - name: lint
+      run: pnpm lint
+    - name: typecheck
+      run: pnpm typecheck
+    - name: test
+      run: pnpm test

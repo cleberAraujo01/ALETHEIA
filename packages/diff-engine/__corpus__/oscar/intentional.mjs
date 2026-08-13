@@ -51,7 +51,8 @@ const TEMPLATES = "src/oscar/templates/oscar";
 export const CHANGES = [
   {
     id: "M1-menu-so-nivel-1",
-    commit: "cbfd74234 — 'Render only top level categories in primary navigation menu.' (2020-10-30)",
+    commit:
+      "cbfd74234 — 'Render only top level categories in primary navigation menu.' (2020-10-30)",
     descricao:
       "O menu 'Browse store' deixa de listar as categorias de segundo nível e passa a " +
       "mostrar só as de primeiro. Em toda página da loja, vários links com texto " +
@@ -73,7 +74,7 @@ export const CHANGES = [
     id: "M2-id-no-campo-de-busca",
     commit: "fddb6a312 — 'Add id to search form input' (2024-02-16)",
     descricao:
-      "O campo de busca do cabeçalho ganha `id=\"id_q\"`. Aparece em toda página; nada muda " +
+      'O campo de busca do cabeçalho ganha `id="id_q"`. Aparece em toda página; nada muda ' +
       "visualmente.",
     porQueLegitima:
       "Acréscimo de identidade para acessibilidade e teste. Adversário específico do " +
@@ -108,7 +109,8 @@ export const CHANGES = [
   },
   {
     id: "M4-sem-preco-nao-compra",
-    commit: "1f2772c4b — 'Don't allow adding to basket if the product has no price.' (#4013, 2023-05-12)",
+    commit:
+      "1f2772c4b — 'Don't allow adding to basket if the product has no price.' (#4013, 2023-05-12)",
     descricao:
       "Produto sem preço deixa de exibir disponibilidade e botão de compra, e passa a " +
       "mostrar 'Unavailable'. O sandbox tem 3 produtos assim em 201.",
@@ -130,8 +132,7 @@ export const CHANGES = [
       },
       {
         file: `${TEMPLATES}/catalogue/partials/stock_record.html`,
-        from:
-          '{% endif %}\n{% if session.price.exists %}\n<p class="{{ session.availability.code }} availability">',
+        from: '{% endif %}\n{% if session.price.exists %}\n<p class="{{ session.availability.code }} availability">',
         to: '{% endif %}\n<p class="{{ session.availability.code }} availability">',
       },
       {

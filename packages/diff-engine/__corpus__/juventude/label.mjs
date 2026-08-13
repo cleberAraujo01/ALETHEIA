@@ -37,13 +37,13 @@ if (reportPath === undefined || outPath === undefined) {
 const report = JSON.parse(await readFile(resolve(reportPath), "utf8"));
 
 const ROTA_POR_OBSERVACAO = {
-  home: '/',
-  escolinha: '/escolinha',
-  time: '/time',
-  'quem-somos': '/quem-somos',
-  canais: '/canais',
-  contato: '/contato',
-  parceiros: '/parceiros',
+  home: "/",
+  escolinha: "/escolinha",
+  time: "/time",
+  "quem-somos": "/quem-somos",
+  canais: "/canais",
+  contato: "/contato",
+  parceiros: "/parceiros",
 };
 
 /** Rotas onde o banner das internas existe (a home tem hero próprio). */
@@ -104,7 +104,9 @@ const ASSINATURAS = [
         // Cascata de realinhamento: com o <img> fora, os irmãos da seção do
         // banner mudam de índice e o alinhamento posicional os reporta. É
         // consequência direta do mesmo defeito.
-        /^body > main#conteudo > (div\[\d+\] > )?section(\[0\])? > (img|div\[\d+\]|div\b)/.test(d.path)),
+        /^body > main#conteudo > (div\[\d+\] > )?section(\[0\])? > (img|div\[\d+\]|div\b)/.test(
+          d.path,
+        )),
   },
   {
     defect: "F3-ticker-contraste",
@@ -125,8 +127,7 @@ const ASSINATURAS = [
     // desmonta fora da home), então o rastro observável dele é a imagem do
     // brasão que ele pede com priority nas páginas internas.
     casa: (d) =>
-      texto(d).includes("splash-intro") ||
-      (rota(d) !== "/" && d.path.includes("brasao-footer")),
+      texto(d).includes("splash-intro") || (rota(d) !== "/" && d.path.includes("brasao-footer")),
   },
 ];
 

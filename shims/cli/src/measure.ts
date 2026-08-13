@@ -39,7 +39,10 @@ export async function measureCommand(args: MeasureCommandArgs): Promise<number> 
     });
   }
 
-  const result = measure(report.deltas, parseLabels(await readJson(resolve(args.labels)), args.labels));
+  const result = measure(
+    report.deltas,
+    parseLabels(await readJson(resolve(args.labels)), args.labels),
+  );
   process.stdout.write(render(result, report));
 
   // O código de saída reflete o critério de saída da fase, não o veredito da

@@ -1,6 +1,7 @@
 import type { NormalizedExchange } from "../normalize/network.js";
 import type { JsonValue } from "../types/capture.js";
-import { DeltaBudget, truncateValue, type RawDelta } from "./types.js";
+
+import { type DeltaBudget, truncateValue, type RawDelta } from "./types.js";
 
 /**
  * Recursos que carregam dado da aplicação. O resto (script, imagem, fonte,
@@ -108,7 +109,14 @@ export function diffNetwork(
       const baseExchange = baseList[index];
       const headExchange = headList[index];
       if (baseExchange === undefined || headExchange === undefined) continue;
-      diffExchange(observationId, `${label}#${index}`, baseExchange, headExchange, thirdParty, emit);
+      diffExchange(
+        observationId,
+        `${label}#${index}`,
+        baseExchange,
+        headExchange,
+        thirdParty,
+        emit,
+      );
     }
   }
 

@@ -1,5 +1,6 @@
 import type { RawDelta } from "../diff/types.js";
 import type { Severity } from "../types/delta.js";
+
 import {
   BEHAVIORAL_ATTRIBUTES,
   INTERACTIVE_ROLES,

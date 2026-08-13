@@ -17,11 +17,7 @@ export type {
 
 export type { RasterImage, RasterSet } from "./types/raster.js";
 export { DEFAULT_VISUAL_OPTIONS, compareRasters } from "./visual/compare.js";
-export type {
-  VisualComparison,
-  VisualComparisonOptions,
-  VisualRegion,
-} from "./visual/compare.js";
+export type { VisualComparison, VisualComparisonOptions, VisualRegion } from "./visual/compare.js";
 
 export type {
   Classification,

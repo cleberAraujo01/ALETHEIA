@@ -12,6 +12,10 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
     "suppression:validate": {
       "dependsOn": ["^build"],
       "outputs": []

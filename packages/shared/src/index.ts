@@ -6,12 +6,7 @@ export {
   exitCodeFor,
   EXIT_CODE,
 } from "./errors.js";
-export type {
-  ErrorContext,
-  ExitCode,
-  PlatformErrorCode,
-  QualityVerdictCode,
-} from "./errors.js";
+export type { ErrorContext, ExitCode, PlatformErrorCode, QualityVerdictCode } from "./errors.js";
 
 export { systemClock } from "./metadata.js";
 export type { AutonomyLevel, Clock, ConfidenceMode, RunMetadata } from "./metadata.js";

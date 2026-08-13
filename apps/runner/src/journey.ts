@@ -1,5 +1,5 @@
-import { PlatformError } from "@aletheia/shared";
 import type { Rect } from "@aletheia/diff-engine";
+import { PlatformError } from "@aletheia/shared";
 
 /**
  * Jornada de captura — Fase 0.

@@ -63,7 +63,9 @@ for (const change of CHANGES) {
     }
 
     const after =
-      edit.all === true ? before.split(edit.from).join(edit.to) : before.replace(edit.from, edit.to);
+      edit.all === true
+        ? before.split(edit.from).join(edit.to)
+        : before.replace(edit.from, edit.to);
     await writeFile(path, crlf ? after.replaceAll("\n", "\r\n") : after, "utf8");
   }
   applied.push(change);

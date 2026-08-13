@@ -19,12 +19,7 @@ export const CAPTURE_VERSION = "0.2.0";
 export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0"];
 
 export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export interface Capture {
   readonly captureVersion: string;

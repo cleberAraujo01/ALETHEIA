@@ -1,6 +1,7 @@
 import { stableHash } from "@aletheia/shared";
 
 import type { DomNode } from "../types/capture.js";
+
 import type { NormalizationLedger } from "./ledger.js";
 import { normalizeUrl, type UrlNormalizationOptions } from "./url.js";
 import {
@@ -68,7 +69,8 @@ export function normalizeDom(
   const attributes = normalizeAttributes(node.attributes, urlOptions, ledger);
   const text = normalizeText(node.text, ledger);
   const role = node.role;
-  const accessibleName = node.accessibleName === null ? null : collapseWhitespace(node.accessibleName);
+  const accessibleName =
+    node.accessibleName === null ? null : collapseWhitespace(node.accessibleName);
   const children = node.children.map((child) => normalizeDom(child, urlOptions, ledger));
 
   const identity = {
@@ -136,11 +138,7 @@ function normalizeAttributes(
     // Token anti-CSRF em campo escondido. Conjunção de três condições: é o
     // `value`, o `name` do campo é de token conhecido de framework, e o valor
     // tem forma opaca. Campo de negócio com valor legível continua comparado.
-    if (
-      name === "value" &&
-      isTokenFieldName(attributes["name"] ?? "") &&
-      isOpaqueToken(raw)
-    ) {
+    if (name === "value" && isTokenFieldName(attributes["name"] ?? "") && isOpaqueToken(raw)) {
       ledger.record(NORMALIZATION_RULES.DOM_TOKEN_FIELD_VALUE);
       result[name] = PLACEHOLDER.TOKEN;
       continue;

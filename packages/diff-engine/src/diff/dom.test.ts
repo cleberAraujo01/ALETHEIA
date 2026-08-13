@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { normalizeDom } from "../normalize/dom.js";
 import { createLedger } from "../normalize/ledger.js";
 import type { DomNode } from "../types/capture.js";
+
 import { diffDom } from "./dom.js";
 import { DeltaBudget, type RawDelta } from "./types.js";
 
@@ -33,7 +34,9 @@ describe("remoção de nó: conteúdo perdido × conteúdo reembalado", () => {
   it("texto que sobe um nível é reembalagem", () => {
     // Commit real `1f2772c4b` do django-oscar: `<p><i/> Unavailable</p>` vira
     // `<i/>` mais o texto solto no pai. A página não muda para quem olha.
-    const base = node("div", null, [node("p", null, [node("i", null), node("span", "Unavailable")])]);
+    const base = node("div", null, [
+      node("p", null, [node("i", null), node("span", "Unavailable")]),
+    ]);
     const head = node("div", "Unavailable", [node("i", null)]);
 
     const [delta] = removals(base, head);

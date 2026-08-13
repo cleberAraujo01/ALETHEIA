@@ -81,8 +81,12 @@ describe("token de uso único em query string", () => {
   const norm = (url: string): string => normalizeUrl(url, opts, createLedger());
 
   it("session_code do Keycloak sai do diff", () => {
-    const a = norm("/login-actions/authenticate?session_code=soFbAY67UBW3_xJeR2MXrS0Kpsffb3DwmQLmt8rjfe0");
-    const b = norm("/login-actions/authenticate?session_code=eBLQ3P6xie_kEuXgCoraF5NGMLKKcoyqW_bje9LpnmQ");
+    const a = norm(
+      "/login-actions/authenticate?session_code=soFbAY67UBW3_xJeR2MXrS0Kpsffb3DwmQLmt8rjfe0",
+    );
+    const b = norm(
+      "/login-actions/authenticate?session_code=eBLQ3P6xie_kEuXgCoraF5NGMLKKcoyqW_bje9LpnmQ",
+    );
     expect(a).toBe(b);
     expect(a).toContain("<token>");
   });
@@ -129,7 +133,9 @@ describe("id de sessão como parâmetro de segmento de path", () => {
   it("sai também no propósito VALUE — foi ele que bloqueou o href e o action", () => {
     // Oposto deliberado do caso do WhatsApp: id de sessão não é conteúdo de
     // negócio, então apagá-lo no `href` não custa detecção nenhuma.
-    expect(norm(`/about.htm;jsessionid=${A}`, "VALUE")).toBe(norm(`/about.htm;jsessionid=${B}`, "VALUE"));
+    expect(norm(`/about.htm;jsessionid=${A}`, "VALUE")).toBe(
+      norm(`/about.htm;jsessionid=${B}`, "VALUE"),
+    );
   });
 
   it("destinos diferentes continuam diferentes — a regra de href não fica cega", () => {
@@ -141,7 +147,9 @@ describe("id de sessão como parâmetro de segmento de path", () => {
   it("recurso estático volta a alinhar, e o hash de bundle continua sendo visto", () => {
     // Enquanto o parâmetro ficava grudado, `style.css;jsessionid=…` não terminava
     // em `.css` e o alinhamento de rede via 6 removidos + 6 adicionados.
-    expect(norm(`/parabank/style.css;jsessionid=${A}`)).toBe(norm(`/parabank/style.css;jsessionid=${B}`));
+    expect(norm(`/parabank/style.css;jsessionid=${A}`)).toBe(
+      norm(`/parabank/style.css;jsessionid=${B}`),
+    );
     expect(norm(`/assets/index-DkG7f8Xz.js;jsessionid=${A}`)).toContain("index-<hash>.js");
   });
 
