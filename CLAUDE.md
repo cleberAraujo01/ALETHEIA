@@ -343,9 +343,11 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 **Critério de saída:** detectar ≥ 5 regressões reais em aplicação real com < 10% de falso positivo, sem uma única linha de teste escrita.
 
-**O segundo corpus existe desde 2026-08-13** (`packages/diff-engine/__corpus__/oscar/`, §10 da medição): django-oscar, Python/Django renderizado no servidor. 4 de 7 defeitos bloqueados, 0% de falso positivo, 7 de 7 visíveis. As duas regras de severidade que fecharam a Fase 0 deixaram de ser hipóteses calibradas contra uma aplicação só — a de `href`/`action` bloqueou dois defeitos reais numa aplicação estranha, convivendo com CSRF em todo formulário, sem um falso positivo.
+**O segundo corpus existe desde 2026-08-13** (`packages/diff-engine/__corpus__/oscar/`, §10 da medição): django-oscar, Python/Django renderizado no servidor. 4 de 7 defeitos bloqueados, 0% de falso positivo no corpus de defeito, 7 de 7 visíveis.
 
-**O item aberto agora é outro: um corpus de mudança intencional na segunda aplicação.** Sem ele, o número de falso positivo do `oscar` vale só para o conjunto de defeitos que aplicamos — piso de ruído é mesma build, não é PR legítimo.
+**E ele derrubou uma das duas regras que fecharam a Fase 0** (§10.6). O corpus de mudança intencional do oscar — quatro mudanças reais e legítimas do projeto upstream — produziu **22 deltas bloqueantes, todos falso positivo**, todos vindos de **"nó com texto removido → HIGH"**: 20 pelo menu que passou a listar só categorias de primeiro nível, e 2 por uma reembalagem em que o texto nem desapareceu, só trocou de invólucro. A regra `href`/`action` → HIGH sobreviveu e saiu mais forte.
+
+**Este é o item aberto mais importante do projeto agora.** Não conserte rebaixando a severidade de nó removido: é ela que pega `O6` e `F9`, item sumindo em silêncio de listagem, que é a regressão que passa por todo teste de fluxo. A §10.6 lista três direções; a primeira (separar remoção de reembalagem, no alinhamento) é a única sem trade-off aparente contra detecção, e é por onde começar. Qualquer mexida aqui reporta os números dos **quatro** corpora.
 
 **Os dois corpora falham na mesma junta, e é aí que vale investir.** `F7` no `juventude` (atributo `required` perdido), `O3` e `O7` no `oscar` (`value` virando `None`, `alt` removido): sempre mudança de atributo com consequência comportamental que o motor não infere da mudança em si. Dois corpora independentes apontando para o mesmo lugar é evidência, não coincidência. O caminho é severidade por **consequência do atributo**, não por nome dele.
 

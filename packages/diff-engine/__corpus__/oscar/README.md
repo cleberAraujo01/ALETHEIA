@@ -34,6 +34,17 @@ motor. É um teste mais duro, e de propósito.
 | `faults.mjs` | Os 7 defeitos, com proveniência (`HISTORICO` × `INJETADO`), sintoma e o commit upstream que corrigiu cada histórico |
 | `apply-faults.mjs` | Aplica os defeitos aos templates de uma cópia do django-oscar |
 | `label.mjs` | Atribui cada delta do relatório a um defeito, ou a ruído |
+| `intentional.mjs` | As 4 mudanças **legítimas** (sem defeito nenhum), com o commit upstream de cada |
+| `apply-intentional.mjs` | Aplica a inversa delas, produzindo a build `pr-antes` |
+
+São **dois** corpora, e eles medem coisas opostas: o de defeito mede detecção, o
+de mudança intencional mede falso positivo. Um número sozinho não diz nada —
+detectar tudo é trivial se reprovar todo mundo for aceitável.
+
+**Estado atual do corpus intencional: 22 deltas bloqueantes, todos falso
+positivo** (§10.6 do documento de medição). O alvo é zero. Não conserte
+rebaixando a severidade de nó removido — é ela que pega `O6-listagem-off-by-one`
+aqui e `F9` no `juventude`.
 
 O que **não** tem: a aplicação, as capturas, os relatórios e os screenshots.
 Pesam e são reconstituíveis — ver §10.4 do documento de medição.

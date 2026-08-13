@@ -10,6 +10,12 @@ Um PR legítimo da mesma aplicação passou sem nenhum delta bloqueante.
 Este documento existe para que o número acima possa ser contestado. Ele registra
 o que foi medido, contra o quê, o que ficou de fora e o que ainda não sabemos.
 
+> **Leia a §10.6 antes de citar o "0% de falso positivo".** Em 2026-08-13, uma
+> segunda aplicação com mudança intencional real reprovou 2 de 4 mudanças
+> legítimas — 22 deltas bloqueantes, todos falso positivo, todos de uma regra
+> só. O critério de saída continua atingido no corpus em que foi medido; a
+> generalização para outra aplicação, não.
+
 ---
 
 ## 1. Aplicação e builds
@@ -136,8 +142,9 @@ externo sobre a build, não diferença entre duas builds — cabe em invariantes
   foram desenhadas depois de ver estes dados. Isso as torna hipóteses com
   evidência, não regras estabelecidas. Um segundo corpus, de outra aplicação,
   pode derrubá-las — e é o próximo experimento que o projeto deve rodar.
-  **Rodado em 2026-08-13 (§10): não derrubou.** O que continua faltando é um
-  corpus de mudança intencional na segunda aplicação.
+  **Rodado em 2026-08-13. Derrubou uma das duas** (§10.6): `href`/`action` →
+  HIGH sobreviveu e ganhou evidência nova; "nó com texto removido → HIGH"
+  produziu 22 falso positivo bloqueante contra mudança legítima.
 - **4 dos 9 defeitos são injetados.** Os 5 bloqueados são F4, F5, F6, F8, F9 —
   três históricos e dois injetados.
 - **O corpus de defeitos não mede falso positivo de mudança intencional**, e o
@@ -413,17 +420,12 @@ concentração de risco identificado na §9, e aqui, pela primeira vez, foi test
 numa aplicação estranha **com defeito de verdade** em vez de só piso de ruído.
 Resultado: bloqueou 2 dos 4 defeitos bloqueados (`O4`, rota do menu quebrada, e
 `O5`, formulário de busca submetendo para o lugar errado) e produziu **zero
-falso positivo**, inclusive convivendo com CSRF em todo formulário. As duas
-regras que fecharam a Fase 0 deixaram de ser hipóteses calibradas contra uma
-aplicação só.
+falso positivo**, inclusive convivendo com CSRF em todo formulário.
+
+A outra regra não teve a mesma sorte: ver §10.6.
 
 **O que ele NÃO estabelece:**
 
-- **Não tem corpus de mudança intencional.** O par `pr-antes` × `base` do
-  `juventude` mede falso positivo contra PR legítimo; aqui não existe
-  equivalente, e o piso de ruído não substitui — mesma build não é PR. Enquanto
-  isso faltar, o número de falso positivo desta aplicação vale só para o
-  conjunto de defeitos que aplicamos.
 - **Três dos sete defeitos foram desenhados espelhando o primeiro corpus**, o
   que os torna menos independentes do que a contagem sugere.
 - **Camadas não validadas continuam as mesmas:** console, banco e trace.
@@ -432,6 +434,81 @@ aplicação só.
 - **O oráculo continua sendo O5.** Defeito que já existia na base é invisível
   por construção — inclusive defeitos reais do django-oscar que estejam em
   produção agora.
+
+### 10.6 Mudança intencional no oscar — a regra de texto removido caiu
+
+Este é o experimento que faltava, e o resultado é negativo.
+
+**O que foi medido.** Quatro mudanças reais do django-oscar, mescladas entre
+2020 e 2024, todas confinadas a template e visíveis na jornada. Nenhuma é
+correção de bug. Reconstituídas no template atual pela transformação inversa
+(`intentional.mjs`), porque dar checkout no arquivo da época arrastaria junto
+tudo que mudou nele depois.
+
+| Mudança | Commit | O que faz |
+|---|---|---|
+| `M1-menu-so-nivel-1` | `cbfd74234` | Menu passa a listar só categorias de primeiro nível: links com texto somem do cabeçalho de toda página |
+| `M2-id-no-campo-de-busca` | `fddb6a312` | Campo de busca ganha `id="id_q"` |
+| `M3-imagem-responsiva-na-galeria` | `83dda118c` | Imagens da galeria ganham `img-fluid` |
+| `M4-sem-preco-nao-compra` | `1f2772c4b` | Produto sem preço mostra "Unavailable" no lugar da disponibilidade e do botão |
+
+**Resultado: 60 deltas, 22 BLOQUEANTES. Todos os 22 são falso positivo**, porque
+não há defeito nenhum neste par. Duas das quatro mudanças foram reprovadas.
+
+Todos os 22 vêm de **uma única regra: "nó com texto removido → HIGH"** — a
+segunda das duas que fecharam a Fase 0. Em dois sabores:
+
+- **20 deltas, do `M1`:** os links `Fiction` e `Não-Fiction` somem do menu, em
+  cada uma das dez páginas. Aqui o texto realmente desapareceu — a mudança é
+  legítima assim mesmo, e nenhum sinal no DOM distingue "tiraram do menu de
+  propósito" de "o menu quebrou";
+- **2 deltas, do `M4`, e estes são piores:** o `<p class="availability">` que
+  envolvia a mensagem foi trocado por um `<i>` seguido do mesmo texto. **Nada
+  desapareceu para o usuário** — o conteúdo mudou de invólucro. O motor viu nó
+  com texto removido e bloqueou uma reembalagem.
+
+**O que foi bem**, e vale registrar porque era risco declarado: `M2` acrescenta
+um `id`, que está na lista de atributos de identidade do motor, e o alinhamento
+**segurou** — virou um `DOM_ATTRIBUTE_ADDED` LOW por página, não o par
+"sumiu um nó, apareceu outro" que se temia. `M3` saiu como dois `class`
+acrescentados e dois deltas visuais, todos LOW. E a regra `href`/`action` não
+produziu um único falso positivo aqui, coerente com a §10.5.
+
+**Por que isto não apareceu no primeiro corpus.** O PR real do `juventude` tem
+68 deltas e nenhum bloqueante — mas ele não remove nó com texto. A regra nunca
+tinha sido exercitada contra remoção legítima. Não foi sorte no sentido de
+descuido: foi o limite declarado na §7 se realizando exatamente como previsto,
+e é para isso que o segundo corpus existe.
+
+**O que NÃO fazer.** Rebaixar a severidade de nó removido resolveria os 22 e
+custaria detecção real: é essa regra que bloqueia `O6-listagem-off-by-one` aqui
+e `F9-turmas-off-by-one` no `juventude` — produto e turma sumindo em silêncio de
+uma listagem, que é a regressão que passa por todo teste de fluxo. Falso
+negativo é pior que falso positivo (PA-10), e trocar um pelo outro não é
+conserto.
+
+**Direções, todas hipóteses e nenhuma medida ainda:**
+
+1. **Separar remoção de reembalagem.** O caso `M4` não deveria nem existir como
+   remoção: o texto continua na página, um nível acima. Um alinhamento que
+   procurasse o texto do nó removido na vizinhança do head resolveria os 2
+   deltas sem tocar em severidade nenhuma — e é a única direção que não tem
+   trade-off aparente contra detecção. Começar por aqui.
+2. **Distinguir remoção de item em listagem de remoção de item em navegação.**
+   `O6` remove um `li` de uma lista de produtos; `M1` remove `a` de um menu. Há
+   sinal estrutural (papel de acessibilidade, contêiner) que talvez separe os
+   dois — mas talvez seja só coincidência deste par de aplicações, e uma regra
+   desenhada sobre ele repetiria o erro que a §7 aponta.
+3. **Supressão aprendida** (`packages/suppress/`), que a arquitetura já prevê e
+   que exige ≥ 3 casos reais rotulados como `NOISE`. É o caminho certo para
+   "nesta aplicação, mexer no menu é rotina" — mas é por aplicação, não fecha o
+   problema geral, e não deve ser usado para varrer o caso `M4` para baixo do
+   tapete.
+
+Nada disso foi implementado. Escolher entre eles calibrando contra este corpus
+seria repetir exatamente o que a §7 critica — desenhar regra depois de ver um
+conjunto de dados. O próximo passo é a direção 1, que é a única defensável sem
+mais evidência, e ela precisa reportar os números dos **quatro** corpora.
 
 ## 11. Reproduzir
 
@@ -513,6 +590,25 @@ node shims/cli/dist/main.js measure --report .aletheia/oscar/relatorio/report.js
   --labels .aletheia/oscar/relatorio/labels.json
 # desfazer: git checkout -- src/  no clone do oscar
 ```
+
+Corpus de mudança intencional do oscar (§10.6). A ordem importa: captura-se
+`pr-depois` com o clone limpo, e só então se aplica a inversa.
+
+```bash
+node shims/cli/dist/main.js capture --url http://127.0.0.1:3201 --journey $J \
+  --out .aletheia/oscar/pr-depois --label pr-depois --seed 42
+node packages/diff-engine/__corpus__/oscar/apply-intentional.mjs <clone do oscar>
+node shims/cli/dist/main.js capture --url http://127.0.0.1:3201 --journey $J \
+  --out .aletheia/oscar/pr-antes --label pr-antes --seed 42
+node shims/cli/dist/main.js diff --base .aletheia/oscar/pr-antes/capture.json \
+  --head .aletheia/oscar/pr-depois/capture.json --out .aletheia/oscar/pr \
+  --env oscar-sandbox --confidence-mode ISOLATED
+# desfazer: git checkout -- src/  no clone do oscar
+```
+
+Não há `label`/`measure` aqui, e é de propósito: **não existe defeito neste
+par**, então não há o que rotular. O número é um só — quantos deltas o motor
+classificou como `REGRESSION`. Hoje são 22, e o alvo é zero.
 
 Piso de ruído contra stack desconhecida (§8, §9) — duas capturas da mesma build,
 sem build nem login, dois minutos:
