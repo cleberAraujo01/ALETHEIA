@@ -86,6 +86,16 @@ export function severityOf(delta: RawDelta): Severity {
       // NENHUM nó foi removido — zero falso positivo. Base estreita: um PR de
       // uma aplicação. Enquanto não houver um segundo corpus, isto é hipótese
       // com evidência, não regra estabelecida.
+      //
+      // O SEGUNDO CORPUS CHEGOU (`oscar`, 2026-08-13) e cobrou uma correção:
+      // conteúdo que apenas troca de invólucro não é conteúdo perdido. O commit
+      // real `1f2772c4b` do django-oscar move o texto de dentro de um `<p>` para
+      // o pai, e o motor bloqueava a mudança. Quando o texto do nó removido
+      // continua no mesmo pai alinhado, isto é reembalagem: aparece na triagem,
+      // não reprova ninguém. Ver `textPreservedIn` em `diff/dom.ts` — a
+      // comparação é de texto completo justamente para não engolir o item que
+      // some de uma listagem.
+      if (delta.facts["textPreserved"] === true) return "MEDIUM";
       return delta.facts["carriesText"] === true ? "HIGH" : "MEDIUM";
     }
     case "DOM_NODE_ADDED":

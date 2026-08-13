@@ -41,10 +41,12 @@ São **dois** corpora, e eles medem coisas opostas: o de defeito mede detecção
 de mudança intencional mede falso positivo. Um número sozinho não diz nada —
 detectar tudo é trivial se reprovar todo mundo for aceitável.
 
-**Estado atual do corpus intencional: 22 deltas bloqueantes, todos falso
-positivo** (§10.6 do documento de medição). O alvo é zero. Não conserte
-rebaixando a severidade de nó removido — é ela que pega `O6-listagem-off-by-one`
-aqui e `F9` no `juventude`.
+**Estado atual do corpus intencional: 20 deltas bloqueantes, todos falso
+positivo** (§10.6 e §10.7 do documento de medição). Eram 22; os 2 de reembalagem
+foram consertados. Os 20 restantes vêm da regra de **nó interativo removido** —
+links que saíram do menu numa mudança legítima. O alvo é zero, e não se chega lá
+rebaixando remoção de nó em bloco: nó com texto é o que pega
+`O6-listagem-off-by-one` aqui e `F9` no `juventude`.
 
 O que **não** tem: a aplicação, as capturas, os relatórios e os screenshots.
 Pesam e são reconstituíveis — ver §10.4 do documento de medição.

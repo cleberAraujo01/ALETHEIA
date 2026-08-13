@@ -123,4 +123,18 @@ describe("severidade de DOM — destino vs. entrega, conteúdo vs. estrutura", (
       severityOf(dom("DOM_NODE_REMOVED", { tag: "button", carriesText: false })),
     ).toBe("HIGH");
   });
+
+  it("texto que só trocou de invólucro é reembalagem: reporta, não bloqueia", () => {
+    // Commit real `1f2772c4b` do django-oscar: o texto sai de dentro de um <p>
+    // e passa a ser filho direto do pai. Nada muda para quem olha a página.
+    expect(
+      severityOf(dom("DOM_NODE_REMOVED", { tag: "p", carriesText: true, textPreserved: true })),
+    ).toBe("MEDIUM");
+  });
+
+  it("conteúdo que some de verdade continua bloqueando", () => {
+    expect(
+      severityOf(dom("DOM_NODE_REMOVED", { tag: "li", carriesText: true, textPreserved: false })),
+    ).toBe("HIGH");
+  });
 });

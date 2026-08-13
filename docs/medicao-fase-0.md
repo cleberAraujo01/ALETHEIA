@@ -12,9 +12,9 @@ o que foi medido, contra o quê, o que ficou de fora e o que ainda não sabemos.
 
 > **Leia a §10.6 antes de citar o "0% de falso positivo".** Em 2026-08-13, uma
 > segunda aplicação com mudança intencional real reprovou 2 de 4 mudanças
-> legítimas — 22 deltas bloqueantes, todos falso positivo, todos de uma regra
-> só. O critério de saída continua atingido no corpus em que foi medido; a
-> generalização para outra aplicação, não.
+> legítimas — 22 deltas bloqueantes, todos falso positivo. Dois deles foram
+> consertados (§10.7); **20 continuam**. O critério de saída continua atingido
+> no corpus em que foi medido; a generalização para outra aplicação, não.
 
 ---
 
@@ -455,17 +455,22 @@ tudo que mudou nele depois.
 **Resultado: 60 deltas, 22 BLOQUEANTES. Todos os 22 são falso positivo**, porque
 não há defeito nenhum neste par. Duas das quatro mudanças foram reprovadas.
 
-Todos os 22 vêm de **uma única regra: "nó com texto removido → HIGH"** — a
-segunda das duas que fecharam a Fase 0. Em dois sabores:
+Os 22 vêm de **duas** regras, e a primeira leitura deste relatório errou ao
+atribuir todos a uma só. `severityOf` testa `isInteractive` **antes** de olhar
+`carriesText`, e `a` está em `INTERACTIVE_TAGS`:
 
-- **20 deltas, do `M1`:** os links `Fiction` e `Não-Fiction` somem do menu, em
-  cada uma das dez páginas. Aqui o texto realmente desapareceu — a mudança é
-  legítima assim mesmo, e nenhum sinal no DOM distingue "tiraram do menu de
-  propósito" de "o menu quebrou";
-- **2 deltas, do `M4`, e estes são piores:** o `<p class="availability">` que
-  envolvia a mensagem foi trocado por um `<i>` seguido do mesmo texto. **Nada
-  desapareceu para o usuário** — o conteúdo mudou de invólucro. O motor viu nó
-  com texto removido e bloqueou uma reembalagem.
+- **20 deltas, do `M1` — regra "nó interativo removido → HIGH".** Os links
+  `Fiction` e `Non-Fiction` somem do menu, em cada uma das dez páginas. O texto
+  realmente desapareceu, e a mudança é legítima assim mesmo: nenhum sinal no DOM
+  distingue "tiraram do menu de propósito" de "o menu quebrou". Esta regra é
+  anterior às duas que fecharam a Fase 0;
+- **2 deltas, do `M4` — regra "nó com texto removido → HIGH"**, essa sim uma das
+  duas. E o caso é pior: o `<p class="availability">` foi trocado por um `<i>`
+  seguido do mesmo texto, um nível acima. **Nada desapareceu para o usuário** —
+  o conteúdo mudou de invólucro, e o motor bloqueou uma reembalagem.
+
+A distinção importa para saber o que consertar: a regra que a Fase 0 estreou
+respondia por 2 dos 22, não pelos 22.
 
 **O que foi bem**, e vale registrar porque era risco declarado: `M2` acrescenta
 um `id`, que está na lista de atributos de identidade do motor, e o alinhamento
@@ -505,10 +510,43 @@ conserto.
    problema geral, e não deve ser usado para varrer o caso `M4` para baixo do
    tapete.
 
-Nada disso foi implementado. Escolher entre eles calibrando contra este corpus
-seria repetir exatamente o que a §7 critica — desenhar regra depois de ver um
-conjunto de dados. O próximo passo é a direção 1, que é a única defensável sem
-mais evidência, e ela precisa reportar os números dos **quatro** corpora.
+### 10.7 Direção 1 implementada — reembalagem deixou de bloquear
+
+Feita, medida, e é a única das três que não tem trade-off contra detecção.
+
+Ao emitir `DOM_NODE_REMOVED`, o motor agora também responde: **o texto do nó
+removido continua no mesmo pai alinhado, no head?** Se continua, é reembalagem —
+`textPreserved: true` —, e a severidade cai para MEDIUM: aparece na triagem, não
+reprova ninguém.
+
+Duas contenções que mantêm a regra honesta, e as duas estão travadas em teste:
+
+- **a comparação é de texto COMPLETO, não de trecho.** O `<li>` que o defeito
+  `O6` remove tem o título do produto no meio; os irmãos compartilham "£8.99 In
+  stock Add to basket". Por trecho, qualquer irmão casaria e o defeito sumiria —
+  falso negativo criado para curar falso positivo, o pior negócio possível aqui;
+- **o escopo é o pai alinhado, não a página.** Texto que reaparece do outro lado
+  da página não é reembalagem; é outra coisa, e não temos evidência sobre o quê.
+
+| Corpus | Antes | Depois |
+|---|---|---|
+| **Oscar, mudança intencional** | 60 deltas, **22 bloqueantes** | 60 deltas, **20 bloqueantes** |
+| Oscar, 7 defeitos | 26 regressões · 4 de 7 bloqueados · 96,5% triagem | **idêntico** |
+| Oscar, mesma build | 10 · 0 bloqueantes | idêntico |
+| Juventude, PR real | 68 · 0 bloqueantes | idêntico |
+| Juventude, 9 defeitos | 48 regressões · 5 de 9 bloqueados · 77,6% triagem | **idêntico** |
+| Juventude, mesma build | 0 | 0 |
+| ParaBank / ANBIMA, mesma build | 2 / 1 · 0 bloqueantes | idêntico |
+
+Custou zero em detecção nos dois corpora de defeito e removeu 2 falso positivo.
+
+**Os 20 continuam, e são o problema difícil.** Vêm da regra de nó interativo
+removido, não da de texto. Rebaixá-la significa que um botão de compra que some
+deixa de reprovar — e nem `juventude` nem `oscar` têm defeito que dependa dela
+hoje, o que é ausência de evidência, não evidência de ausência. As direções 2 e 3
+continuam abertas e nenhuma delas é obviamente certa. Enquanto isso, o número a
+citar é este: **o motor reprova 1 em cada 2 mudanças legítimas que mexem no menu
+desta aplicação.**
 
 ## 11. Reproduzir
 

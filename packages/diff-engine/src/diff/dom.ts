@@ -109,6 +109,9 @@ function walk(
         // que some é informação que ele deixou de receber. A severidade usa
         // esta distinção (ver `severityOf`).
         carriesText: hasText(item),
+        // …e esta separa CONTEÚDO PERDIDO de CONTEÚDO REEMBALADO. Ver
+        // `textPreservedIn`.
+        textPreserved: textPreservedIn(item, head),
       },
     });
   }
@@ -230,6 +233,47 @@ function disambiguate(nodes: readonly NormalizedDomNode[]): Map<NormalizedDomNod
 function hasText(node: NormalizedDomNode): boolean {
   if (node.text !== null && node.text.trim().length > 0) return true;
   return node.children.some(hasText);
+}
+
+/**
+ * O texto do nó removido continua presente no MESMO pai alinhado, no head?
+ *
+ * Se continua, ninguém perdeu conteúdo: o texto trocou de invólucro. É
+ * reembalagem, não remoção — e a severidade precisa saber a diferença
+ * (`severityOf`).
+ *
+ * MEDIDO (corpus `oscar`, mudança intencional, 2026-08-13): o commit `1f2772c4b`
+ * troca `<p class="availability"><i/> Unavailable</p>` por `<i/>` seguido do
+ * mesmo texto, um nível acima. Nada muda para quem olha a página, e o motor
+ * bloqueava a mudança como "nó com texto removido". Dois falso positivo em cima
+ * de uma reembalagem — o pior tipo, porque não há nem o que discutir sobre
+ * intenção: o conteúdo está lá.
+ *
+ * A COMPARAÇÃO É DE TEXTO COMPLETO, e é isso que a mantém honesta. O `<li>` de
+ * produto que o defeito `O6` remove tem o título do produto no meio do texto,
+ * que não aparece em nenhum outro lugar do `<ol>` — continua sendo perda de
+ * conteúdo, continua HIGH. Fosse por trecho, "In stock Add to basket" casaria
+ * com qualquer irmão e o defeito sumiria: falso negativo criado para curar
+ * falso positivo, que é o pior negócio possível neste produto.
+ *
+ * ESCOPO DELIBERADAMENTE ESTREITO: só o pai alinhado, não a página inteira.
+ * Texto que reaparece do outro lado da página não é reembalagem, é outra coisa,
+ * e não temos evidência sobre o que seja.
+ */
+function textPreservedIn(removed: NormalizedDomNode, headParent: NormalizedDomNode): boolean {
+  const lost = subtreeText(removed);
+  if (lost.length === 0) return false;
+  return subtreeText(headParent).includes(lost);
+}
+
+function subtreeText(node: NormalizedDomNode): string {
+  const parts: string[] = [];
+  const collect = (current: NormalizedDomNode): void => {
+    if (current.text !== null) parts.push(current.text);
+    for (const child of current.children) collect(child);
+  };
+  collect(node);
+  return parts.join(" ").trim();
 }
 
 function summarize(node: NormalizedDomNode): string {
