@@ -26,6 +26,7 @@ export const NORMALIZATION_RULES = {
   DOM_HASHED_CLASS: "NORM-DOM-003",
   DOM_FRAMEWORK_ATTRIBUTE: "NORM-DOM-004",
   DOM_WHITESPACE: "NORM-DOM-005",
+  DOM_TOKEN_FIELD_VALUE: "NORM-DOM-006",
   NET_PATH_IDENTIFIER: "NORM-NET-001",
   NET_VOLATILE_QUERY_PARAM: "NORM-NET-002",
   NET_QUERY_PARAM_ORDER: "NORM-NET-003",
@@ -123,6 +124,35 @@ const SINGLE_USE_PROTOCOL_PARAMS = new Set([
   "login_session_id",
   "request_uri",
 ]);
+
+/**
+ * Campo de formulário que carrega token anti-CSRF. O valor é criado por sessão
+ * e não atravessa duas execuções nem na mesma build.
+ *
+ * MEDIDO: duas capturas da MESMA build do sandbox do django-oscar produziram
+ * 104 deltas, 95 deles o `value` do `csrfmiddlewaretoken` — um por formulário,
+ * em nove páginas. Nenhum bloqueava (é `value`, não `href`), e é justamente por
+ * isso que o caso importa: ruído que não bloqueia não derruba o gate, mas
+ * afoga o relatório de triagem. Defeito real num app com formulário em toda
+ * página entraria numa lista onde 91% das linhas são token.
+ *
+ * A lista cobre o campo que cada framework emite, porque o nome é fixado pelo
+ * framework e não por quem escreve a aplicação. `token` sozinho ficou de fora:
+ * é nome plausível de campo de negócio (token de cupom, de convite).
+ */
+const TOKEN_FIELD_NAMES = new Set([
+  "csrfmiddlewaretoken", // Django
+  "csrftoken",
+  "csrf",
+  "xsrf",
+  "xsrftoken",
+  "authenticitytoken", // Rails
+  "requestverificationtoken", // ASP.NET, emitido como __RequestVerificationToken
+]);
+
+export function isTokenFieldName(name: string): boolean {
+  return TOKEN_FIELD_NAMES.has(normalizeKey(name));
+}
 
 /**
  * Identidade de sessão embutida no PATH, como parâmetro de segmento

@@ -136,6 +136,8 @@ externo sobre a build, não diferença entre duas builds — cabe em invariantes
   foram desenhadas depois de ver estes dados. Isso as torna hipóteses com
   evidência, não regras estabelecidas. Um segundo corpus, de outra aplicação,
   pode derrubá-las — e é o próximo experimento que o projeto deve rodar.
+  **Rodado em 2026-08-13 (§10): não derrubou.** O que continua faltando é um
+  corpus de mudança intencional na segunda aplicação.
 - **4 dos 9 defeitos são injetados.** Os 5 bloqueados são F4, F5, F6, F8, F9 —
   três históricos e dois injetados.
 - **O corpus de defeitos não mede falso positivo de mudança intencional**, e o
@@ -269,7 +271,129 @@ problema é a regra, e não a lacuna de normalização da vez — e nesse caso o
 caminho é severidade condicionada ao que mudou dentro da URL, não ao fato de o
 atributo ser `href`.
 
-## 10. Reproduzir
+## 10. Segundo corpus — django-oscar (2026-08-13)
+
+Este é o item que a §7 pedia: **um segundo corpus, de outra aplicação**, com
+duas builds e defeito conhecido. Os adendos §8 e §9 mediam só piso de ruído.
+
+### 10.1 Aplicação
+
+Sandbox do [django-oscar](https://github.com/django-oscar/django-oscar) 4.2,
+rodando local: e-commerce Python/Django renderizado no servidor, 201 produtos,
+140 imagens, dez rotas públicas na jornada, token CSRF em todo formulário.
+
+Estranha em todas as dimensões que importam: não a escrevemos, nada foi
+calibrado contra ela, e os defeitos históricos vêm de commits de terceiros
+escritos anos antes deste motor existir.
+
+Uma propriedade a mais, e é a que torna este corpus mais duro que o primeiro:
+**não há passo de build**. Django lê o template a cada request, então `base` e
+`head` diferem exclusivamente pelos sete defeitos. Em `juventude`, parte
+relevante do ruído era do bundler (hash de conteúdo, identificador de build) e
+podia ser normalizada como ruído estrutural. Aqui não existe esse escape: todo
+delta ou vem de um defeito, ou é ruído do próprio motor.
+
+### 10.2 Piso de ruído, e o que ele custou
+
+Duas capturas da mesma build: **104 deltas, 0 bloqueantes**. Nenhum falso
+positivo bloqueante — a regra `href`/`action` → HIGH sobreviveu à terceira stack
+desconhecida, e ao CSRF, que era o veneno esperado.
+
+Mas 95 dos 104 eram o `value` do `csrfmiddlewaretoken`, um por formulário em
+nove páginas. Ruído que não bloqueia não derruba o gate; afoga o relatório de
+triagem. Num app com formulário em toda página, um defeito real entraria numa
+lista onde 91% das linhas são token — e nenhuma medição de triagem seria
+possível. Fechado em `NORM-DOM-006`, com conjunção de três condições (é o
+`value`, o `name` do campo é de token conhecido de framework, e o valor tem
+forma opaca). Piso final: **9 deltas, 0 bloqueantes** — os 9 são o corpo de
+HTML, a mesma lacuna declarada na §8 e na §9.
+
+Terceira aplicação desconhecida, terceiro achado de normalização. As três vezes
+a causa foi identidade de sessão ou token; as três vezes o conserto foi fechar a
+lacuna, não mexer em severidade.
+
+### 10.3 Os defeitos e o resultado
+
+Sete, declarados em `packages/diff-engine/__corpus__/oscar/faults.mjs`:
+
+| Origem | Quantos | O que significa |
+|---|---|---|
+| `HISTORICO` | 3 | Esteve em produção **no django-oscar** e foi corrigido por commit real do projeto (`c1951d58d`, `27fe44a17`, `e6496c7e6`), reconstituído no HEAD pela transformação inversa |
+| `INJETADO` | 4 | Plantado por nós, espelhando as classes do corpus `juventude`: rota quebrada no menu, destino de formulário trocado, off-by-one em listagem, atributo perdido |
+
+**Dois candidatos foram descartados depois de medidos**, e o registro fica
+porque a diferença entre "descartei porque não detecta" e "descartei porque não
+se manifesta" é a diferença entre número honesto e número fabricado: o preço sem
+imposto (no sandbox o imposto é zero, os dois valores são idênticos e a troca não
+muda nada na página) e o botão "voltar" da página de produto (só renderiza com
+referrer).
+
+| | Resultado |
+|---|---|
+| Deltas totais | 708 (DOM 244 · rede 12 · visual 452) |
+| Deltas de ruído | **10** |
+| Precisão na triagem | **98,6%** |
+| Defeitos visíveis | **7 de 7** |
+| Defeitos bloqueados | **4 de 7** |
+| Falso positivo bloqueante | **0%** |
+
+Os 10 deltas de ruído são corpos de resposta HTML, que o relatório guarda
+elididos: não dá para confirmar que a marca do defeito está lá dentro, então
+contam contra o motor. É a mesma lacuna da §8.
+
+**O recall de 3,7% no recorte bloqueante não é um número sobre qualidade.** Ele
+mede deltas, e 452 dos 708 são regiões de pixel de uma página de 10 mil pixels de
+altura — um defeito que desloca o layout produz centenas de regiões, todas
+verdadeiras e nenhuma bloqueante. A unidade do critério é defeito distinto.
+
+### 10.4 O que passou, e a comparação com o primeiro corpus
+
+Três defeitos aparecem na triagem e não bloqueiam:
+
+| Defeito | Classificação | Por que não bloqueia |
+|---|---|---|
+| `O2-categorias-empilhadas` | `class` mudou, LOW | Troca de classe CSS. O motor vê `flex-column` sair, não "a lista transbordou o cartão" |
+| `O3-busca-oculta-none` | `value` mudou, MEDIUM | Campo escondido passa a submeter a string `None` |
+| `O7-miniatura-sem-alt` | `alt` removido, LOW | Atributo perdido em imagem |
+
+**Os dois corpora falham na mesma junta.** Em `juventude` foi `F7-email-sem-required`
+(atributo `required` perdido, MEDIUM, passou); aqui são `O3` e `O7`. É sempre
+mudança de atributo com consequência comportamental que o motor não tem como
+inferir da mudança em si. Dois corpora independentes apontando para o mesmo
+lugar é evidência de verdade, não coincidência — e diz onde investir: severidade
+por **consequência do atributo**, não por nome dele.
+
+A taxa é praticamente a mesma nos dois: 5 de 9 (56%) em `juventude`, 4 de 7
+(57%) aqui. O critério de saída pede ≥ 5 defeitos bloqueados, e este corpus tem
+só 7 no total — 4 não atinge o número absoluto, e não deveria: um corpus de 7
+defeitos não foi construído para atestar um limiar calibrado contra um de 9.
+
+### 10.5 O que este corpus estabelece
+
+**A regra `href`/`action` → HIGH está vindicada.** Ela era o ponto de
+concentração de risco identificado na §9, e aqui, pela primeira vez, foi testada
+numa aplicação estranha **com defeito de verdade** em vez de só piso de ruído.
+Resultado: bloqueou 2 dos 4 defeitos bloqueados (`O4`, rota do menu quebrada, e
+`O5`, formulário de busca submetendo para o lugar errado) e produziu **zero
+falso positivo**, inclusive convivendo com CSRF em todo formulário. As duas
+regras que fecharam a Fase 0 deixaram de ser hipóteses calibradas contra uma
+aplicação só.
+
+**O que ele NÃO estabelece:**
+
+- **Não tem corpus de mudança intencional.** O par `pr-antes` × `base` do
+  `juventude` mede falso positivo contra PR legítimo; aqui não existe
+  equivalente, e o piso de ruído não substitui — mesma build não é PR. Enquanto
+  isso faltar, o número de falso positivo desta aplicação vale só para o
+  conjunto de defeitos que aplicamos.
+- **Três dos sete defeitos foram desenhados espelhando o primeiro corpus**, o
+  que os torna menos independentes do que a contagem sugere.
+- **Camadas não validadas continuam as mesmas:** console, banco e trace.
+- **O oráculo continua sendo O5.** Defeito que já existia na base é invisível
+  por construção — inclusive defeitos reais do django-oscar que estejam em
+  produção agora.
+
+## 11. Reproduzir
 
 ```bash
 # 1. duas cópias descartáveis da aplicação; aplicar os defeitos numa delas
@@ -287,6 +411,46 @@ node packages/diff-engine/__corpus__/juventude/label.mjs \
   .aletheia/fase0/relatorio/report.json .aletheia/fase0/relatorio/labels.json
 node shims/cli/dist/main.js measure --report .aletheia/fase0/relatorio/report.json \
   --labels .aletheia/fase0/relatorio/labels.json
+```
+
+Segundo corpus, django-oscar (§10). Monta o sandbox uma vez:
+
+```bash
+git clone https://github.com/django-oscar/django-oscar.git oscar && cd oscar
+python -m venv venv --upgrade-deps
+./venv/Scripts/python.exe -m pip install -e . \
+  django-environ whitenoise sorl-thumbnail easy-thumbnails Whoosh pycountry
+./venv/Scripts/python.exe sandbox/manage.py migrate
+./venv/Scripts/python.exe sandbox/manage.py loaddata sandbox/fixtures/auth.json \
+  sandbox/fixtures/child_products.json
+./venv/Scripts/python.exe sandbox/manage.py oscar_import_catalogue sandbox/fixtures/books.*.csv
+./venv/Scripts/python.exe sandbox/manage.py oscar_import_catalogue_images sandbox/fixtures/images.tar.gz
+./venv/Scripts/python.exe sandbox/manage.py oscar_populate_countries --initial-only
+./venv/Scripts/python.exe sandbox/manage.py loaddata sandbox/fixtures/pages.json \
+  sandbox/fixtures/ranges.json sandbox/fixtures/offers.json
+./venv/Scripts/python.exe sandbox/manage.py update_index catalogue
+./venv/Scripts/python.exe sandbox/manage.py collectstatic --noinput
+./venv/Scripts/python.exe sandbox/manage.py runserver 3201 --noreload --insecure
+```
+
+Depois, capturar as duas builds. Django recarrega template a quente, então não
+há passo de build entre aplicar o defeito e observar:
+
+```bash
+J=apps/runner/__fixtures__/journeys/oscar.json
+node shims/cli/dist/main.js capture --url http://127.0.0.1:3201 --journey $J \
+  --out .aletheia/oscar/base --label base --seed 42
+node packages/diff-engine/__corpus__/oscar/apply-faults.mjs <clone do oscar>
+node shims/cli/dist/main.js capture --url http://127.0.0.1:3201 --journey $J \
+  --out .aletheia/oscar/head --label head --seed 42
+node shims/cli/dist/main.js diff --base .aletheia/oscar/base/capture.json \
+  --head .aletheia/oscar/head/capture.json --out .aletheia/oscar/relatorio \
+  --env oscar-sandbox --confidence-mode ISOLATED
+node packages/diff-engine/__corpus__/oscar/label.mjs \
+  .aletheia/oscar/relatorio/report.json .aletheia/oscar/relatorio/labels.json
+node shims/cli/dist/main.js measure --report .aletheia/oscar/relatorio/report.json \
+  --labels .aletheia/oscar/relatorio/labels.json
+# desfazer: git checkout -- src/  no clone do oscar
 ```
 
 Piso de ruído contra stack desconhecida (§8, §9) — duas capturas da mesma build,

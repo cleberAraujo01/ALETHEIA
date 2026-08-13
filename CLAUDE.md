@@ -343,13 +343,15 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 **Critério de saída:** detectar ≥ 5 regressões reais em aplicação real com < 10% de falso positivo, sem uma única linha de teste escrita.
 
-**Antes de declarar a fase encerrada**, o item aberto mais importante é um **segundo corpus, de outra aplicação**. As duas regras de severidade que fecharam a medição (`href`/`action` → HIGH; nó com texto removido → HIGH) foram desenhadas depois de ver os dados de uma aplicação e um PR intencional. São hipóteses com evidência, não regras estabelecidas — §7 do relatório de medição diz o que pode derrubá-las.
+**O segundo corpus existe desde 2026-08-13** (`packages/diff-engine/__corpus__/oscar/`, §10 da medição): django-oscar, Python/Django renderizado no servidor. 4 de 7 defeitos bloqueados, 0% de falso positivo, 7 de 7 visíveis. As duas regras de severidade que fecharam a Fase 0 deixaram de ser hipóteses calibradas contra uma aplicação só — a de `href`/`action` bloqueou dois defeitos reais numa aplicação estranha, convivendo com CSRF em todo formulário, sem um falso positivo.
 
-**A regra `href`/`action` → HIGH é o ponto de concentração de risco do motor.** Duas aplicações desconhecidas, dois pisos de ruído (§8 e §9 da medição), e nas duas ela produziu falso positivo **bloqueante em cima da mesma build** — sempre por identidade de sessão ou token dentro da URL. Nas duas o conserto certo foi normalização, não reverter a regra. Uma terceira aplicação que a derrube por causa nova é evidência de que o problema é a regra: aí o caminho é condicionar a severidade ao que mudou **dentro** da URL, não ao nome do atributo.
+**O item aberto agora é outro: um corpus de mudança intencional na segunda aplicação.** Sem ele, o número de falso positivo do `oscar` vale só para o conjunto de defeitos que aplicamos — piso de ruído é mesma build, não é PR legítimo.
 
-**Antes de considerar estável qualquer regra nova de severidade ou normalização**, rode o piso de ruído numa aplicação de stack estranha: duas capturas da mesma build, sem build nem login, dois minutos (comando na §10 da medição). Zero delta bloqueante é o mínimo aceitável.
+**Os dois corpora falham na mesma junta, e é aí que vale investir.** `F7` no `juventude` (atributo `required` perdido), `O3` e `O7` no `oscar` (`value` virando `None`, `alt` removido): sempre mudança de atributo com consequência comportamental que o motor não infere da mudança em si. Dois corpora independentes apontando para o mesmo lugar é evidência, não coincidência. O caminho é severidade por **consequência do atributo**, não por nome dele.
 
-**Toda mudança no `diff-engine` reporta delta de precisão e recall nos DOIS corpora** — o de defeitos (`packages/diff-engine/__corpus__/juventude/`) e o de mudança intencional. Detectar mais é trivial se reprovar todo mundo for aceitável; o par de números é que diz alguma coisa.
+**Antes de considerar estável qualquer regra nova de severidade ou normalização**, rode o piso de ruído numa aplicação de stack estranha: duas capturas da mesma build, sem build nem login, dois minutos (comandos na §11 da medição). Zero delta bloqueante é o mínimo aceitável. Três aplicações desconhecidas, três achados de normalização — sempre identidade de sessão ou token, nunca severidade errada. O teste continua pagando.
+
+**Toda mudança no `diff-engine` reporta delta de precisão e recall nos DOIS corpora de defeito** — `__corpus__/juventude/` e `__corpus__/oscar/` — e no de mudança intencional. Detectar mais é trivial se reprovar todo mundo for aceitável; o par de números é que diz alguma coisa.
 
 > Se lhe pedirem para construir algo fora do escopo da fase atual, **sinalize antes de implementar**. O maior risco de execução deste projeto é escopo simultâneo (R-14).
 

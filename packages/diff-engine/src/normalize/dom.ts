@@ -10,6 +10,8 @@ import {
   isFrameworkAttribute,
   isGeneratedIdentifier,
   isHashedClassName,
+  isOpaqueToken,
+  isTokenFieldName,
 } from "./volatile.js";
 
 /**
@@ -128,6 +130,19 @@ function normalizeAttributes(
 
     if (name === "class") {
       result[name] = normalizeClassList(raw, ledger);
+      continue;
+    }
+
+    // Token anti-CSRF em campo escondido. Conjunção de três condições: é o
+    // `value`, o `name` do campo é de token conhecido de framework, e o valor
+    // tem forma opaca. Campo de negócio com valor legível continua comparado.
+    if (
+      name === "value" &&
+      isTokenFieldName(attributes["name"] ?? "") &&
+      isOpaqueToken(raw)
+    ) {
+      ledger.record(NORMALIZATION_RULES.DOM_TOKEN_FIELD_VALUE);
+      result[name] = PLACEHOLDER.TOKEN;
       continue;
     }
 

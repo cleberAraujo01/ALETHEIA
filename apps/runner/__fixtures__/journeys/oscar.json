@@ -1,0 +1,17 @@
+{
+  "journeyVersion": "0.1.0",
+  "name": "oscar-smoke",
+  "viewport": { "width": 1280, "height": 800 },
+  "observations": [
+    { "observationId": "catalogue", "path": "/en-gb/catalogue/" },
+    { "observationId": "catalogue-p2", "path": "/en-gb/catalogue/?page=2" },
+    { "observationId": "categoria-livros", "path": "/en-gb/catalogue/category/books_2/" },
+    { "observationId": "categoria-roupas", "path": "/en-gb/catalogue/category/clothing_1/" },
+    { "observationId": "produto", "path": "/en-gb/catalogue/snow-crash_12/" },
+    { "observationId": "produto-2", "path": "/en-gb/catalogue/little-brother_29/" },
+    { "observationId": "busca", "path": "/en-gb/search/?q=security" },
+    { "observationId": "cesta", "path": "/en-gb/basket/" },
+    { "observationId": "ofertas", "path": "/en-gb/offers/" },
+    { "observationId": "login", "path": "/en-gb/accounts/login/" }
+  ]
+}
