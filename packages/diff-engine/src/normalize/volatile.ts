@@ -34,6 +34,7 @@ export const NORMALIZATION_RULES = {
   NET_TIMESTAMP_VALUE: "NORM-NET-006",
   NET_BUILD_CONTENT_HASH: "NORM-NET-007",
   NET_SINGLE_USE_TOKEN: "NORM-NET-008",
+  NET_SESSION_PATH_PARAM: "NORM-NET-009",
 } as const;
 
 /** Marcadores que substituem o valor volátil. Visíveis no relatório de propósito. */
@@ -122,6 +123,41 @@ const SINGLE_USE_PROTOCOL_PARAMS = new Set([
   "login_session_id",
   "request_uri",
 ]);
+
+/**
+ * Identidade de sessão embutida no PATH, como parâmetro de segmento
+ * (`;jsessionid=…`, RFC 3986 §3.3) — o rewriting de URL que contêiner de
+ * Servlet aplica a **toda** URL da página quando não pode contar com cookie.
+ *
+ * MEDIDO: duas capturas da MESMA build do ParaBank (Java/JSP, hospedado)
+ * produziram 44 deltas, 28 deles BLOQUEANTES, e 100% tinham esta única causa. É
+ * pior que o caso Keycloak porque não fica num parâmetro de fluxo de
+ * autenticação: contamina `href`, `src`, `action` e a URL de todo recurso
+ * estático, então também quebra o ALINHAMENTO de rede — os mesmos 6 recursos
+ * apareceram como 6 removidos e 6 adicionados, e o diff de corpo, que é onde
+ * mora o valor, nunca aconteceu.
+ *
+ * NORMALIZA NOS DOIS PROPÓSITOS, e isso é deliberadamente o oposto do que se
+ * faz com identificador de path (§4 da medição, o WhatsApp com um dígito
+ * trocado). Lá, apagar o id no propósito `VALUE` custava detecção, porque o id
+ * era conteúdo de negócio. Aqui não existe esse risco: id de sessão é criado
+ * pelo contêiner por sessão, nunca é escrito por ninguém e não sobrevive a duas
+ * execuções nem na mesma build. Não há o que comparar.
+ *
+ * A conjunção nome+forma segue a mesma disciplina de `isSingleUseProtocolValue`.
+ * A lista fica curta de propósito: só nome que contêiner emite. `sid` ficou de
+ * fora por ser plausível como identificador de negócio, e ColdFusion
+ * (`cfid`/`cftoken`) também, porque não temos como medir — entrada não testada
+ * é dívida, não cobertura.
+ */
+const CONTAINER_SESSION_PATH_PARAMS = new Set(["jsessionid", "phpsessid", "sessionid"]);
+
+export function isContainerSessionPathParam(name: string, value: string): boolean {
+  if (!CONTAINER_SESSION_PATH_PARAMS.has(name.toLowerCase())) return false;
+  // O `.` do alfabeto cobre o sufixo de jvmRoute que o Tomcat anexa em cluster
+  // (`…C8CE751.node1`).
+  return /^[A-Za-z0-9_.~-]{8,}$/.test(value);
+}
 
 /**
  * Cadeia opaca: alfabeto de token (base64url), comprimento que nenhum humano

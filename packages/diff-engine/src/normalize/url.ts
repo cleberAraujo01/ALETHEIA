@@ -3,6 +3,7 @@ import {
   NORMALIZATION_RULES,
   stripContentHash,
   PLACEHOLDER,
+  isContainerSessionPathParam,
   isIdentifierPathSegment,
   isIsoTimestamp,
   isOpaqueToken,
@@ -69,20 +70,21 @@ export function normalizeUrl(
 
   const segments = parsed.pathname.split("/").map((segment) => {
     if (segment.length === 0) return segment;
-    // Hash de conteúdo de bundle (`page-4f2a…8c.js`): é o MESMO módulo com
-    // outro nome, porque o build mudou. Vale nos dois propósitos — o nome é
-    // gerado, não escrito por ninguém, e comparar hash de build só produz
-    // barulho proporcional ao tamanho do bundler.
-    const withoutHash = stripContentHash(segment);
-    if (withoutHash !== segment) {
-      ledger.record(NORMALIZATION_RULES.NET_BUILD_CONTENT_HASH);
-      return withoutHash;
-    }
-    if (forAlignment && isIdentifierPathSegment(segment)) {
-      ledger.record(NORMALIZATION_RULES.NET_PATH_IDENTIFIER);
-      return PLACEHOLDER.ID_SEGMENT;
-    }
-    return segment;
+    // Parâmetro de segmento (`;jsessionid=…`) sai ANTES do resto: enquanto ele
+    // está grudado, `style.css;jsessionid=…` não termina em `.css` e nenhuma
+    // das regras abaixo reconhece o que está olhando.
+    const { base, params } = splitPathParams(segment);
+    const normalizedBase = normalizePathSegment(base, forAlignment, ledger);
+    if (params.length === 0) return normalizedBase;
+
+    const normalizedParams = params.map(([name, value]) => {
+      if (value !== null && isContainerSessionPathParam(name, value)) {
+        ledger.record(NORMALIZATION_RULES.NET_SESSION_PATH_PARAM);
+        return `${name}=${PLACEHOLDER.TOKEN}`;
+      }
+      return value === null ? name : `${name}=${value}`;
+    });
+    return [normalizedBase, ...normalizedParams].join(";");
   });
 
   const params: Array<[string, string]> = [];
@@ -117,6 +119,46 @@ export function normalizeUrl(
     parsed.origin === SYNTHETIC_ORIGIN || parsed.origin === options.selfOrigin ? "" : parsed.origin;
 
   return `${origin}${segments.join("/")}${query.length > 0 ? `?${query}` : ""}${parsed.hash}`;
+}
+
+/**
+ * Separa o segmento do seu parâmetro de segmento: `style.css;jsessionid=ABC`
+ * vira `style.css` mais `[["jsessionid", "ABC"]]`. Parâmetro sem valor (`;foo`)
+ * é preservado como está — não sabemos o que é e não inventamos.
+ */
+function splitPathParams(segment: string): {
+  base: string;
+  params: Array<[string, string | null]>;
+} {
+  const parts = segment.split(";");
+  const base = parts[0] ?? "";
+  const params = parts.slice(1).map((part): [string, string | null] => {
+    const eq = part.indexOf("=");
+    return eq === -1 ? [part, null] : [part.slice(0, eq), part.slice(eq + 1)];
+  });
+  return { base, params };
+}
+
+function normalizePathSegment(
+  segment: string,
+  forAlignment: boolean,
+  ledger: NormalizationLedger,
+): string {
+  if (segment.length === 0) return segment;
+  // Hash de conteúdo de bundle (`page-4f2a…8c.js`): é o MESMO módulo com
+  // outro nome, porque o build mudou. Vale nos dois propósitos — o nome é
+  // gerado, não escrito por ninguém, e comparar hash de build só produz
+  // barulho proporcional ao tamanho do bundler.
+  const withoutHash = stripContentHash(segment);
+  if (withoutHash !== segment) {
+    ledger.record(NORMALIZATION_RULES.NET_BUILD_CONTENT_HASH);
+    return withoutHash;
+  }
+  if (forAlignment && isIdentifierPathSegment(segment)) {
+    ledger.record(NORMALIZATION_RULES.NET_PATH_IDENTIFIER);
+    return PLACEHOLDER.ID_SEGMENT;
+  }
+  return segment;
 }
 
 /**

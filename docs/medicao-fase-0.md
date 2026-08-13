@@ -145,7 +145,7 @@ externo sobre a build, não diferença entre duas builds — cabe em invariantes
   (`__corpus__/juventude/label.mjs`), e não consulta o veredito do motor. Ela
   fecha para baixo: delta que não casa com nenhuma assinatura é ruído, sempre.
   Todo erro dela pesa contra o motor, nunca a favor.
-- **Um piso de ruído contra stack desconhecida** (§8) já derrubou uma das duas regras novas antes de qualquer segundo corpus. Repetir esse teste barato a cada regra nova.
+- **Dois pisos de ruído contra stack desconhecida** (§8, §9) já pegaram falso positivo bloqueante antes de qualquer segundo corpus, as duas vezes na mesma regra. Repetir esse teste barato a cada regra nova.
 - **Camadas não validadas:** console (capturado, não comparado), banco e trace.
 - **O oráculo é O5.** Defeito que já existia na base é invisível por construção.
 
@@ -197,7 +197,79 @@ inalcançável porque a jornada da Fase 0 não tem ações (isso é IR, Fase 1),
 uma aplicação em produção sozinha não tem `base` e `head` — o oráculo O5 não
 tem contra o que julgar.
 
-## 9. Reproduzir
+## 9. Adendo — segunda aplicação desconhecida (2026-08-13)
+
+ParaBank (Parasoft), instância pública hospedada. Java/JSP servido por contêiner
+de Servlet — nenhum parentesco com Next.js em dimensão nenhuma. Seis páginas
+públicas, duas capturas, **mesma build**.
+
+Escolhida por ser o adversário natural da regra sob suspeita: aplicação com
+sessão de servidor e formulário com `action`. A hipótese de que ela teria
+injeção de defeito configurável no admin **não se confirmou** — o admin da
+instância hospedada só configura datasource, saldo e JMS. Então isto é piso de
+ruído, não corpus de defeito.
+
+**Resultado inicial: 44 deltas, 28 BLOQUEANTES.** De novo a mesma build
+reprovando a si mesma, e de novo pela regra `href`/`action` → HIGH.
+
+Causa única para os 44: `;jsessionid=<hex>` — identidade de sessão embutida no
+**path**, como parâmetro de segmento (RFC 3986 §3.3), que é o rewriting de URL
+que contêiner de Servlet aplica quando não pode contar com cookie.
+
+Pior que o caso Keycloak em dois sentidos:
+
+- **contamina tudo**, não um parâmetro de fluxo de autenticação: `href`, `src`,
+  `action` e a URL de todo recurso estático;
+- **quebra o alinhamento de rede**, não só a comparação de valor. Os mesmos 6
+  recursos apareceram como 6 `REQUEST_REMOVED` + 6 `REQUEST_ADDED`, e o diff de
+  corpo — que é onde mora o valor — nunca aconteceu. Enquanto o parâmetro ficava
+  grudado no segmento, `style.css;jsessionid=…` não terminava em `.css` e
+  nenhuma das regras de normalização reconhecia o que estava olhando.
+
+Fechado em `NORM-NET-009`, com a mesma disciplina de conjunção nome+forma do
+`NORM-NET-008`. Duas escolhas que merecem registro:
+
+1. **Normaliza nos DOIS propósitos** — deliberadamente o oposto do que se faz
+   com identificador de path (§4). Lá, apagar o id no propósito `VALUE` custava
+   detecção, porque o id era conteúdo de negócio. Id de sessão não é: é criado
+   pelo contêiner, não sobrevive a duas execuções nem na mesma build, e não há o
+   que comparar.
+2. **Lista de nomes curta.** `sid` ficou de fora por ser plausível como
+   identificador de negócio; ColdFusion (`cfid`/`cftoken`) também, por não
+   termos como medir. Entrada não testada é dívida, não cobertura.
+
+| Corpus | Antes | Depois |
+|---|---|---|
+| ParaBank, mesma build | 44 deltas, 28 bloqueantes | **2 deltas, 0 bloqueantes** |
+| ANBIMA, mesma build | 1 delta, 0 bloqueantes | 1, 0 |
+| Juventude, mesma build | 0 | 0 |
+| Juventude, PR real | 68, nenhum bloqueante | 68, nenhum bloqueante |
+| Juventude, 9 defeitos | 5 bloqueados, 0% FP | 5 bloqueados, 0% FP |
+
+Detecção não se moveu: precisão 100% e recall 27,7% no recorte bloqueante,
+precisão 77,6% e recall 100% na triagem, 5 defeitos distintos bloqueados de 9.
+
+Os 2 deltas remanescentes do ParaBank são a **mesma lacuna já declarada na §8**,
+em dois recipientes: o corpo do HTML e um `url()` dentro de atributo `style`.
+Ambos `UNDETERMINED`, nenhum bloqueia. A decisão continua a mesma — normalizar
+token dentro de conteúdo livre é apagar às cegas. Fica declarada, não fechada.
+
+**O que este adendo NÃO é.** Continua não sendo o segundo corpus pedido na §7:
+uma build, zero defeitos, nada sobre detecção.
+
+**O que ele acrescenta.** Duas aplicações desconhecidas, dois piso de ruído,
+**duas vezes a mesma regra quebrando** — sempre por identidade de sessão ou
+token dentro de URL, nunca pelo destino real de uma ação. A regra `href`/`action`
+→ HIGH não se mostrou errada: ela sustenta a detecção do defeito de contato
+trocado, e nas duas vezes o conserto certo foi a normalização, não reverter a
+regra. Mas ela é hoje o **ponto de concentração de risco** do motor: é por ela
+que o falso positivo bloqueante entra. Duas vezes é padrão. Uma terceira
+aplicação desconhecida que a derrube por causa nova é evidência de que o
+problema é a regra, e não a lacuna de normalização da vez — e nesse caso o
+caminho é severidade condicionada ao que mudou dentro da URL, não ao fato de o
+atributo ser `href`.
+
+## 10. Reproduzir
 
 ```bash
 # 1. duas cópias descartáveis da aplicação; aplicar os defeitos numa delas
@@ -216,6 +288,23 @@ node packages/diff-engine/__corpus__/juventude/label.mjs \
 node shims/cli/dist/main.js measure --report .aletheia/fase0/relatorio/report.json \
   --labels .aletheia/fase0/relatorio/labels.json
 ```
+
+Piso de ruído contra stack desconhecida (§8, §9) — duas capturas da mesma build,
+sem build nem login, dois minutos:
+
+```bash
+for r in a b; do
+  node shims/cli/dist/main.js capture --url https://parabank.parasoft.com \
+    --journey apps/runner/__fixtures__/journeys/parabank.json \
+    --out .aletheia/parabank/run-$r --seed 42
+done
+node shims/cli/dist/main.js diff --base .aletheia/parabank/run-a/capture.json \
+  --head .aletheia/parabank/run-b/capture.json --out .aletheia/parabank/ruido \
+  --env parabank-hosted --confidence-mode SHARED_DEGRADED
+```
+
+Esperado: 2 deltas, nenhum bloqueante. Qualquer delta `REGRESSION` aqui é falso
+positivo em cima da mesma build.
 
 As capturas e relatórios não são versionados: pesam, contêm screenshots de
 página inteira e são reconstituíveis pelos comandos acima.

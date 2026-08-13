@@ -108,3 +108,54 @@ describe("token de uso único em query string", () => {
     expect(norm("/x?ticket=A7bC9dE1fG3hI5jK7lM9nO1pQ3rS5t")).toContain("<token>");
   });
 });
+
+/**
+ * Segunda aplicação desconhecida: ParaBank (Java/JSP). Duas capturas da MESMA
+ * build, 44 deltas, 28 bloqueantes — todos com esta única causa.
+ */
+describe("id de sessão como parâmetro de segmento de path", () => {
+  const A = "76458CEB8D9373957D33A25A1C8CE751";
+  const B = "589450F347C8E3F6E4B6116D3B3D09C9";
+  const norm = (url: string, purpose?: "ALIGNMENT" | "VALUE"): string =>
+    normalizeUrl(url, purpose === undefined ? opts : { ...opts, purpose }, createLedger());
+
+  it("jsessionid sai do diff", () => {
+    expect(norm(`/parabank/index.htm;jsessionid=${A}`)).toBe(
+      norm(`/parabank/index.htm;jsessionid=${B}`),
+    );
+    expect(norm(`/parabank/index.htm;jsessionid=${A}`)).toContain("<token>");
+  });
+
+  it("sai também no propósito VALUE — foi ele que bloqueou o href e o action", () => {
+    // Oposto deliberado do caso do WhatsApp: id de sessão não é conteúdo de
+    // negócio, então apagá-lo no `href` não custa detecção nenhuma.
+    expect(norm(`/about.htm;jsessionid=${A}`, "VALUE")).toBe(norm(`/about.htm;jsessionid=${B}`, "VALUE"));
+  });
+
+  it("destinos diferentes continuam diferentes — a regra de href não fica cega", () => {
+    expect(norm(`/about.htm;jsessionid=${A}`, "VALUE")).not.toBe(
+      norm(`/contact.htm;jsessionid=${A}`, "VALUE"),
+    );
+  });
+
+  it("recurso estático volta a alinhar, e o hash de bundle continua sendo visto", () => {
+    // Enquanto o parâmetro ficava grudado, `style.css;jsessionid=…` não terminava
+    // em `.css` e o alinhamento de rede via 6 removidos + 6 adicionados.
+    expect(norm(`/parabank/style.css;jsessionid=${A}`)).toBe(norm(`/parabank/style.css;jsessionid=${B}`));
+    expect(norm(`/assets/index-DkG7f8Xz.js;jsessionid=${A}`)).toContain("index-<hash>.js");
+  });
+
+  it("Tomcat em cluster: o sufixo de jvmRoute vai junto", () => {
+    expect(norm(`/index.htm;jsessionid=${A}.node1`)).toBe(norm(`/index.htm;jsessionid=${B}.node2`));
+  });
+
+  it("parâmetro de segmento que não é sessão continua sendo comparado", () => {
+    // A lista de nomes é curta de propósito. Nome fora dela é conteúdo.
+    expect(norm("/produto;cor=azul")).not.toBe(norm("/produto;cor=verde"));
+    expect(norm(`/produto;sid=${A}`)).not.toBe(norm(`/produto;sid=${B}`));
+  });
+
+  it("valor curto não sai, mesmo com nome de sessão", () => {
+    expect(norm("/x;sessionid=7")).not.toBe(norm("/x;sessionid=9"));
+  });
+});

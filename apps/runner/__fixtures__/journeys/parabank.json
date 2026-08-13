@@ -1,0 +1,13 @@
+{
+  "journeyVersion": "0.1.0",
+  "name": "parabank-smoke",
+  "viewport": { "width": 1280, "height": 800 },
+  "observations": [
+    { "observationId": "home", "path": "/parabank/index.htm" },
+    { "observationId": "about", "path": "/parabank/about.htm" },
+    { "observationId": "services", "path": "/parabank/services.htm" },
+    { "observationId": "contact", "path": "/parabank/contact.htm" },
+    { "observationId": "register", "path": "/parabank/register.htm" },
+    { "observationId": "admin", "path": "/parabank/admin.htm" }
+  ]
+}
