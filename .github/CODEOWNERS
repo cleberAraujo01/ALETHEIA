@@ -1,0 +1,32 @@
+# Donos por área.
+#
+# HOJE O REPOSITÓRIO TEM UM CONTRIBUIDOR, e o GitHub não permite aprovar o
+# próprio PR. Por isso a exigência de aprovação está DESLIGADA na proteção de
+# branch — ver CLAUDE.md §11. Este arquivo já marca as áreas para o dia em que
+# houver uma segunda pessoa: aí basta ligar `required_approving_review_count`
+# sem discutir de novo quem revisa o quê.
+#
+# As três áreas abaixo passam a exigir DUAS aprovações quando isso acontecer:
+#
+#   packages/diff-engine     concentra o risco de falso positivo do produto —
+#                            §10.6 da medição registra 20 falso positivo
+#                            bloqueantes ainda abertos
+#   packages/capabilities    toca acesso a dados (ARQUITETURA.md §14.8);
+#                            WRITE/DESTRUCTIVE já exige dois revisores por §6.1
+#   scripts/arch-check.mjs   é o que impede a erosão dos princípios; quem muda
+#                            a régua não deveria poder mudá-la sozinho
+
+*                                   @cleberAraujo01
+
+# --- duas aprovações quando houver segunda pessoa --------------------------
+/packages/diff-engine/              @cleberAraujo01
+/packages/capabilities/             @cleberAraujo01
+/scripts/arch-check.mjs             @cleberAraujo01
+/scripts/arch-check.selftest.mjs    @cleberAraujo01
+
+# --- documentos normativos -------------------------------------------------
+# Mudar qualquer um destes muda a lei do repositório, não o código.
+/CLAUDE.md                          @cleberAraujo01
+/docs/ARQUITETURA.md                @cleberAraujo01
+/docs/adr/                          @cleberAraujo01
+/docs/medicao-fase-0.md             @cleberAraujo01

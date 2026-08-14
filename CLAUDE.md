@@ -376,6 +376,9 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 - [ ] Mudança em `diff-engine` acompanhada de delta medido de precisão/recall
 - [ ] Regra de negócio nova ou alterada refletida em `docs/ARQUITETURA.md` §7
 - [ ] Violação de princípio arquitetural justificada por ADR em `docs/adr/`
+- [ ] `pnpm arch:check` verde — e `pnpm arch:check:selftest` também, se você mexeu nas regras
+- [ ] Medição de corpus sem regressão nos **quatro** pares: defeitos e mudança intencional de cada aplicação
+- [ ] Piso de ruído rodado em aplicação fora do corpus calibrado, se o diff tocou severidade, normalização ou supressão (§8 e §9 da medição)
 
 ---
 
@@ -395,10 +398,47 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 ---
 
+## 11. Fluxo de branches e revisão — obrigatório
+
+**Início de fase.** Ao começar o desenvolvimento de uma nova fase, antes do primeiro commit de código:
+
+1. Criar `fase/<n>-<slug>` a partir de `main` atualizada
+2. No mesmo commit, atualizar §8 deste documento com escopo permitido, escopo proibido e critério de saída da fase
+3. Publicar a branch e aplicar branch protection
+
+> A Fase 0 foi desenvolvida direto na `main`, antes desta regra existir. Não há branch `fase/0-oraculo` retroativa — criar uma agora seria ficção. A regra vale a partir da Fase 1.
+
+**Durante a fase.** Todo trabalho sai da branch da fase em branch curta (`feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`), com vida máxima de 3 dias. Branch de trabalho curta existe para que a branch de fase não divirja de `main` por três meses e o merge final não vire um evento de risco.
+
+**Antes de todo push que virará PR**, execute a auto-revisão:
+
+1. `pnpm lint && pnpm typecheck && pnpm test && pnpm arch:check`
+2. Releia o diff completo contra o checklist §9, item por item
+3. Releia o diff contra os 12 princípios §2 e **declare no corpo do PR qual princípio cada mudança poderia tensionar** — inclusive quando a resposta for "nenhum"
+4. Se tocou `diff-engine`: rode a medição de corpus e cole a tabela antes/depois dos quatro pares
+5. Se criou regra de severidade ou normalização: rode piso de ruído em aplicação fora do corpus calibrado
+
+Auto-revisão **não substitui** revisão humana. Ela existe para que a revisão humana não gaste atenção com o que é mecanicamente verificável.
+
+**Todo merge passa por PR.** `main` e `fase/*` não aceitam push direto: PR obrigatório, CI verde, conversas resolvidas, branch atualizada.
+
+> **A proteção NÃO está aplicada hoje, e o motivo é de plano, não de configuração.** O repositório é privado e o GitHub cobra proteção de branch — clássica e rulesets — em repositório privado; as duas APIs devolvem 403. O buraco é real e fica declarado: nada impede um `git push` direto na `main`. O CI ainda reprova, mas depois do fato. Para fechar: tornar o repositório público (custo zero) ou assinar o Pro, e então rodar `pnpm protect` uma vez.
+
+> **Exigência de aprovação está desligada hoje, e a razão é factual:** o repositório tem um contribuidor, e o GitHub não permite aprovar o próprio PR. Exigir aprovação travaria todo merge; exigir com bypass de admin transformaria a regra em decoração. Quando entrar a segunda pessoa, ligue `required_approving_review_count: 1` — e `2` para `packages/diff-engine` (concentra o risco de falso positivo do produto), `packages/capabilities` (toca acesso a dados, §14.8) e `scripts/arch-check.mjs` (é o que impede a erosão dos princípios). O `CODEOWNERS` já marca essas três áreas.
+
+**Código escrito por IA passa pela mesma revisão — em especial código escrito por IA.** O volume que um agente produz por hora é exatamente o que torna a revisão indispensável, não dispensável.
+
+**PR que viole princípio arquitetural não é aprovado.** Ou o PR muda, ou vem acompanhado de ADR em `docs/adr/` seguindo `docs/adr/TEMPLATE.md`: contexto, decisão, **consequências negativas declaradas** e como a decisão será revista.
+
+**Fim de fase.** Merge da branch de fase em `main` só com critério de saída atingido e medição documentada em `docs/`, no padrão de `docs/medicao-fase-0.md`. Estratégia: **squash** de trabalho → fase; **merge commit** de fase → `main`, para preservar a história da fase. Branch de trabalho é deletada após o merge; branch de fase é **preservada** como registro.
+
+---
+
 ## Referências rápidas
 
 | Preciso de… | Onde |
 |---|---|
+| Fluxo de branches e revisão | §11 acima e `CONTRIBUTING.md` |
 | Regras de negócio numeradas | `docs/ARQUITETURA.md` §7 |
 | Princípios invioláveis | `docs/ARQUITETURA.md` §4 |
 | Schema da IR | `docs/ARQUITETURA.md` §12.1 |
