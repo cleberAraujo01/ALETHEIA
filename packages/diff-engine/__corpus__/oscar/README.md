@@ -43,10 +43,11 @@ detectar tudo é trivial se reprovar todo mundo for aceitável.
 
 **Estado atual do corpus intencional: 20 deltas bloqueantes, todos falso
 positivo** (§10.6 e §10.7 do documento de medição). Eram 22; os 2 de reembalagem
-foram consertados. Os 20 restantes vêm da regra de **nó interativo removido** —
-links que saíram do menu numa mudança legítima. O alvo é zero, e não se chega lá
-rebaixando remoção de nó em bloco: nó com texto é o que pega
-`O6-listagem-off-by-one` aqui e `F9` no `juventude`.
+foram consertados. Os 20 restantes são links que saíram do menu numa mudança
+legítima — e a ablação da §10.8 provou que eles são **sobredeterminados**: as
+regras de nó interativo e de texto perdido os marcam HIGH independentemente, e só
+somem retirando as duas, ao custo de 4 defeitos. Não é problema de regra, é falta
+de sinal. **Não tente resolver mexendo em severidade.**
 
 O que **não** tem: a aplicação, as capturas, os relatórios e os screenshots.
 Pesam e são reconstituíveis — ver §10.4 do documento de medição.

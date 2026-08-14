@@ -457,7 +457,13 @@ não há defeito nenhum neste par. Duas das quatro mudanças foram reprovadas.
 
 Os 22 vêm de **duas** regras, e a primeira leitura deste relatório errou ao
 atribuir todos a uma só. `severityOf` testa `isInteractive` **antes** de olhar
-`carriesText`, e `a` está em `INTERACTIVE_TAGS`:
+`carriesText`, e `a` está em `INTERACTIVE_TAGS`.
+
+> **A segunda leitura também errou, e o erro importa mais.** Dizer que os 20
+> "vêm de `isInteractive`" descreve qual `if` dispara primeiro, não o que os
+> causa. Os 20 deltas são, todos, **interativos E com texto perdido** — as duas
+> regras os marcam HIGH de forma independente. Rebaixar qualquer uma sozinha não
+> muda nada. Medido e detalhado na §10.8.
 
 - **20 deltas, do `M1` — regra "nó interativo removido → HIGH".** Os links
   `Fiction` e `Non-Fiction` somem do menu, em cada uma das dez páginas. O texto
@@ -547,6 +553,59 @@ hoje, o que é ausência de evidência, não evidência de ausência. As direç�
 continuam abertas e nenhuma delas é obviamente certa. Enquanto isso, o número a
 citar é este: **o motor reprova 1 em cada 2 mudanças legítimas que mexem no menu
 desta aplicação.**
+
+### 10.8 Ablação — o que cada regra de remoção realmente ganha
+
+A §10.6 e a §10.7 discutiram qual regra "consertar" sem saber o que cada uma
+paga. Esta seção mede, e o resultado muda a conversa.
+
+**Método.** Interruptor temporário em `severityOf`, uma variante por vez, contra
+os **quatro pares reais**. A unidade é defeito distinto bloqueado, não delta.
+
+| Variante | juventude: defeitos | juventude: PR | oscar: defeitos | oscar: intencional |
+|---|---|---|---|---|
+| baseline | **5 de 9** (48 deltas) | 0 FP | **4 de 7** (26) | **20 FP** |
+| sem `isInteractive` | 5 de 9 (48) | 0 FP | 4 de 7 (26) | 20 FP |
+| sem `carriesText` | 2 de 9 (37) | 0 FP | 3 de 7 (22) | 20 FP |
+| sem as duas | 2 de 9 (37) | 0 FP | 3 de 7 (22) | **0 FP** |
+
+Três leituras:
+
+**1. `isInteractive` em `DOM_NODE_REMOVED` não ganhava nada.** Retirá-la inteira
+deixa detecção idêntica nos dois corpora — mesmos defeitos, mesmos deltas. Era
+redundante com `carriesText` em **100%** dos casos, porque link e botão quase
+sempre carregam texto.
+
+**2. `carriesText` ganha muito.** Sem ela, o juventude cai de 5 para 2 defeitos e
+o oscar de 4 para 3. É a regra que sustenta `F9` e `O6` — item sumindo em
+silêncio de listagem.
+
+**3. Os 20 só somem retirando as duas, ao custo de 4 defeitos.** Isso prova, com
+número, o que a §10.6 só suspeitava: **nenhuma mexida em severidade resolve os 20
+sem criar falso negativo.** Trocar 4 defeitos por 20 falso positivo é
+exatamente a troca que PA-10 proíbe.
+
+**O que foi feito com isso.** A condição de interativo foi **estreitada**, não
+removida: passa a valer só para elemento interativo **sem texto** — botão de
+ícone, controle rotulado apenas por `aria-label`. É a única classe que ela cobre
+sozinha, nenhum dos dois corpora tem um caso dela, e o custo medido do
+estreitamento é **zero** em todos os oito pares. Remover de vez seria confundir
+"custo zero" com "valor zero"; um botão de comprar que é só um ícone continua
+sendo regressão.
+
+Efeito colateral que veio de graça: reembalagem de elemento interativo passa a
+não bloquear. Antes era impossível — `isInteractive` devolvia HIGH antes de
+qualquer verificação de `textPreserved`.
+
+**O que continua aberto, agora com prova.** Os 20 são um problema de **sinal**,
+não de regra: "tiraram o item do menu de propósito" e "o link quebrou" produzem
+evidência idêntica no DOM. Das três direções da §10.6, só a terceira sobrevive a
+esta medição — **supressão aprendida**, que age depois da severidade e por isso
+funciona num sinal sobredeterminado. Ela exige ≥ 3 casos reais rotulados como
+`NOISE` (§6.4), é por aplicação, e não fecha o problema geral. A direção 2
+(separar listagem de navegação) continua sendo hipótese que só poderia ser
+calibrada contra os mesmos dados que ela explicaria — a armadilha que a §7
+descreve.
 
 ## 11. Reproduzir
 
