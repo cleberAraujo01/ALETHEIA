@@ -43,17 +43,36 @@ jobs:
 
       - name: medir
         id: medir
+        # `set -o pipefail` NÃO É DETALHE: sem ele, o status do pipeline é o do
+        # `tee` — sempre 0 — e este job ficava VERDE mesmo quando o gate
+        # detectava regressão. Um gate que nunca reprova é pior que gate nenhum,
+        # porque produz confiança sem cobertura.
+        #
+        # O delimitador é aleatório pelo mesmo motivo que o GitHub recomenda:
+        # delimitador fixo pode aparecer na saída e quebrar o parser.
         run: |
-          echo 'saida<<FIM' >> "$GITHUB_OUTPUT"
-          pnpm -s corpus:gate 2>&1 | tee -a "$GITHUB_OUTPUT"
-          echo 'FIM' >> "$GITHUB_OUTPUT"
+          set -o pipefail
+          DELIM="fim-$(openssl rand -hex 8)"
+          echo "saida<<$DELIM" >> "$GITHUB_OUTPUT"
+          # `|| status=$?` é o que impede o `set -e` do Actions de abortar o
+          # passo aqui: se abortasse, o delimitador nunca seria fechado e o
+          # comentário do PR — que é o ponto deste workflow — não sairia
+          # justamente na execução em que ele mais importa, a que falhou.
+          status=0
+          pnpm -s corpus:gate 2>&1 | tee -a "$GITHUB_OUTPUT" || status=$?
+          echo "$DELIM" >> "$GITHUB_OUTPUT"
+          exit $status
 
       - name: comentar no PR
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
-            const saida = `${{ toJSON(steps.medir.outputs.saida) }}`;
+            // SEM crases em volta: `toJSON` já produz um literal de string JS
+            // válido. Envolvê-lo em template literal produzia um texto contendo
+            // as aspas e os `\n` LITERAIS — o comentário do PR saía como uma
+            // linha única ilegível, que é o oposto do objetivo deste workflow.
+            const saida = ${{ toJSON(steps.medir.outputs.saida) }};
             const corpo = [
               '## Gate de corpus — fixtures sintéticos',
               '',

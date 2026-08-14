@@ -16,10 +16,10 @@
   "dependencies": {
     "@aletheia/diff-engine": "workspace:*",
     "@aletheia/shared": "workspace:*",
-    "pngjs": "^7.0.0",
+    "pngjs": "7.0.0",
     "@aletheia/runner": "workspace:*"
   },
   "devDependencies": {
-    "@types/pngjs": "^6.0.5"
+    "@types/pngjs": "6.0.5"
   }
 }
