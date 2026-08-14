@@ -111,8 +111,24 @@ describe("severidade de DOM — destino vs. entrega, conteúdo vs. estrutura", (
     expect(severityOf(dom("DOM_NODE_REMOVED", { tag: "div", carriesText: false }))).toBe("MEDIUM");
   });
 
-  it("elemento interativo que some bloqueia mesmo sem texto", () => {
+  it("elemento interativo SEM texto que some bloqueia — botão de ícone", () => {
+    // É a única classe que esta condição cobre sozinha. Nenhum dos dois corpora
+    // tem um caso dela, e foi por isso que a regra foi estreitada em vez de
+    // removida: a ablação mostrou custo zero, não valor zero.
     expect(severityOf(dom("DOM_NODE_REMOVED", { tag: "button", carriesText: false }))).toBe("HIGH");
+  });
+
+  it("interativo COM texto é julgado pela regra de texto, não pela de interativo", () => {
+    // ABLAÇÃO (2026-08-14, quatro pares reais): retirar `isInteractive` inteira
+    // não mudava número nenhum — era redundante com `carriesText` em 100% dos
+    // casos dos dois corpora. Este teste trava o estreitamento.
+    expect(severityOf(dom("DOM_NODE_REMOVED", { tag: "a", carriesText: true }))).toBe("HIGH");
+    // E uma reembalagem de elemento interativo passa a não bloquear — antes era
+    // impossível, porque `isInteractive` devolvia HIGH antes de qualquer
+    // verificação de texto preservado.
+    expect(
+      severityOf(dom("DOM_NODE_REMOVED", { tag: "a", carriesText: true, textPreserved: true })),
+    ).toBe("MEDIUM");
   });
 
   it("texto que só trocou de invólucro é reembalagem: reporta, não bloqueia", () => {

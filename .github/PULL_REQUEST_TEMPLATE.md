@@ -48,7 +48,7 @@ em que quem escreveu olha o próprio diff pelo ângulo de quem vai revisar.
 | Juventude — 9 defeitos | 48 regr · 5 de 9 bloqueados · 77,6% triagem | |
 | Juventude — PR real | 68 deltas · 0 bloqueantes | |
 | Oscar — 7 defeitos | 26 regr · 4 de 7 bloqueados · 96,5% triagem | |
-| Oscar — mudança intencional | 60 deltas · **20 bloqueantes** | |
+| Oscar — mudança intencional | 60 deltas · **20 bloqueantes** (falso positivo conhecido, §10.8) | |
 
 - [ ] Nenhum dos quatro piorou
 - [ ] Piso de ruído inalterado: juventude 0 · oscar 10 · ParaBank 2 · ANBIMA 1, **nenhum bloqueante**

@@ -76,7 +76,19 @@ export function severityOf(delta: RawDelta): Severity {
       return "LOW";
 
     case "DOM_NODE_REMOVED": {
-      if (isInteractive(delta)) return "HIGH";
+      // Elemento interativo SEM TEXTO — botão de ícone, controle rotulado só
+      // por `aria-label`. É o único caso que esta condição cobre sozinha, e o
+      // estreitamento veio de medição, não de gosto.
+      //
+      // ABLAÇÃO (2026-08-14, quatro pares reais): retirar `isInteractive`
+      // inteira não mudava NADA — 5/9 no juventude e 4/7 no oscar, mesmos
+      // deltas. Ela era redundante com `carriesText` em 100% dos casos dos dois
+      // corpora, porque link e botão quase sempre carregam texto. Retirar
+      // `carriesText` custava 3 defeitos no juventude e 1 no oscar.
+      //
+      // Estreitar em vez de remover preserva a classe que nenhum corpus testa
+      // — o botão de comprar que é só um ícone — a custo medido zero.
+      if (delta.facts["carriesText"] !== true && isInteractive(delta)) return "HIGH";
       // Nó com texto que desaparece é conteúdo que o usuário deixou de
       // receber — a turma que sumiu da listagem, o cartão que não renderizou
       // mais. Invólucro sem texto é estrutura, e refatorar estrutura é rotina.

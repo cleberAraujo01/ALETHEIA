@@ -349,7 +349,9 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 **Os 2 de reembalagem já foram consertados** (§10.7): `textPreserved` no `DOM_NODE_REMOVED` separa conteúdo perdido de conteúdo reembalado, a custo zero de detecção nos dois corpora de defeito.
 
-**Os 20 continuam, e são o item aberto mais importante do projeto.** Não conserte rebaixando remoção de nó em bloco: nó com texto é o que pega `O6` e `F9` — item sumindo em silêncio de listagem, a regressão que passa por todo teste de fluxo —, e rebaixar nó interativo significa que botão de compra que some deixa de reprovar. Que nenhum dos dois corpora tenha hoje defeito dependente dessa regra é ausência de evidência, não evidência de ausência. Qualquer mexida aqui reporta os números dos **quatro** corpora, e o de mudança intencional é o que decide.
+**Os 20 continuam, e são o item aberto mais importante do projeto — mas agora sabe-se que NÃO são um problema de regra** (§10.8). A ablação nos quatro pares mostrou que os 20 deltas são interativos **e** com texto perdido ao mesmo tempo: as duas regras os marcam HIGH independentemente, e só somem retirando as duas — ao custo de 4 defeitos, que é a troca que PA-10 proíbe. É problema de **sinal**: "tiraram o item do menu de propósito" e "o link quebrou" produzem evidência idêntica no DOM.
+
+Das três direções da §10.6, só **supressão aprendida** sobrevive à medição, porque age depois da severidade e funciona num sinal sobredeterminado. Ela exige ≥ 3 casos reais rotulados como `NOISE` (§6.4) e é por aplicação. **Não tente resolver mexendo em severidade** — já está medido que não dá.
 
 **Os dois corpora falham na mesma junta, e é aí que vale investir.** `F7` no `juventude` (atributo `required` perdido), `O3` e `O7` no `oscar` (`value` virando `None`, `alt` removido): sempre mudança de atributo com consequência comportamental que o motor não infere da mudança em si. Dois corpora independentes apontando para o mesmo lugar é evidência, não coincidência. O caminho é severidade por **consequência do atributo**, não por nome dele.
 
