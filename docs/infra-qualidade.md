@@ -51,9 +51,19 @@ para o cliente. **Se estourar, paralelize ou mova para `deep.yml`; não aumente 
 limite.** Aumentar é a decisão que transforma o gate em algo que o time aprende a
 contornar — que é exatamente a falha que este produto vende para o cliente evitar.
 
-> Ressalva honesta: os números acima são de cache quente. O CI paga instalação de
-> dependências e build frio a cada execução, e isso não foi medido — o `ci.yml`
-> ainda não rodou nenhuma vez. O primeiro run é que dirá.
+### Medido no CI de verdade
+
+Os números acima são locais, com cache quente. O CI paga instalação e build frio
+a cada execução. Primeira execução real, em `ubuntu-latest`:
+
+| Workflow | Job | Duração | Orçamento |
+|---|---|---|---|
+| `ci.yml` | `verificacao` | **46s** | 5 min |
+| `corpus.yml` | `medicao` | **27s** | 15 min |
+
+Folga de mais de 6× no gate que importa. Há espaço para a Parte 3 e a Parte 4
+entrarem sem tocar no limite — que era exatamente o ponto de medir antes de
+prometer.
 
 ## 3. O que foi deliberadamente deixado de fora
 
@@ -110,9 +120,16 @@ Playwright. **Verde no `corpus.yml` não significa "a medição foi feita"** —
 continua sendo obrigação de quem abre o PR, e o template de PR cobra a tabela dos
 quatro pares com os números de hoje já preenchidos.
 
-**Nenhum workflow rodou ainda.** Os três foram escritos e revisados, mas o
-primeiro `ci.yml` só executa quando este PR abrir. Orçamento de 5 minutos é
-projeção baseada em ≈20s de trabalho local mais instalação e build frio.
+**`deep.yml` nunca rodou.** O `ci.yml` e o `corpus.yml` já executaram e passaram
+(46s e 27s); o noturno só dispara às 03:00 UTC ou por `workflow_dispatch`.
+
+**As duas primeiras execuções do CI falharam, e a culpa foi da configuração.**
+`verificação` e `medição` como IDs de job: o GitHub Actions só aceita
+`[A-Za-z0-9_-]` em id de job e **rejeita o arquivo inteiro** quando há acento —
+nenhum job chega a rodar, e a mensagem é o genérico "This run likely failed
+because of a workflow file issue". Custou uma execução vermelha para descobrir, e
+fica registrado porque é a terceira vez nesta rodada que uma ferramenta falhou
+por configuração e não por conteúdo.
 
 ## 6. Uma coisa que a configuração encontrou no próprio repositório
 
