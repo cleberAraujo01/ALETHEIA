@@ -1,6 +1,7 @@
 import { PlatformError, stableHash, type RunMetadata } from "@aletheia/shared";
 
 import { classify } from "./classify/index.js";
+import { diffConsole } from "./diff/console.js";
 import { diffDom } from "./diff/dom.js";
 import { diffNetwork } from "./diff/network.js";
 import { DEFAULT_DELTA_BUDGET_PER_OBSERVATION, DeltaBudget, type RawDelta } from "./diff/types.js";
@@ -91,6 +92,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
   const raw: RawDelta[] = [];
   const truncated: string[] = [];
   const domGaps: string[] = [];
+  const consoleGaps: string[] = [];
   const networkGaps: string[] = [];
   const visualGaps: string[] = [];
   const budgetLimit = options.deltaBudgetPerObservation ?? DEFAULT_DELTA_BUDGET_PER_OBSERVATION;
@@ -179,6 +181,12 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       visualGaps.push(id);
     }
 
+    if (baseObservation.console !== null && headObservation.console !== null) {
+      raw.push(...diffConsole(id, baseObservation.console, headObservation.console, budget));
+    } else {
+      consoleGaps.push(id);
+    }
+
     if (budget.truncated) truncated.push(id);
   }
 
@@ -203,6 +211,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       onlyInHead,
       truncated,
       domGaps,
+      consoleGaps,
       networkGaps,
       visualGaps,
     }),
@@ -327,15 +336,11 @@ interface CoverageInput {
   readonly domGaps: readonly string[];
   readonly networkGaps: readonly string[];
   readonly visualGaps: readonly string[];
+  readonly consoleGaps: readonly string[];
 }
 
 function coverageOf(input: CoverageInput): CoverageReport {
   const layersNotValidated: LayerGap[] = [
-    {
-      layer: "CONSOLE",
-      reason: "console é capturado como evidência, mas ainda não é comparado",
-      observations: [],
-    },
     {
       layer: "DATABASE",
       reason: "diff de banco entra na Fase 1 (E-02)",
@@ -367,6 +372,13 @@ function coverageOf(input: CoverageInput): CoverageReport {
       layer: "VISUAL",
       reason: "screenshot ausente em base ou head para estas observações",
       observations: input.visualGaps,
+    });
+  }
+  if (input.consoleGaps.length > 0) {
+    layersNotValidated.push({
+      layer: "CONSOLE",
+      reason: "console ausente em base ou head para estas observações",
+      observations: input.consoleGaps,
     });
   }
 

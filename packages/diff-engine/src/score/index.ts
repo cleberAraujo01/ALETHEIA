@@ -156,6 +156,34 @@ export function severityOf(delta: RawDelta): Severity {
     case "VISUAL_DIMENSIONS_CHANGED":
       // Altura de página muda com qualquer conteúdo a mais; sozinho não diz nada.
       return "LOW";
+
+    case "CONSOLE_MESSAGE_ADDED": {
+      // Erro novo no console é a aplicação DIZENDO que algo falhou. Não é
+      // diferença de forma que alguém precise interpretar — é diagnóstico
+      // emitido pelo próprio código sob teste, e por isso não sofre da
+      // ambiguidade que derrubou as regras de remoção de nó (§10.9).
+      //
+      // MEDIDO antes de existir (§10.10): nos sete pares, mensagem nova apareceu
+      // SÓ no par com defeitos — 7 erros, um por página, do 404 da rota
+      // quebrada. Zero em três PRs legítimos e nos dois pisos de ruído.
+      //
+      // `warn` fica um degrau abaixo porque aviso de framework em modo de
+      // desenvolvimento é rotina; `log` é a aplicação falando consigo mesma.
+      const level = stringFact(delta.facts["level"]);
+      if (level === "error") return "HIGH";
+      return level === "warn" ? "MEDIUM" : "LOW";
+    }
+    case "CONSOLE_MESSAGE_REMOVED":
+      // Erro que PAROU de acontecer é quase sempre correção. Reporta para o
+      // relatório ficar completo; não reprova ninguém por ter consertado algo.
+      return "LOW";
+    case "CONSOLE_COUNT_CHANGED": {
+      // A mesma mensagem passando de 1 para 40 é sinal de laço ou de retry em
+      // cascata — mas a contagem sozinha varia com timing, então fica abaixo de
+      // "mensagem nova". HIPÓTESE: nenhum dos sete pares exerceu este caso.
+      const level = stringFact(delta.facts["level"]);
+      return level === "error" ? "MEDIUM" : "LOW";
+    }
   }
 }
 

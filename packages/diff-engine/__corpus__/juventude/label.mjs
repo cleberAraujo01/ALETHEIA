@@ -49,6 +49,26 @@ const ROTA_POR_OBSERVACAO = {
 /** Rotas onde o banner das internas existe (a home tem hero próprio). */
 const ROTAS_COM_BANNER = ["/time", "/quem-somos", "/canais", "/contato", "/parceiros"];
 
+/**
+ * Defeitos que produzem saída no console, e o que cada um emite.
+ *
+ * A MENSAGEM SOZINHA NÃO IDENTIFICA O DEFEITO: o texto é "Failed to load
+ * resource: the server responded with a status of 404 (Not Found)", sem a URL.
+ * Atribuir por ele seria inferência, não evidência — e a rotulagem fecha para
+ * baixo por princípio.
+ *
+ * Por isso vale a mesma ponte usada para pixel: o delta de console só é
+ * atribuído quando OUTRA camada, na MESMA observação, já carrega a assinatura
+ * daquele defeito. No corpus isso significa que o 404 de console só conta para
+ * F6 nas páginas onde o link /quemsomos aparece no DOM ou na rede.
+ */
+const DEFEITOS_COM_CONSOLE = new Set([
+  // Rota com erro de digitação: o prefetch recebe 404 e o browser registra.
+  "F6-rota-quem-somos",
+  // O mapa do Google carrega junto com a página e loga por conta própria.
+  "F4-mapa-eager",
+]);
+
 /** Defeitos que necessariamente mudam pixels na tela. */
 const DEFEITOS_COM_PIXEL = new Set([
   "F1-splash-global",
@@ -195,6 +215,7 @@ function atribuir(delta) {
   }
   if (delta.kind === "RESPONSE_FIELD_CHANGED") return atribuirCorpo(delta);
   if (delta.layer === "VISUAL") return atribuirVisual(delta);
+  if (delta.layer === "CONSOLE") return atribuirConsole(delta);
   return null;
 }
 
@@ -231,6 +252,24 @@ function atribuirVisual(delta) {
   return null;
 }
 
+/**
+ * Console só é atribuído com confirmação de outra camada na mesma observação —
+ * a mesma regra do pixel, pelo mesmo motivo: sem ela, qualquer mensagem que
+ * aparecesse viraria acerto de graça.
+ */
+function atribuirConsole(delta) {
+  for (const outro of report.deltas) {
+    if (outro.observationId !== delta.observationId) continue;
+    if (outro.layer === "VISUAL" || outro.layer === "CONSOLE") continue;
+    for (const assinatura of ASSINATURAS) {
+      if (assinatura.casa(outro) && DEFEITOS_COM_CONSOLE.has(assinatura.defect)) {
+        return assinatura.defect;
+      }
+    }
+  }
+  return null;
+}
+
 /** Detecta a troca de contraste do F2 nas duas direções da lista de classes. */
 function contraste(antes, depois) {
   const tinhaBranco = /\btext-white\b/.test(antes);
@@ -255,6 +294,9 @@ function motivoDoRuido(delta) {
   }
   if (delta.layer === "VISUAL") {
     return "pixel diferente sem defeito identificado na mesma observação";
+  }
+  if (delta.layer === "CONSOLE") {
+    return "mensagem de console sem defeito confirmado por outra camada na mesma observação";
   }
   return "não atribuível a nenhum dos defeitos aplicados";
 }

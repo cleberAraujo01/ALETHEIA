@@ -252,7 +252,7 @@ function renderConsoleSummary(report: DiffReport, args: DiffCommandArgs): string
     `  veredito     ${report.verdict.code}${report.verdict.blocking ? "  (bloqueia)" : ""}`,
     `  oráculo      ${report.oracle} — teste diferencial contra a build base`,
     `  deltas       ${report.summary.total}  ·  regressões ${report.summary.byClassification.REGRESSION}  ·  indeterminados ${report.summary.byClassification.UNDETERMINED}  ·  ruído ${report.summary.byClassification.NOISE}`,
-    `  camadas      DOM ${report.summary.byLayer.DOM}  ·  rede ${report.summary.byLayer.NETWORK}  ·  visual ${report.summary.byLayer.VISUAL}`,
+    `  camadas      DOM ${report.summary.byLayer.DOM}  ·  rede ${report.summary.byLayer.NETWORK}  ·  visual ${report.summary.byLayer.VISUAL}  ·  console ${report.summary.byLayer.CONSOLE}`,
     `  observações  ${report.coverage.observationsCompared} comparada(s)`,
     `  não validado ${report.coverage.layersNotValidated.map((gap) => gap.layer).join(", ")}`,
     `  relatórios   ${args.formats.map((format) => resolve(args.out, `report.${format}`)).join("  ")}`,
