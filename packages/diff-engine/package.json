@@ -22,7 +22,7 @@
     "@aletheia/shared": "workspace:*"
   },
   "devDependencies": {
-    "pngjs": "^7.0.0",
+    "pngjs": "7.0.0",
     "vitest": "3.2.7"
   }
 }

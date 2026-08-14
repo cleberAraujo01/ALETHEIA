@@ -14,6 +14,19 @@
 /** @type {import("@commitlint/types").UserConfig} */
 export default {
   extends: ["@commitlint/config-conventional"],
+
+  /**
+   * Commit de merge não segue Conventional Commits, e não deve seguir: ele não
+   * descreve uma mudança, descreve uma junção.
+   *
+   * Os ignores padrão do commitlint cobrem `Merge branch` e `Merge pull
+   * request` — as mensagens que o git e o GitHub geram sozinhos. Qualquer outra
+   * (`Merge chore/x`, por exemplo) é REJEITADA, e o efeito é pior do que
+   * parece: o git não aborta o merge, ele para no meio com o MERGE_HEAD
+   * pendurado e a mensagem "Not committing merge". Descobri isso tentando
+   * mergear os próprios PRs desta infraestrutura.
+   */
+  ignores: [(mensagem) => /^Merge /.test(mensagem)],
   rules: {
     "scope-enum": [
       2,
