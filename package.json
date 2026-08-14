@@ -16,11 +16,13 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm arch:check",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm arch:check && pnpm corpus:gate",
     "suppression:validate": "pnpm --filter @aletheia/diff-engine run suppression:validate",
     "arch:check": "node scripts/arch-check.mjs",
     "arch:check:selftest": "node scripts/arch-check.selftest.mjs",
-    "protect": "node scripts/branch-protection.mjs"
+    "protect": "node scripts/branch-protection.mjs",
+    "corpus:gate": "node scripts/corpus-gate.mjs",
+    "corpus:baseline": "node scripts/corpus-gate.mjs --write-baseline"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -30,6 +32,7 @@
     ]
   },
   "devDependencies": {
+    "@aletheia/diff-engine": "workspace:*",
     "@commitlint/cli": "21.2.2",
     "@commitlint/config-conventional": "21.2.2",
     "@eslint/js": "10.0.1",

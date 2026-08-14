@@ -1,0 +1,86 @@
+name: ci
+
+# ORÇAMENTO: 5 MINUTOS, E NÃO É SUGESTÃO.
+#
+# É o mesmo número que RN-CI-003 impõe ao produto para o cliente. Se não
+# conseguirmos respeitá-lo no nosso próprio repositório, não temos autoridade
+# para prometê-lo a ninguém. Se estourar: paralelize ou mova para `deep.yml`.
+# Não aumente o limite — aumentar é a decisão que transforma o gate em algo que
+# o time aprende a contornar.
+#
+# O paralelo com os Tiers de §15.3 é deliberado: rápido e bloqueante no PR,
+# caro e não-bloqueante à noite. Aplicamos a nós mesmos a arquitetura que
+# vendemos.
+
+on:
+  pull_request:
+  push:
+    branches: [main, "fase/*"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # O nome deste job é o que entra em `required_status_checks` da proteção de
+  # branch (scripts/branch-protection.mjs). Renomear aqui exige renomear lá.
+  verificação:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # A versão mínima declarada em `engines`. Rodar o CI no piso é o que
+          # transforma a declaração em promessa verificada.
+          node-version: 22
+          cache: pnpm
+
+      - name: instalar
+        # `--frozen-lockfile` recusa lockfile desatualizado. Sem isso, o CI
+        # resolveria versões diferentes das da máquina de quem abriu o PR e
+        # deixaria de reproduzir o que foi verificado ali (PA-12 começa aqui).
+        run: pnpm install --frozen-lockfile
+
+      - name: cache do turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+
+      - name: build
+        run: pnpm build
+
+      - name: formatação
+        run: pnpm format:check
+
+      - name: lint
+        run: pnpm lint
+
+      - name: typecheck
+        run: pnpm typecheck
+
+      - name: testes
+        run: pnpm test
+
+      # Arquitetura e o auto-teste dela. O segundo não é zelo excessivo: o
+      # repositório não viola nenhum princípio hoje, então um arch-check
+      # quebrado passaria despercebido para sempre.
+      - name: arquitetura
+        run: pnpm arch:check
+
+      - name: arquitetura — auto-teste
+        run: pnpm arch:check:selftest
+
+      # Rede de baixo contra regressão grosseira de detecção. A medição contra
+      # os corpora REAIS continua sendo obrigação de quem abre o PR — ver o
+      # cabeçalho de scripts/corpus-gate.mjs.
+      - name: gate de corpus
+        run: pnpm corpus:gate

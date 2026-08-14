@@ -1,0 +1,50 @@
+name: deep
+
+# O que é caro e não precisa bloquear ninguém. Mesmo desenho dos Tiers de
+# §15.3: o Tier 1 do PR é rápido e reprova; o Tier 3 é caro, assíncrono e
+# informa.
+#
+# ESTE WORKFLOW ESTÁ MAGRO DE PROPÓSITO, e vale registrar em vez de disfarçar.
+# CodeQL, Stryker, Semgrep e varredura de dependência foram DEIXADOS DE FORA
+# desta rodada — ver docs/infra-qualidade.md. Hoje ele roda a cobertura, que é a
+# única medição cara que existe. Quando a Parte 3 (gates de produto) e a Parte 4
+# (segurança) entrarem, é aqui que a maior parte delas mora.
+
+on:
+  schedule:
+    # 03:00 UTC — meia-noite em Brasília, longe de qualquer janela de trabalho.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cobertura:
+    runs-on: ubuntu-latest
+    # Sem limite apertado: aqui o custo é aceitável, e é essa a diferença entre
+    # este workflow e o `ci.yml`.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Cobertura é POR PACOTE, nunca agregada: média de monorepo esconde
+      # exatamente o buraco que interessa. Sem limiar de falha — limiar sem série
+      # histórica é número inventado (CLAUDE.md §10).
+      - name: cobertura
+        run: pnpm coverage
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: "packages/*/coverage/**"
+          if-no-files-found: warn
+          retention-days: 14

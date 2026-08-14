@@ -1,0 +1,81 @@
+name: corpus
+
+# Dispara só quando o PR toca o motor ou o corpus. Comenta a tabela antes/depois
+# no PR, para que a conversa de revisão comece com o número na tela em vez de
+# começar com "você mediu?".
+#
+# LIMITE DECLARADO, e ele é grande: este workflow mede o corpus SINTÉTICO
+# versionado, não os corpora reais. Capturas reais pesam 2,5–6 MB cada e §11 de
+# docs/medicao-fase-0.md registra a decisão de não versioná-las; reconstituí-las
+# aqui exigiria clonar duas aplicações, subir Django e rodar Playwright.
+#
+# Ou seja: verde aqui NÃO é "a medição foi feita". A medição real é obrigação de
+# quem abre o PR, e o PULL_REQUEST_TEMPLATE cobra a tabela dos quatro pares.
+
+on:
+  pull_request:
+    paths:
+      - "packages/diff-engine/**"
+      - "scripts/corpus-gate.mjs"
+
+concurrency:
+  group: corpus-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  medição:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: medir
+        id: medir
+        run: |
+          echo 'saida<<FIM' >> "$GITHUB_OUTPUT"
+          pnpm -s corpus:gate 2>&1 | tee -a "$GITHUB_OUTPUT"
+          echo 'FIM' >> "$GITHUB_OUTPUT"
+
+      - name: comentar no PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const saida = `${{ toJSON(steps.medir.outputs.saida) }}`;
+            const corpo = [
+              '## Gate de corpus — fixtures sintéticos',
+              '',
+              '```',
+              saida,
+              '```',
+              '',
+              '> Este gate roda o corpus **sintético** versionado. Ele pega regressão',
+              '> grosseira; não pega deslocamento fino. A medição contra os corpora',
+              '> **reais** (juventude e oscar, defeitos e mudança intencional) continua',
+              '> sendo obrigação de quem abre o PR — cole a tabela dos quatro pares',
+              '> conforme o template.',
+            ].join('\n');
+
+            const { data: comentarios } = await github.rest.issues.listComments({
+              ...context.repo, issue_number: context.issue.number,
+            });
+            const meu = comentarios.find((c) => c.body.startsWith('## Gate de corpus'));
+            if (meu) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: meu.id, body: corpo });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: context.issue.number, body: corpo,
+              });
+            }
