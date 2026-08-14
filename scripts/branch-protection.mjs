@@ -52,7 +52,7 @@ const ruleset = {
       type: "required_status_checks",
       parameters: {
         strict_required_status_checks_policy: true,
-        required_status_checks: [{ context: "verificação" }],
+        required_status_checks: [{ context: "verificacao" }],
       },
     },
   ],

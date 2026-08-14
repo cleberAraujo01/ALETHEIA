@@ -27,7 +27,9 @@ permissions:
 jobs:
   # O nome deste job é o que entra em `required_status_checks` da proteção de
   # branch (scripts/branch-protection.mjs). Renomear aqui exige renomear lá.
-  verificação:
+  # IDs de job só aceitam [A-Za-z0-9_-]: com acento, o GitHub rejeita o arquivo
+  # INTEIRO e nenhum job roda. Custou uma execução vermelha para descobrir.
+  verificacao:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

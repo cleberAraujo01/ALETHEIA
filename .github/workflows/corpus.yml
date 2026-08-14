@@ -27,7 +27,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  medição:
+  medicao:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
