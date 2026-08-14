@@ -18,6 +18,4 @@ if (issues.length > 0) {
   process.exit(1);
 }
 
-process.stdout.write(
-  `catálogo de supressão válido — ${SUPPRESSION_CATALOG.length} regra(s)\n`,
-);
+process.stdout.write(`catálogo de supressão válido — ${SUPPRESSION_CATALOG.length} regra(s)\n`);

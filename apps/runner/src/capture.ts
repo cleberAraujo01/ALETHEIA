@@ -145,7 +145,14 @@ async function captureObservation(
   page.on("console", (message) => {
     const level = message.type();
     consoleEntries.push({
-      level: level === "warning" ? "warn" : level === "error" ? "error" : level === "info" ? "info" : "log",
+      level:
+        level === "warning"
+          ? "warn"
+          : level === "error"
+            ? "error"
+            : level === "info"
+              ? "info"
+              : "log",
       text: message.text().slice(0, 2000),
     });
   });
@@ -189,9 +196,7 @@ async function captureObservation(
       exchanges.push(await collectExchange(response, tracker.isUndrained(response.request())));
     }
 
-    const screenshot = options.screenshots
-      ? await captureScreenshot(page, step, options)
-      : null;
+    const screenshot = options.screenshots ? await captureScreenshot(page, step, options) : null;
 
     return {
       observationId: step.observationId,
@@ -257,8 +262,7 @@ async function collectExchange(response: Response, undrained: boolean): Promise<
     resourceType,
     requestBody: parseJsonish(request.postData()),
     responseBody,
-    durationMs:
-      timing.responseEnd > 0 ? Math.round(timing.responseEnd - timing.startTime) : null,
+    durationMs: timing.responseEnd > 0 ? Math.round(timing.responseEnd - timing.startTime) : null,
   };
 }
 

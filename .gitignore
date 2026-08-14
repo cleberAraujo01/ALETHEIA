@@ -8,3 +8,7 @@ coverage/
 # Retenção é responsabilidade do storage de evidências (RN-EXE-004).
 .aletheia/
 *.aletheia-run.json
+
+# Binários soltos no diretório de trabalho não entram por `git add -A`.
+# O docs.zip entrou assim uma vez (804aefb) e teve de ser removido.
+*.zip

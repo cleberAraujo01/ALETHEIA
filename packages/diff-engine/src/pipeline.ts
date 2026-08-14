@@ -3,12 +3,8 @@ import { PlatformError, stableHash, type RunMetadata } from "@aletheia/shared";
 import { classify } from "./classify/index.js";
 import { diffDom } from "./diff/dom.js";
 import { diffNetwork } from "./diff/network.js";
+import { DEFAULT_DELTA_BUDGET_PER_OBSERVATION, DeltaBudget, type RawDelta } from "./diff/types.js";
 import { diffVisual } from "./diff/visual.js";
-import {
-  DEFAULT_DELTA_BUDGET_PER_OBSERVATION,
-  DeltaBudget,
-  type RawDelta,
-} from "./diff/types.js";
 import { normalizeDom } from "./normalize/dom.js";
 import { createLedger } from "./normalize/ledger.js";
 import { normalizeExchange } from "./normalize/network.js";
@@ -24,7 +20,6 @@ import {
 import type { Capture, Observation } from "./types/capture.js";
 import type { Classification, Delta, DeltaLayer, Severity } from "./types/delta.js";
 import type { RasterSet } from "./types/raster.js";
-import { DEFAULT_VISUAL_OPTIONS, type VisualComparisonOptions } from "./visual/compare.js";
 import {
   REPORT_VERSION,
   type CaptureSummary,
@@ -33,6 +28,7 @@ import {
   type LayerGap,
   type Verdict,
 } from "./types/report.js";
+import { DEFAULT_VISUAL_OPTIONS, type VisualComparisonOptions } from "./visual/compare.js";
 
 export interface DiffOptions {
   readonly metadata: RunMetadata;
@@ -396,7 +392,9 @@ function coverageOf(input: CoverageInput): CoverageReport {
 }
 
 function indexObservations(capture: Capture): Map<string, Observation> {
-  return new Map(capture.observations.map((observation) => [observation.observationId, observation]));
+  return new Map(
+    capture.observations.map((observation) => [observation.observationId, observation]),
+  );
 }
 
 function summarizeCapture(capture: Capture): CaptureSummary {

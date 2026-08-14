@@ -92,7 +92,8 @@ export function serializeDomInPage(): SerializedNode | null {
 
   function roleOf(element: Element): string | null {
     const explicit = element.getAttribute("role");
-    if (explicit !== null && explicit.trim().length > 0) return explicit.trim().split(/\s+/)[0] ?? null;
+    if (explicit !== null && explicit.trim().length > 0)
+      return explicit.trim().split(/\s+/)[0] ?? null;
     if (element.tagName === "A") return element.hasAttribute("href") ? "link" : null;
     if (element.tagName === "INPUT") {
       const type = (element.getAttribute("type") ?? "text").toLowerCase();
@@ -127,7 +128,11 @@ export function serializeDomInPage(): SerializedNode | null {
       if (alt !== null) return alt;
     }
 
-    if (element.tagName === "INPUT" || element.tagName === "SELECT" || element.tagName === "TEXTAREA") {
+    if (
+      element.tagName === "INPUT" ||
+      element.tagName === "SELECT" ||
+      element.tagName === "TEXTAREA"
+    ) {
       const id = element.getAttribute("id");
       if (id !== null && id.length > 0) {
         const label = document.querySelector(`label[for="${CSS.escape(id)}"]`);
@@ -187,5 +192,11 @@ export function serializeDomInPage(): SerializedNode | null {
     };
   }
 
+  // A lib do DOM tipa `document.body` como não-nulo, e o lint conclui que a
+  // comparação é morta. Ela não é: este código é injetado e avaliado DENTRO da
+  // página, e `body` é nulo antes de o parser chegar nele e em documento XML.
+  // Remover a guarda troca um `null` bem-comportado por um TypeError dentro do
+  // browser, que chega até aqui como captura vazia sem causa aparente.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return document.body === null ? null : serialize(document.body);
 }

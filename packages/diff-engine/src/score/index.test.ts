@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { RawDelta } from "../diff/types.js";
+
 import { severityOf } from "./index.js";
 
 const delta = (overrides: Partial<RawDelta>): RawDelta => ({
@@ -25,9 +26,7 @@ const delta = (overrides: Partial<RawDelta>): RawDelta => ({
  */
 describe("severidade de rede — sinal próprio vs. ruído de terceiro", () => {
   it("endpoint próprio que desaparece é sinal forte", () => {
-    expect(
-      severityOf(delta({ facts: { dataResource: true, thirdParty: false } })),
-    ).toBe("HIGH");
+    expect(severityOf(delta({ facts: { dataResource: true, thirdParty: false } }))).toBe("HIGH");
   });
 
   it("script de terceiro que não carregou não bloqueia PR nenhum", () => {
@@ -42,9 +41,7 @@ describe("severidade de rede — sinal próprio vs. ruído de terceiro", () => {
   });
 
   it("subrecurso próprio fica no meio: reportável, não bloqueante", () => {
-    expect(
-      severityOf(delta({ facts: { dataResource: false, thirdParty: false } })),
-    ).toBe("MEDIUM");
+    expect(severityOf(delta({ facts: { dataResource: false, thirdParty: false } }))).toBe("MEDIUM");
   });
 
   it("erro de terceiro é indisponibilidade de ambiente, não regressão do cliente", () => {
@@ -107,21 +104,15 @@ describe("severidade de DOM — destino vs. entrega, conteúdo vs. estrutura", (
   });
 
   it("nó com texto que some é conteúdo perdido", () => {
-    expect(
-      severityOf(dom("DOM_NODE_REMOVED", { tag: "li", carriesText: true })),
-    ).toBe("HIGH");
+    expect(severityOf(dom("DOM_NODE_REMOVED", { tag: "li", carriesText: true }))).toBe("HIGH");
   });
 
   it("invólucro sem texto que some é refatoração de estrutura", () => {
-    expect(
-      severityOf(dom("DOM_NODE_REMOVED", { tag: "div", carriesText: false })),
-    ).toBe("MEDIUM");
+    expect(severityOf(dom("DOM_NODE_REMOVED", { tag: "div", carriesText: false }))).toBe("MEDIUM");
   });
 
   it("elemento interativo que some bloqueia mesmo sem texto", () => {
-    expect(
-      severityOf(dom("DOM_NODE_REMOVED", { tag: "button", carriesText: false })),
-    ).toBe("HIGH");
+    expect(severityOf(dom("DOM_NODE_REMOVED", { tag: "button", carriesText: false }))).toBe("HIGH");
   });
 
   it("texto que só trocou de invólucro é reembalagem: reporta, não bloqueia", () => {

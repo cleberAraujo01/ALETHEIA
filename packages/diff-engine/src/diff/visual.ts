@@ -1,6 +1,7 @@
 import type { RasterImage, Rect } from "../types/raster.js";
 import { compareRasters, type VisualComparisonOptions } from "../visual/compare.js";
-import { DeltaBudget, type RawDelta } from "./types.js";
+
+import { type DeltaBudget, type RawDelta } from "./types.js";
 
 /**
  * Diferenciação visual — estágio 3, camada visual.

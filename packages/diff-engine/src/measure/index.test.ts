@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Classification, Delta } from "../types/delta.js";
+
 import { measure, type LabelSet } from "./index.js";
 
 const delta = (deltaId: string, classification: Classification): Delta => ({
@@ -73,7 +74,10 @@ describe("medição de precisão e recall", () => {
   });
 
   it("delta sem rótulo não entra na conta", () => {
-    const result = measure([delta("d1", "REGRESSION"), delta("d2", "REGRESSION")], labels({ d1: "REGRESSION" }));
+    const result = measure(
+      [delta("d1", "REGRESSION"), delta("d2", "REGRESSION")],
+      labels({ d1: "REGRESSION" }),
+    );
 
     expect(result.labeled).toBe(1);
     expect(result.unlabeled).toBe(1);

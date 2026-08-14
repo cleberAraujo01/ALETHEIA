@@ -11,13 +11,39 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "coverage": "turbo run coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test",
     "suppression:validate": "pnpm --filter @aletheia/diff-engine run suppression:validate"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "lefthook",
+      "unrs-resolver",
+      "esbuild"
+    ]
+  },
   "devDependencies": {
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
+    "@eslint/js": "10.0.1",
     "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "3.2.7",
+    "eslint": "10.8.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-import-x": "4.17.1",
+    "eslint-plugin-promise": "7.3.0",
+    "globals": "17.11.0",
+    "lefthook": "2.1.10",
+    "prettier": "3.9.6",
     "tsx": "^4.19.0",
     "turbo": "^2.3.0",
     "typescript": "^5.7.0",
+    "typescript-eslint": "8.67.0",
     "vitest": "^3.0.0"
   }
 }

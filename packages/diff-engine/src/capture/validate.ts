@@ -116,7 +116,10 @@ function parseRect(raw: unknown, path: string, source: string): Rect {
 
 function parseDomNode(raw: unknown, path: string, source: string): DomNode {
   const node = requireObject(raw, path, source);
-  const attributesRaw = node["attributes"] == null ? {} : requireObject(node["attributes"], `${path}.attributes`, source);
+  const attributesRaw =
+    node["attributes"] == null
+      ? {}
+      : requireObject(node["attributes"], `${path}.attributes`, source);
 
   const attributes: Record<string, string> = {};
   for (const [key, value] of Object.entries(attributesRaw)) {
@@ -151,10 +154,16 @@ function parseExchange(raw: unknown, path: string, source: string): NetworkExcha
     method: requireString(node["method"], `${path}.method`, source),
     url: requireString(node["url"], `${path}.url`, source),
     status: requireNumber(node["status"], `${path}.status`, source),
-    resourceType: node["resourceType"] == null ? "other" : requireString(node["resourceType"], `${path}.resourceType`, source),
+    resourceType:
+      node["resourceType"] == null
+        ? "other"
+        : requireString(node["resourceType"], `${path}.resourceType`, source),
     requestBody: asJsonValue(node["requestBody"]),
     responseBody: asJsonValue(node["responseBody"]),
-    durationMs: node["durationMs"] == null ? null : requireNumber(node["durationMs"], `${path}.durationMs`, source),
+    durationMs:
+      node["durationMs"] == null
+        ? null
+        : requireNumber(node["durationMs"], `${path}.durationMs`, source),
   };
 }
 

@@ -62,7 +62,9 @@ for (const fault of FAULTS) {
     }
 
     const after =
-      edit.all === true ? before.split(edit.from).join(edit.to) : before.replace(edit.from, edit.to);
+      edit.all === true
+        ? before.split(edit.from).join(edit.to)
+        : before.replace(edit.from, edit.to);
     await writeFile(path, crlf ? after.replaceAll("\n", "\r\n") : after, "utf8");
   }
   applied.push(fault);
@@ -72,6 +74,8 @@ process.stdout.write(
   `\n  aplicados   ${applied.length} defeitos em ${root}\n` +
     `  histórico   ${FAULT_COUNT.historico} (estiveram em produção nesta aplicação)\n` +
     `  injetado    ${FAULT_COUNT.injetado} (plantados; nunca estiveram em produção)\n\n` +
-    applied.map((fault) => `    ${fault.origem === "HISTORICO" ? "H" : "I"}  ${fault.id}`).join("\n") +
+    applied
+      .map((fault) => `    ${fault.origem === "HISTORICO" ? "H" : "I"}  ${fault.id}`)
+      .join("\n") +
     "\n\n",
 );

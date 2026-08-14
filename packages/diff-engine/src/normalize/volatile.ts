@@ -93,7 +93,16 @@ const FRAMEWORK_ATTRIBUTE_PREFIXES = ["data-v-", "data-astro-cid-", "data-n-"];
  * Parâmetros de query usados como cache-buster. Só entram nomes sem significado
  * de negócio plausível — por isso `v` e `version` NÃO estão na lista.
  */
-const VOLATILE_QUERY_PARAMS = new Set(["_", "cb", "cachebuster", "nonce", "t", "ts", "timestamp", "_t"]);
+const VOLATILE_QUERY_PARAMS = new Set([
+  "_",
+  "cb",
+  "cachebuster",
+  "nonce",
+  "t",
+  "ts",
+  "timestamp",
+  "_t",
+]);
 
 /**
  * Parâmetros de uso único de fluxo de autenticação. O valor deles é criado por

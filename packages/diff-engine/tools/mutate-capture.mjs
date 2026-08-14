@@ -60,7 +60,13 @@ const record = (id, description, expectedKind, observationId, detail) =>
   );
   if (node && parent) {
     parent.children = parent.children.filter((child) => child !== node);
-    record("M1", "link de WhatsApp (conversão) removido", "DOM_NODE_REMOVED", "home", node.accessibleName ?? "");
+    record(
+      "M1",
+      "link de WhatsApp (conversão) removido",
+      "DOM_NODE_REMOVED",
+      "home",
+      node.accessibleName ?? "",
+    );
   }
 }
 
@@ -71,7 +77,13 @@ const record = (id, description, expectedKind, observationId, detail) =>
   if (node) {
     const before = node.text;
     node.text = `${node.text.slice(0, 20)} TEXTO ALTERADO`;
-    record("M2", "texto de conteúdo alterado", "DOM_TEXT_CHANGED", "escolinha", before.slice(0, 40));
+    record(
+      "M2",
+      "texto de conteúdo alterado",
+      "DOM_TEXT_CHANGED",
+      "escolinha",
+      before.slice(0, 40),
+    );
   }
 }
 
@@ -81,7 +93,13 @@ const record = (id, description, expectedKind, observationId, detail) =>
   const { node } = findNode(observation, (n) => n.tag === "button" || n.role === "button");
   if (node) {
     node.attributes.disabled = "";
-    record("M3", "controle passou a nascer desabilitado", "DOM_ATTRIBUTE_ADDED", "contato", node.accessibleName ?? "");
+    record(
+      "M3",
+      "controle passou a nascer desabilitado",
+      "DOM_ATTRIBUTE_ADDED",
+      "contato",
+      node.accessibleName ?? "",
+    );
   }
 }
 
@@ -131,7 +149,13 @@ const record = (id, description, expectedKind, observationId, detail) =>
     for (let index = 0; index < 7; index += 1) {
       observation.network.push({ ...exchange });
     }
-    record("M7", "mesma requisição repetida 8× (N+1 emergente)", "REQUEST_COUNT_CHANGED", "quem-somos", exchange.url.slice(0, 60));
+    record(
+      "M7",
+      "mesma requisição repetida 8× (N+1 emergente)",
+      "REQUEST_COUNT_CHANGED",
+      "quem-somos",
+      exchange.url.slice(0, 60),
+    );
   }
 }
 
@@ -157,7 +181,13 @@ const record = (id, description, expectedKind, observationId, detail) =>
       }
     }
     writeFileSync(targetImage, PNG.sync.write(png));
-    record("M8", "bloco repintado no screenshot", "VISUAL_REGION_CHANGED", "home", JSON.stringify(box));
+    record(
+      "M8",
+      "bloco repintado no screenshot",
+      "VISUAL_REGION_CHANGED",
+      "home",
+      JSON.stringify(box),
+    );
   }
 }
 
@@ -181,5 +211,7 @@ writeFileSync(join(dirname(target), "gabarito.json"), `${JSON.stringify(applied,
 
 process.stdout.write(`${applied.length} mutações aplicadas\n`);
 for (const mutation of applied) {
-  process.stdout.write(`  ${mutation.id}  ${mutation.expectedKind.padEnd(24)} ${mutation.observationId.padEnd(12)} ${mutation.description}\n`);
+  process.stdout.write(
+    `  ${mutation.id}  ${mutation.expectedKind.padEnd(24)} ${mutation.observationId.padEnd(12)} ${mutation.description}\n`,
+  );
 }

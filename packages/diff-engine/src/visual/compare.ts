@@ -240,9 +240,7 @@ function clusterRegions(
     }
   }
 
-  return regions.sort(
-    (a, b) => b.changedPixels - a.changedPixels || a.y - b.y || a.x - b.x,
-  );
+  return regions.sort((a, b) => b.changedPixels - a.changedPixels || a.y - b.y || a.x - b.x);
 }
 
 const NEIGHBOURS: readonly (readonly [number, number])[] = [

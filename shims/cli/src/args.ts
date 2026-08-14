@@ -73,11 +73,7 @@ export function parseCaptureArgs(argv: readonly string[]): CaptureCommandArgs {
   };
 }
 
-const CONFIDENCE_MODES: readonly ConfidenceMode[] = [
-  "ISOLATED",
-  "PARTITIONED",
-  "SHARED_DEGRADED",
-];
+const CONFIDENCE_MODES: readonly ConfidenceMode[] = ["ISOLATED", "PARTITIONED", "SHARED_DEGRADED"];
 
 export function parseDiffArgs(argv: readonly string[]): DiffCommandArgs {
   const flags = toFlagMap(argv);
@@ -148,7 +144,9 @@ function toFlagMap(argv: readonly string[]): Map<string, string> {
 function required(flags: Map<string, string>, name: string): string {
   const value = flags.get(name);
   if (value === undefined || value.length === 0) {
-    throw new PlatformError("CAPTURE_INVALID", { reason: `argumento obrigatório ausente: --${name}` });
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: `argumento obrigatório ausente: --${name}`,
+    });
   }
   return value;
 }

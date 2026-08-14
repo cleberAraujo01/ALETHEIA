@@ -58,7 +58,7 @@ export const FAULTS = [
       "`?page=2&page=3`. O usuário clica em 'próxima' e o servidor resolve o primeiro " +
       "`page`, então a navegação trava na página em que ele já estava.",
     evidencia:
-      "Corrigido pelo commit c1951d58d do django-oscar, 'Fix \"page\" query parameter in " +
+      'Corrigido pelo commit c1951d58d do django-oscar, \'Fix "page" query parameter in ' +
       "pagination templates': a tag recebia `page` sem aspas, resolvido como variável " +
       "inexistente (string vazia), então nenhum parâmetro era excluído da querystring.",
     rotasAfetadas: ["/en-gb/catalogue/?page=2"],
@@ -103,7 +103,7 @@ export const FAULTS = [
       "paginação passa a submeter uma busca pela palavra 'None'.",
     evidencia:
       "Corrigido pelo commit e6496c7e6 do django-oscar, 'Fix rendering of empty value in " +
-      "hidden search form in catalogue view': faltava `|default_if_none:\"\"`, e o " +
+      'hidden search form in catalogue view\': faltava `|default_if_none:""`, e o ' +
       "template renderia a representação do `None` do Python.",
     rotasAfetadas: [
       "/en-gb/catalogue/",
@@ -145,7 +145,7 @@ export const FAULTS = [
     edits: [
       {
         file: `${TEMPLATES}/partials/nav_primary.html`,
-        from: "<a class=\"dropdown-item\" href=\"{% url 'offer:list' %}\">",
+        from: '<a class="dropdown-item" href="{% url \'offer:list\' %}">',
         to: '<a class="dropdown-item" href="/en-gb/offer/">',
       },
     ],

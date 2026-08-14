@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "// por que este arquivo existe": [
+    "O tsconfig de cada pacote EXCLUI os arquivos de teste, porque teste não vai",
+    "para o dist. Mas lint com informação de tipo precisa enxergar teste também —",
+    "é lá que mora boa parte do `any` e da promessa solta. Este projeto serve só",
+    "ao ESLint: não emite nada e não participa do build."
+  ],
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+
+    // UNIÃO das `lib` de todos os pacotes, não a interseção. `apps/runner`
+    // serializa DOM dentro da página e declara `DOM` no seu próprio tsconfig;
+    // sem isto aqui, o ESLint enxergaria `document` como `any` e despejaria uma
+    // centena de `no-unsafe-*` que são artefato da configuração de lint, não
+    // defeito do código — o tipo de falso positivo que este repositório existe
+    // para não produzir.
+    //
+    // Quem manda em qual pacote PODE ver DOM continua sendo o build (`tsc -b`,
+    // com o tsconfig de cada pacote). Este projeto só alimenta o lint com
+    // informação de tipo; ele não afrouxa nada, porque não emite nada.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"]
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "apps/*/src/**/*.ts",
+    "shims/*/src/**/*.ts",
+    "packages/*/*.config.ts"
+  ]
+}

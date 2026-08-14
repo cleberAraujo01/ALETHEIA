@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { RasterImage } from "../types/raster.js";
+
 import { DEFAULT_VISUAL_OPTIONS, compareRasters } from "./compare.js";
 
 function blank(width: number, height: number): RasterImage {
