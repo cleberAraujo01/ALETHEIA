@@ -349,7 +349,9 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 **Os 2 de reembalagem já foram consertados** (§10.7): `textPreserved` no `DOM_NODE_REMOVED` separa conteúdo perdido de conteúdo reembalado, a custo zero de detecção nos dois corpora de defeito.
 
-**Os 20 continuam, e são o item aberto mais importante do projeto — mas agora sabe-se que NÃO são um problema de regra** (§10.8). A ablação nos quatro pares mostrou que os 20 deltas são interativos **e** com texto perdido ao mesmo tempo: as duas regras os marcam HIGH independentemente, e só somem retirando as duas — ao custo de 4 defeitos, que é a troca que PA-10 proíbe. É problema de **sinal**: "tiraram o item do menu de propósito" e "o link quebrou" produzem evidência idêntica no DOM.
+**O placar de falso positivo contra mudança legítima é 2 de 3 PRs reais** (§10.9): 0 bloqueantes no primeiro PR do juventude, **11 no segundo** (`910181f`, que remove a rota `/apoie`), **20 no oscar**. O "0%" que fechou a fase foi medido no único dos três que não exercita nenhuma das duas regras. **A regra `href` → HIGH deixou de estar vindicada** — ela produz 1 dos 11, num link legitimamente reapontado para a página que substituiu a removida.
+
+**Os 20 e os 11 são o item aberto mais importante do projeto — e NÃO são um problema de regra** (§10.8). A ablação nos quatro pares mostrou que os 20 deltas são interativos **e** com texto perdido ao mesmo tempo: as duas regras os marcam HIGH independentemente, e só somem retirando as duas — ao custo de 4 defeitos, que é a troca que PA-10 proíbe. É problema de **sinal**: "tiraram o item do menu de propósito" e "o link quebrou" produzem evidência idêntica no DOM.
 
 Das três direções da §10.6, só **supressão aprendida** sobrevive à medição, porque age depois da severidade e funciona num sinal sobredeterminado. Ela exige ≥ 3 casos reais rotulados como `NOISE` (§6.4) e é por aplicação. **Não tente resolver mexendo em severidade** — já está medido que não dá.
 

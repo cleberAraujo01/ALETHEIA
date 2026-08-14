@@ -46,7 +46,8 @@ em que quem escreveu olha o próprio diff pelo ângulo de quem vai revisar.
 | Corpus | Antes | Depois |
 |---|---|---|
 | Juventude — 9 defeitos | 48 regr · 5 de 9 bloqueados · 77,6% triagem | |
-| Juventude — PR real | 68 deltas · 0 bloqueantes | |
+| Juventude — PR real #1 | 68 deltas · 0 bloqueantes | |
+| Juventude — PR real #2 (`910181f`) | 278 deltas · **11 bloqueantes** (falso positivo conhecido, §10.9) | |
 | Oscar — 7 defeitos | 26 regr · 4 de 7 bloqueados · 96,5% triagem | |
 | Oscar — mudança intencional | 60 deltas · **20 bloqueantes** (falso positivo conhecido, §10.8) | |
 

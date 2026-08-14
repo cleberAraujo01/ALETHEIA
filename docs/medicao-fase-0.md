@@ -10,11 +10,13 @@ Um PR legítimo da mesma aplicação passou sem nenhum delta bloqueante.
 Este documento existe para que o número acima possa ser contestado. Ele registra
 o que foi medido, contra o quê, o que ficou de fora e o que ainda não sabemos.
 
-> **Leia a §10.6 antes de citar o "0% de falso positivo".** Em 2026-08-13, uma
-> segunda aplicação com mudança intencional real reprovou 2 de 4 mudanças
-> legítimas — 22 deltas bloqueantes, todos falso positivo. Dois deles foram
-> consertados (§10.7); **20 continuam**. O critério de saída continua atingido
-> no corpus em que foi medido; a generalização para outra aplicação, não.
+> **Leia a §10.6 e a §10.9 antes de citar o "0% de falso positivo".**
+> **Dois de três PRs reais legítimos medidos reprovam:** 20 deltas bloqueantes no
+> oscar (§10.6) e 11 no segundo PR do próprio juventude (§10.9) — todos falso
+> positivo, nenhum defeito nos pares. O "0%" que fechou a fase foi medido no
+> único dos três que, por acaso, não exercita nenhuma das duas regras de
+> severidade. A detecção continua valendo; a generalização de que o gate não
+> reprova quem não errou, não.
 
 ---
 
@@ -142,9 +144,11 @@ externo sobre a build, não diferença entre duas builds — cabe em invariantes
   foram desenhadas depois de ver estes dados. Isso as torna hipóteses com
   evidência, não regras estabelecidas. Um segundo corpus, de outra aplicação,
   pode derrubá-las — e é o próximo experimento que o projeto deve rodar.
-  **Rodado em 2026-08-13. Derrubou uma das duas** (§10.6): `href`/`action` →
-  HIGH sobreviveu e ganhou evidência nova; "nó com texto removido → HIGH"
-  produziu 22 falso positivo bloqueante contra mudança legítima.
+  **Rodado em 2026-08-13 e 2026-08-14. Derrubou as duas.** "Nó com texto
+  removido → HIGH" produziu 22 falso positivo bloqueante no oscar (§10.6) e 10
+  no segundo PR do juventude (§10.9). `href`/`action` → HIGH sobreviveu ao
+  oscar, foi declarada vindicada na §10.5, e caiu no PR seguinte do juventude:
+  1 falso positivo num link reapontado para a página que substituiu a removida.
 - **4 dos 9 defeitos são injetados.** Os 5 bloqueados são F4, F5, F6, F8, F9 —
   três históricos e dois injetados.
 - **O corpus de defeitos não mede falso positivo de mudança intencional**, e o
@@ -415,7 +419,10 @@ defeitos não foi construído para atestar um limiar calibrado contra um de 9.
 
 ### 10.5 O que este corpus estabelece
 
-**A regra `href`/`action` → HIGH está vindicada.** Ela era o ponto de
+**A regra `href`/`action` → HIGH parecia vindicada aqui — e não está.** A §10.9
+mediu o PR seguinte do juventude e encontrou o primeiro falso positivo dela. O
+parágrafo abaixo fica como estava, porque descreve corretamente o que ESTE corpus
+mostrou; o que ele não podia mostrar está na §10.9. Ela era o ponto de
 concentração de risco identificado na §9, e aqui, pela primeira vez, foi testada
 numa aplicação estranha **com defeito de verdade** em vez de só piso de ruído.
 Resultado: bloqueou 2 dos 4 defeitos bloqueados (`O4`, rota do menu quebrada, e
@@ -607,6 +614,73 @@ funciona num sinal sobredeterminado. Ela exige ≥ 3 casos reais rotulados como
 calibrada contra os mesmos dados que ela explicaria — a armadilha que a §7
 descreve.
 
+## 10.9 Segundo PR real do juventude — as duas regras caem
+
+O experimento da §10.8 fechou a pergunta "qual regra consertar" e abriu outra,
+maior: **a regra de texto removido é viável como regra geral?** O corpus de
+mudança intencional do juventude tinha 0 bloqueantes, mas por um motivo frágil —
+aquele PR não removia nó com texto. Um caso limpo pode ser sorte.
+
+Então fomos procurar no histórico do próprio juventude um PR legítimo que
+removesse. Existe: **`910181f`, "Aprimora pagina de parceiros, adiciona BMW
+Agency e remove /apoie"** (2026-08-04). Ele tira a rota `/apoie`, e com ela o
+link do rodapé, além de redesenhar `/parceiros`.
+
+Par medido: `910181f^` × `910181f`, as sete rotas da jornada existindo dos dois
+lados, servidas de duas builds reais. **Zero defeito neste par.**
+
+**Resultado: 278 deltas, 11 BLOQUEANTES, todos falso positivo.**
+
+| Origem | Quantos | Regra |
+|---|---|---|
+| `<li>` "Apoie o clube" sai do rodapé, nas 7 páginas | 7 | nó com texto removido → HIGH |
+| redesenho de `/parceiros` (lista de etapas, CTA, card) | 3 | nó com texto removido → HIGH |
+| `href="/apoie"` → `href="/parceiros"` no CTA da home | 1 | `href` mudou → HIGH |
+
+### O que isto derruba
+
+**A regra `href`/`action` → HIGH não está mais vindicada.** A §10.5 a declarou
+vindicada com base em zero falso positivo no oscar. Aqui ela produz o primeiro:
+um link legitimamente reapontado da página removida para a que a substitui. É o
+caso mais banal de manutenção que existe, e o gate reprova.
+
+**E o placar de falso positivo contra mudança legítima passa a ser:**
+
+| PR real | Bloqueantes | Regras implicadas |
+|---|---|---|
+| juventude `7755d4d` × `7aeb5c3` | 0 | — |
+| juventude `910181f^` × `910181f` | **11** | texto removido, `href` |
+| oscar, 4 mudanças upstream | **20** | texto removido (sobredeterminado com interativo) |
+
+**Dois de três PRs legítimos medidos reprovam.** O "0% de falso positivo" que
+fechou a Fase 0 foi medido no único dos três que, por acaso, não exercita
+nenhuma das duas regras. Isso não invalida a medição de detecção — os defeitos
+continuam sendo pegos —, mas invalida a generalização de que o gate não reprova
+quem não errou.
+
+### O que isto NÃO derruba
+
+A detecção. Os dois corpora de defeito continuam em 5 de 9 e 4 de 7, com 0% de
+falso positivo **no recorte de defeitos**. O motor continua vendo o que deveria
+ver; o problema é o que ele vê a mais.
+
+E não derruba a §10.8: continua valendo que nenhuma mexida em severidade resolve,
+porque o mesmo `carriesText` que produz estes 10 falso positivo é o que sustenta
+`F9` e `O6`.
+
+### A leitura honesta
+
+Remoção de conteúdo e mudança de destino são, no DOM, **indistinguíveis** entre
+"o time decidiu" e "o código quebrou". O motor não tem — e por construção não
+pode ter — a informação que separa as duas. É o problema do oráculo aparecendo do
+lado do falso positivo: sem fonte de intenção (requisito, diff de código,
+contrato), a diferença observada não carrega a resposta.
+
+Isso empurra a solução para fora da severidade e para dentro do que a
+arquitetura já prevê: **O2, intenção derivada do diff de código** (§12.1). Um
+motor que enxergasse o diff do PR saberia que `/apoie` foi removida de propósito.
+Não é escopo da Fase 0, e é a primeira vez que a falta dele custa um número.
+
 ## 11. Reproduzir
 
 ```bash
@@ -706,6 +780,25 @@ node shims/cli/dist/main.js diff --base .aletheia/oscar/pr-antes/capture.json \
 Não há `label`/`measure` aqui, e é de propósito: **não existe defeito neste
 par**, então não há o que rotular. O número é um só — quantos deltas o motor
 classificou como `REGRESSION`. Hoje são 22, e o alvo é zero.
+
+Segundo PR real do juventude (§10.9) — o par `910181f^` × `910181f`. Duas
+worktrees do repositório da aplicação, duas builds, duas portas:
+
+```bash
+git -C <repo do juventude> worktree add --detach /tmp/juv-antes 910181f^
+git -C <repo do juventude> worktree add --detach /tmp/juv-depois 910181f
+for d in /tmp/juv-antes /tmp/juv-depois; do (cd $d && npm install && npm run build); done
+(cd /tmp/juv-antes  && npx next start -p 3301) &
+(cd /tmp/juv-depois && npx next start -p 3302) &
+
+J=apps/runner/__fixtures__/journeys/juventude.json
+node shims/cli/dist/main.js capture --url http://127.0.0.1:3301 --journey $J   --out .aletheia/fase0/pr2-antes --label pr2-antes --seed 42 --commit 6f4af8b
+node shims/cli/dist/main.js capture --url http://127.0.0.1:3302 --journey $J   --out .aletheia/fase0/pr2-depois --label pr2-depois --seed 42 --commit 910181f
+node shims/cli/dist/main.js diff --base .aletheia/fase0/pr2-antes/capture.json   --head .aletheia/fase0/pr2-depois/capture.json --out .aletheia/fase0/pr2   --env juventude-local --confidence-mode ISOLATED
+```
+
+Esperado hoje: 278 deltas, **11 bloqueantes, todos falso positivo**. Não há
+`label`/`measure` — não existe defeito neste par, então não há o que rotular.
 
 Piso de ruído contra stack desconhecida (§8, §9) — duas capturas da mesma build,
 sem build nem login, dois minutos:
