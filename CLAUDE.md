@@ -335,7 +335,7 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 **Fase atual:** Fase 0 — Prova de vida do oráculo. **Critério de saída atingido em 2026-08-11** ([`docs/medicao-fase-0.md`](./docs/medicao-fase-0.md)): 5 defeitos distintos bloqueados de 9 presentes, 0% de falso positivo, e um PR real da mesma aplicação passou sem nenhum delta bloqueante.
 
 **Escopo permitido agora:**
-- Diff Engine (DOM, rede, visual)
+- Diff Engine (DOM, rede, visual, console)
 - CLI mínima
 - Relatório JSON e HTML
 

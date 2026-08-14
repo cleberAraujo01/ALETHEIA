@@ -33,7 +33,11 @@ export type DeltaKind =
   | "RESPONSE_TYPE_CHANGED"
   // Visual
   | "VISUAL_REGION_CHANGED"
-  | "VISUAL_DIMENSIONS_CHANGED";
+  | "VISUAL_DIMENSIONS_CHANGED"
+  // Console
+  | "CONSOLE_MESSAGE_ADDED"
+  | "CONSOLE_MESSAGE_REMOVED"
+  | "CONSOLE_COUNT_CHANGED";
 
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 

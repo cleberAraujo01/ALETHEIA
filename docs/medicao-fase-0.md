@@ -159,7 +159,7 @@ externo sobre a build, não diferença entre duas builds — cabe em invariantes
   fecha para baixo: delta que não casa com nenhuma assinatura é ruído, sempre.
   Todo erro dela pesa contra o motor, nunca a favor.
 - **Dois pisos de ruído contra stack desconhecida** (§8, §9) já pegaram falso positivo bloqueante antes de qualquer segundo corpus, as duas vezes na mesma regra. Repetir esse teste barato a cada regra nova.
-- **Camadas não validadas:** console (capturado, não comparado), banco e trace.
+- **Camadas não validadas:** banco e trace. Console saiu desta lista em 2026-08-14 (§10.10).
 - **O oráculo é O5.** Defeito que já existia na base é invisível por construção.
 
 ## 8. Adendo — primeira aplicação desconhecida (2026-08-11, mesmo dia)
@@ -680,6 +680,82 @@ Isso empurra a solução para fora da severidade e para dentro do que a
 arquitetura já prevê: **O2, intenção derivada do diff de código** (§12.1). Um
 motor que enxergasse o diff do PR saberia que `/apoie` foi removida de propósito.
 Não é escopo da Fase 0, e é a primeira vez que a falta dele custa um número.
+
+## 10.10 Camada de console — a lacuna declarada que virou sinal
+
+Até 2026-08-14 o console era **capturado e nunca comparado**. A lacuna aparecia
+declarada em todo relatório ("não validado CONSOLE"), o que é honesto (PA-10) e
+desperdiçado: a evidência estava no artefato, intocada.
+
+**A medição veio antes do código.** Sobre os sete pares já existentes, contando
+mensagens que aparecem no head e não na base:
+
+| Par | Mensagens novas | Erros novos |
+|---|---|---|
+| juventude, 9 defeitos | 9 | **7** |
+| juventude, PR real #1 | 0 | 0 |
+| juventude, PR real #2 | 0 | 0 |
+| oscar, 7 defeitos | 0 | 0 |
+| oscar, mudança intencional | 0 | 0 |
+| juventude, mesma build | 0 | 0 |
+| oscar, mesma build | 0 | 0 |
+
+**Zero em três PRs legítimos e nos dois pisos; sete erros exatamente no par que
+tem defeito.** É o melhor perfil de sinal medido nesta fase, e o oposto do perfil
+da remoção de nó (§10.9), onde a mesma evidência aparece nos dois lados.
+
+A razão é estrutural, não sorte: **erro novo no console não é diferença de
+forma, é a aplicação dizendo que algo falhou.** Não depende de o motor adivinhar
+intenção — que é precisamente o que falta nas outras regras.
+
+### Efeito medido
+
+| Par | Antes | Depois |
+|---|---|---|
+| juventude, 9 defeitos | 223 deltas · 48 regr · triagem 77,6% | **232 · 55 · 78,4%** |
+| todos os outros oito pares | — | **idênticos** |
+
+Precisão bloqueante 100%, falso positivo 0%, critério de saída mantido.
+
+### O que a camada NÃO fez
+
+**Não bloqueou nenhum defeito novo.** Continua 5 de 9. Os sete erros corroboram
+`F6` (rota com erro de digitação) e os dois `log` corroboram `F4` (mapa
+carregando junto), e os dois já bloqueavam por outras camadas. O ganho real está
+na classe de defeito que ainda não temos no corpus: **exceção de JavaScript sem
+rastro no DOM nem na rede** — a página renderiza igual, a requisição não
+acontece, e só o console conta. É hipótese até aparecer um caso.
+
+### Decisões, e o que cada uma custa
+
+**Alinhamento por (nível, texto), com contagem.** Comparar conjuntos perderia "a
+mesma mensagem passou de 1 para 40 vezes", que é assinatura de laço ou retry em
+cascata.
+
+**Normalização mínima — só colapso de espaço.** A medição usou texto praticamente
+exato e deu zero ruído nos cinco pares sem defeito. Normalizar mais seria apagar
+sinal para resolver um problema que não se manifestou.
+
+**A rotulagem exige confirmação de outra camada.** O texto do erro é "Failed to
+load resource: 404", sem a URL — atribuí-lo a `F6` pelo texto seria inferência.
+`label.mjs` só atribui um delta de console quando outra camada, na mesma
+observação, já carrega a assinatura daquele defeito. É a mesma ponte usada para
+pixel, pelo mesmo motivo: sem ela, qualquer mensagem viraria acerto de graça.
+
+Antes dessa ponte, os sete erros contavam como ruído e o falso positivo
+bloqueante subia para **12,7%** — o critério de saída falhava. A rotulagem
+fechando para baixo funcionou exatamente como projetada.
+
+### Limite declarado
+
+`ConsoleEntry` não carrega origem. Não dá para distinguir erro do código do
+cliente de erro de script de terceiro, como a camada de rede faz com
+`thirdParty`. Um widget de terceiro que passe a logar erro vai aparecer como
+regressão. Nenhum dos sete pares tem esse caso; quando tiver, quem muda é a
+**captura**, não a comparação.
+
+Com isto, `CONSOLE` sai da lista de camadas não validadas. Continuam fora
+`DATABASE` (Fase 1) e `TRACE` (Fase 2).
 
 ## 11. Reproduzir
 
