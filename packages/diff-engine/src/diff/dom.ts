@@ -61,7 +61,15 @@ function walk(
       path,
       before: truncateValue(base.accessibleName),
       after: truncateValue(head.accessibleName),
-      facts: { tag: base.tag },
+      facts: {
+        tag: base.tag,
+        // Sobrou texto no elemento depois da mudança? É o que separa "o rótulo
+        // mudou" de "o elemento ficou anônimo": um link que perde o
+        // `aria-label` mas mantém o texto continua anunciável; uma imagem que
+        // perde o `alt` não tem para onde cair. A severidade usa esta
+        // distinção (ver `severityOf`).
+        textFallback: hasText(head),
+      },
     });
   }
 

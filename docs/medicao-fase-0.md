@@ -757,6 +757,151 @@ regressão. Nenhum dos sete pares tem esse caso; quando tiver, quem muda é a
 Com isto, `CONSOLE` sai da lista de camadas não validadas. Continuam fora
 `DATABASE` (Fase 1) e `TRACE` (Fase 2).
 
+## 10.11 Severidade por consequência do atributo — a junta comum dos dois corpora
+
+A §10.4 já tinha notado que os dois corpora falhavam no mesmo lugar, e a §10.5
+tinha nomeado o lugar: **mudança de atributo com consequência comportamental que
+o motor não infere da mudança em si.** Três defeitos, dois corpora
+independentes:
+
+| Defeito | Corpus | O que muda no DOM | O que a página deixa de fazer |
+|---|---|---|---|
+| `F7` | juventude | `required` some do campo de e-mail | o formulário aceita envio sem remetente |
+| `O3` | oscar | `value=""` vira `value="None"` | paginar o catálogo busca pela palavra "None" |
+| `O7` | oscar | `alt` some da miniatura do produto | leitor de tela anuncia imagem sem nome |
+
+Nenhum deles muda um pixel. Nenhum deles quebra uma requisição. Todos os três
+apareciam na triagem — `9/9` e `7/7` no recorte amplo — e nenhum bloqueava.
+
+### A medição veio antes do código, de novo
+
+Mesmo procedimento da §10.10, pelo mesmo motivo: uma regra de severidade nova é
+barata de escrever e cara de desfazer. Três predicados, contados sobre os
+relatórios dos **oito pares** que existem hoje:
+
+| Par | restrição removida | valor virou sentinela | nome acessível → nulo |
+|---|---|---|---|
+| juventude, 9 defeitos | **1** | 0 | 0 |
+| oscar, 7 defeitos | 0 | **4** | **105** |
+| juventude, PR real #1 | 0 | 0 | 0 |
+| juventude, PR real #2 | 0 | 0 | 0 |
+| oscar, mudança intencional | 0 | 0 | 0 |
+| juventude, mesma build | 0 | 0 | 0 |
+| oscar, mesma build | 0 | 0 | 0 |
+| parabank, mesma build | 0 | 0 | 0 |
+| anbima, mesma build | 0 | 0 | 0 |
+
+E a rotulagem — que fecha para baixo e não consulta o veredito do motor —
+atribui os **110 deltas casados**, sem exceção, a exatamente `F7`, `O3` e `O7`.
+Nenhum ruído, nenhum delta sem defeito atribuído.
+
+**Zero nos sete pares sem defeito.** É o perfil de sinal da camada de console
+(§10.10), e o oposto do perfil da remoção de nó (§10.9). A razão é a mesma que
+lá: estes predicados não perguntam se alguém quis a mudança, perguntam **o que a
+página deixou de conseguir fazer** — e a resposta não depende de intenção.
+
+> O par do PR real #1 foi conferido no relatório arquivado, não em execução
+> nova: as duas capturas daquele par não estão mais em disco. Os três predicados
+> se calculam do tipo e do valor do delta, que não mudaram nesta versão do
+> motor, então a conferência vale — mas é releitura de artefato, não medição
+> nova, e fica declarada como tal.
+
+### O que foi implementado, e por que não é "mais uma lista de nomes"
+
+O §8 do `CLAUDE.md` pedia severidade por **consequência**, não por nome de
+atributo. As três regras respondem a uma pergunta sobre o mundo, e é a pergunta
+que decide quem entra:
+
+**1. Restrição relaxada.** `CONSTRAINT_ATTRIBUTES` responde a "sem este
+atributo, o navegador deixa de barrar um envio que barrava antes?". `type` falha
+nesse teste e ficou fora, apesar de validar. Só na **remoção**: um `maxlength`
+que muda de valor pode estar apertando ou afrouxando, e decidir qual exigiria
+comparar números que nenhum par exercita.
+
+**2. Sentinela.** `None`, `null`, `undefined`, `NaN`, `nil`, `[object Object]` —
+representações textuais de "nada" que uma linguagem produziu ao serializar um
+valor ausente. Vale para **qualquer atributo**, de propósito: restringir a uma
+lista de nomes seria reintroduzir exatamente o que esta mudança abandona. A
+regra só dispara quando o valor **vira** sentinela; um `None` estável nos dois
+lados não produz delta nenhum.
+
+**3. Nome acessível perdido.** Aqui a distinção não é qual atributo sumiu, é **o
+que sobrou**: um link que perde `aria-label` mas mantém o texto continua
+anunciável; uma imagem que perde `alt` não tem para onde cair. O fato novo
+`textFallback`, emitido no `DOM_ACCESSIBLE_NAME_CHANGED`, carrega essa
+diferença. A severidade fica no delta de consequência — o
+`DOM_ATTRIBUTE_REMOVED@alt` que a causou **continua LOW**, para o mesmo defeito
+não contar duas vezes.
+
+### Efeito medido
+
+| Par | Antes | Depois |
+|---|---|---|
+| juventude, 9 defeitos | 232 deltas · 55 bloq · **5/9** · FP 0% | 232 · 56 · **6/9** · FP 0% |
+| oscar, 7 defeitos | 289 deltas · 26 bloq · **4/7** · FP 0% | 289 · 135 · **6/7** · FP 0% |
+| juventude, PR real #2 | 278 deltas · 11 bloq | **278 · 11 — idêntico** |
+| oscar, mudança intencional | 60 deltas · 20 bloq | **60 · 20 — idêntico** |
+| juventude, mesma build | 0 · 0 | **0 · 0** |
+| oscar, mesma build | 10 · 0 | **10 · 0** |
+| parabank, mesma build | 2 · 0 | **2 · 0** |
+| anbima, mesma build | 1 · 0 | **1 · 0** |
+
+Precisão bloqueante segue **1,000** nos dois corpora de defeito; falso positivo,
+**0%**. Os 11 e os 20 falso positivo da §10.9 não se mexeram — esta mudança não
+os ataca e não os piora.
+
+**Detecção: 5/9 → 6/9 e 4/7 → 6/7.** É o primeiro ganho de detecção desde a
+saída da fase, e o único até aqui que veio sem custo nenhum de falso positivo.
+
+### O que sobra, e o que isso diz
+
+| Ainda passa | Corpus | Por quê |
+|---|---|---|
+| `F1`, `F2`, `F3` | juventude | contraste e splash — são deltas visuais, e `VISUAL_SEVERITY_CEILING` os prende em MEDIUM por decisão declarada |
+| `O2` | oscar | o menu empilha porque uma classe do CSS mudou; o DOM não carrega a consequência |
+
+Os quatro que restam são todos da mesma família: **consequência puramente
+visual**. O teto visual é decisão consciente (§10.5) e sair dele exige
+proximidade ao diff de código — Fase 2. Nenhum deles é mais um caso de "atributo
+com consequência que o motor não infere": essa junta fechou.
+
+### Custo declarado
+
+**Um defeito passou a produzir 105 deltas bloqueantes.** `O7` afeta toda
+miniatura de toda listagem, e o relatório do oscar saltou de 26 para 135
+bloqueantes sem que a contagem por defeito mudasse mais que 4/7 → 6/7. A
+contagem que vale continua sendo por defeito (§3), mas quem abre o relatório vê
+o volume — e agrupar deltas do mesmo defeito é trabalho que ainda não existe.
+
+**A regra de sentinela é a mais larga das três, e o caso que pode derrubá-la já
+está nomeado:** um `<select>` que use "None" como valor real de "nenhuma
+seleção", idioma que aparece em formulário Django. Nenhum dos oito pares tem o
+caso. Quando aparecer, o caminho é supressão aprendida (§6.4 do `CLAUDE.md`), não
+mexer na severidade.
+
+**O texto visível ficou fora.** `Desconto: None` renderizado na página é a
+encarnação mais provável do mesmo defeito — e também a mais plausível como
+conteúdo legítimo. Nenhum dos oito pares exercita o caso, então não há evidência
+para nenhum dos dois lados, e subir a severidade do texto seria inventar.
+Continua MEDIUM, visível na triagem.
+
+**E os quatro pisos de ruído valem menos aqui do que parecem.** As três regras
+só disparam quando algo MUDA entre as duas capturas; um piso compara a mesma
+build consigo mesma, onde por construção nenhum atributo muda. O zero deles é
+verdadeiro e continua sendo pré-requisito, mas ele testa normalização, não
+severidade. **A evidência que de fato sustenta o custo zero são os três pares de
+PR real** — e três PRs de duas aplicações é base estreita, do mesmo tamanho da
+base que a §10.9 mostrou ser insuficiente para as regras de remoção. O
+experimento que pode derrubar estas três é o mesmo de sempre: um PR legítimo, de
+outra aplicação, que mexa em formulário ou em imagem.
+
+### O corpus sintético do CI passou a cobrir as três
+
+`__fixtures__/checkout/` ganhou um formulário com `required` e campo escondido, e
+uma miniatura com `alt`. O gate de corpus sai de 11 para 14 regressões, com o
+piso de ruído intacto em 0. É a rede de baixo para regras que o CI não consegue
+medir contra os corpora reais.
+
 ## 11. Reproduzir
 
 ```bash

@@ -41,7 +41,16 @@
                 "text": "Camiseta — R$ 60,00",
                 "role": "listitem",
                 "accessibleName": null,
-                "children": []
+                "children": [
+                  {
+                    "tag": "img",
+                    "attributes": { "src": "/img/camiseta.png", "alt": "Camiseta preta" },
+                    "text": null,
+                    "role": "img",
+                    "accessibleName": "Camiseta preta",
+                    "children": []
+                  }
+                ]
               },
               {
                 "tag": "li",
@@ -80,6 +89,41 @@
                 "tag": "p",
                 "attributes": { "data-testid": "total" },
                 "text": "Total: R$ 85,00",
+                "role": null,
+                "accessibleName": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "tag": "form",
+            "attributes": { "data-testid": "recibo", "action": "/checkout/recibo", "method": "post" },
+            "text": null,
+            "role": "form",
+            "accessibleName": null,
+            "children": [
+              {
+                "tag": "input",
+                "attributes": {
+                  "data-testid": "recibo-email",
+                  "type": "email",
+                  "name": "email",
+                  "required": ""
+                },
+                "text": null,
+                "role": "textbox",
+                "accessibleName": "E-mail para o recibo",
+                "children": []
+              },
+              {
+                "tag": "input",
+                "attributes": {
+                  "data-testid": "recibo-cupom",
+                  "type": "hidden",
+                  "name": "cupom",
+                  "value": ""
+                },
+                "text": null,
                 "role": null,
                 "accessibleName": null,
                 "children": []

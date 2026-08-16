@@ -1,1 +1,22 @@
-{"_origem":"Gerado por scripts/corpus-gate.mjs --write-baseline. Alterar este arquivo muda o que o CI aceita: exige justificativa no corpo do PR (CLAUDE.md §11).","defeitos":{"deltas":14,"regressoes":11,"bloqueantes":11,"bloqueiaOVeredito":true,"bySeverity":{"CRITICAL":1,"HIGH":10,"MEDIUM":2,"LOW":1}},"pisoDeRuido":{"deltas":0,"regressoes":0,"bloqueantes":0,"bloqueiaOVeredito":false,"bySeverity":{}}}
+{
+  "_origem": "Gerado por scripts/corpus-gate.mjs --write-baseline. Alterar este arquivo muda o que o CI aceita: exige justificativa no corpo do PR (CLAUDE.md §11).",
+  "defeitos": {
+    "deltas": 18,
+    "regressoes": 14,
+    "bloqueantes": 14,
+    "bloqueiaOVeredito": true,
+    "bySeverity": {
+      "CRITICAL": 1,
+      "HIGH": 13,
+      "MEDIUM": 2,
+      "LOW": 2
+    }
+  },
+  "pisoDeRuido": {
+    "deltas": 0,
+    "regressoes": 0,
+    "bloqueantes": 0,
+    "bloqueiaOVeredito": false,
+    "bySeverity": {}
+  }
+}

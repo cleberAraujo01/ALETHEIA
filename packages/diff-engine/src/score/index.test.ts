@@ -145,3 +145,116 @@ describe("severidade de DOM — destino vs. entrega, conteúdo vs. estrutura", (
     ).toBe("HIGH");
   });
 });
+
+/**
+ * A junta em que os DOIS corpora falhavam ao mesmo tempo — `F7` no `juventude`,
+ * `O3` e `O7` no `oscar`. Todos são mudança de atributo com consequência
+ * comportamental que o motor não inferia da mudança em si, e o que os três têm
+ * em comum não é o nome do atributo: é o que a página deixa de fazer.
+ *
+ * MEDIDO em 2026-08-15 sobre oito pares: os predicados abaixo casam com 110
+ * deltas nos dois pares de defeito — TODOS rotulados como regressão, nenhum
+ * ruído — e com ZERO deltas nos seis pares sem defeito (dois PRs reais e quatro
+ * pisos de ruído). Detecção 5/9 → 6/9 e 4/7 → 6/7, falso positivo inalterado.
+ */
+describe("severidade de DOM por consequência do atributo", () => {
+  const attr = (
+    kind: RawDelta["kind"],
+    attribute: string,
+    before: string | null,
+    after: string | null,
+  ): RawDelta =>
+    delta({
+      layer: "DOM",
+      kind,
+      path: `body > form > input@${attribute}`,
+      before,
+      after,
+      facts: { tag: "input", attribute },
+    });
+
+  it("restrição de validação removida bloqueia — o formulário passou a aceitar o que recusava", () => {
+    // `F7`: o campo de e-mail do formulário de contato perde `required`, e o
+    // clube passa a receber mensagem sem remetente. Não muda um pixel.
+    expect(severityOf(attr("DOM_ATTRIBUTE_REMOVED", "required", "", null))).toBe("HIGH");
+    expect(severityOf(attr("DOM_ATTRIBUTE_REMOVED", "pattern", "[0-9]{4}", null))).toBe("HIGH");
+  });
+
+  it("restrição que só MUDA de valor não bloqueia — apertar e afrouxar são indistinguíveis aqui", () => {
+    // `maxlength` de 200 para 10 aperta; de 10 para 200 afrouxa. Decidir qual
+    // exigiria comparar números, e nenhum dos oito pares exercita o caso —
+    // então a regra fica só na remoção, onde a barreira some inteira.
+    expect(severityOf(attr("DOM_ATTRIBUTE_CHANGED", "maxlength", "200", "10"))).toBe("LOW");
+    expect(severityOf(attr("DOM_ATTRIBUTE_CHANGED", "required", "", "required"))).toBe("MEDIUM");
+  });
+
+  it("valor que vira sentinela bloqueia — é ausência de dado vazando para a página", () => {
+    // `O3`: `value=""` vira `value="None"` no campo escondido de busca do
+    // catálogo; paginar passa a buscar pela palavra "None".
+    expect(severityOf(attr("DOM_ATTRIBUTE_CHANGED", "value", "", "None"))).toBe("HIGH");
+    expect(severityOf(attr("DOM_ATTRIBUTE_CHANGED", "data-total", "12", "undefined"))).toBe("HIGH");
+    expect(severityOf(attr("DOM_ATTRIBUTE_ADDED", "value", null, "null"))).toBe("HIGH");
+  });
+
+  it("sentinela que já estava lá nos dois lados não produz delta, e sair dela não bloqueia", () => {
+    // A correção do defeito é o caminho inverso, e ninguém deve ser reprovado
+    // por ter consertado algo.
+    expect(severityOf(attr("DOM_ATTRIBUTE_CHANGED", "value", "None", ""))).toBe("MEDIUM");
+  });
+
+  it("nome acessível PERDIDO bloqueia quando não sobra texto para anunciar", () => {
+    // `O7`: a miniatura do produto perde `alt` em todas as listagens. Leitor de
+    // tela passa a anunciar a imagem sem nome, e nada muda visualmente.
+    expect(
+      severityOf(
+        delta({
+          layer: "DOM",
+          kind: "DOM_ACCESSIBLE_NAME_CHANGED",
+          path: "body > ol > li > img[role=img]",
+          before: "Applied cryptography",
+          after: null,
+          facts: { tag: "img", textFallback: false },
+        }),
+      ),
+    ).toBe("HIGH");
+  });
+
+  it("nome acessível perdido NÃO bloqueia se o elemento ainda tem texto próprio", () => {
+    // Um link que perde `aria-label` mas mantém o texto continua anunciável. É
+    // esta distinção — o que sobrou — que separa rótulo trocado de elemento
+    // anônimo, e não o nome do atributo que sumiu.
+    expect(
+      severityOf(
+        delta({
+          layer: "DOM",
+          kind: "DOM_ACCESSIBLE_NAME_CHANGED",
+          path: "body > a[role=link]",
+          before: "Ver todas as turmas",
+          after: null,
+          facts: { tag: "a", textFallback: true },
+        }),
+      ),
+    ).toBe("MEDIUM");
+  });
+
+  it("nome acessível que apenas TROCA é copy, não perda de função", () => {
+    expect(
+      severityOf(
+        delta({
+          layer: "DOM",
+          kind: "DOM_ACCESSIBLE_NAME_CHANGED",
+          path: "body > button[role=button]",
+          before: "Enviar",
+          after: "Enviar mensagem",
+          facts: { tag: "button", textFallback: false },
+        }),
+      ),
+    ).toBe("MEDIUM");
+  });
+
+  it("o atributo que CAUSOU a perda de nome continua LOW — o defeito não conta duas vezes", () => {
+    expect(severityOf(attr("DOM_ATTRIBUTE_REMOVED", "alt", "Applied cryptography", null))).toBe(
+      "LOW",
+    );
+  });
+});
