@@ -102,6 +102,70 @@ export const INTERACTIVE_ROLES = new Set([
 export const NAVIGATION_ATTRIBUTES = new Set(["href", "action", "formaction"]);
 
 /**
+ * Atributos que RESTRINGEM o que o usuário consegue submeter. Perder um deles
+ * não muda pixel nenhum: o formulário simplesmente passa a aceitar o que antes
+ * recusava, e a validação de que alguém dependia deixou de existir.
+ *
+ * A lista responde a uma pergunta de CONSEQUÊNCIA, não de nome: "sem este
+ * atributo, o navegador deixa de barrar um envio que barrava antes?". `type`
+ * ficou de fora justamente por falhar nesse teste — `type="email"` valida, mas
+ * perdê-lo transforma o campo em texto livre sem remover barreira nenhuma que o
+ * `required` não remova primeiro.
+ *
+ * EVIDÊNCIA (corpus `juventude`, defeito `F7`, medido em 2026-08-15): o campo de
+ * e-mail do formulário de contato perde `required` e o clube passa a receber
+ * mensagem sem remetente. Nos seis pares sem defeito medidos — dois PRs reais e
+ * quatro pisos de ruído — NENHUM atributo desta lista foi removido.
+ */
+export const CONSTRAINT_ATTRIBUTES = new Set([
+  "required",
+  "pattern",
+  "min",
+  "max",
+  "minlength",
+  "maxlength",
+  "step",
+]);
+
+/**
+ * Representações textuais de "nada" que linguagens produzem ao serializar um
+ * valor ausente. Nenhuma delas é conteúdo: todas são artefato de serialização
+ * escapando para dentro da página.
+ *
+ * EVIDÊNCIA (corpus `oscar`, defeito `O3`, medido em 2026-08-15): o campo
+ * escondido que preserva o termo de busca renderiza `value="None"` quando não há
+ * busca ativa — o `None` do Python atravessando o template. Quem pagina o
+ * catálogo passa a buscar pela palavra "None". Zero ocorrências nos seis pares
+ * sem defeito.
+ *
+ * A REGRA VALE PARA QUALQUER ATRIBUTO, de propósito. Restringir a uma lista de
+ * nomes reintroduziria exatamente o que esta mudança existe para abandonar; e a
+ * afirmação sobre o mundo é forte o bastante para ser feita inteira: nenhum
+ * atributo de aplicação real carrega a string "None" como dado legítimo.
+ *
+ * O CASO QUE PODE FALSIFICAR ISTO está nomeado: um `<select>` que use "None"
+ * como valor real de "nenhuma seleção" — idioma que aparece em formulário
+ * Django. Note que a regra só dispara quando o valor VIRA sentinela; um "None"
+ * estável nos dois lados não produz delta nenhum. Se aparecer aplicação onde
+ * isso ocorra numa mudança legítima, o registro de ruído entra na supressão
+ * aprendida (§6.4), não na severidade.
+ *
+ * O TEXTO VISÍVEL FICOU DELIBERADAMENTE FORA. "None" no texto é a encarnação
+ * mais provável do mesmo defeito, mas também a mais plausível como conteúdo
+ * legítimo ("Desconto: None" numa listagem de filtros). Nenhum dos oito pares
+ * exercita o caso, então não há evidência para nenhum dos dois lados, e subir a
+ * severidade do texto seria inventar. Continua MEDIUM, visível na triagem.
+ */
+export const SENTINEL_VALUES = new Set([
+  "none",
+  "null",
+  "undefined",
+  "nan",
+  "nil",
+  "[object object]",
+]);
+
+/**
  * Atributos que alteram comportamento, não aparência. `disabled` aparecendo
  * num botão que antes funcionava é regressão funcional clássica.
  */

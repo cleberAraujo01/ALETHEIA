@@ -3,8 +3,10 @@ import type { Severity } from "../types/delta.js";
 
 import {
   BEHAVIORAL_ATTRIBUTES,
+  CONSTRAINT_ATTRIBUTES,
   INTERACTIVE_ROLES,
   NAVIGATION_ATTRIBUTES,
+  SENTINEL_VALUES,
   INTERACTIVE_TAGS,
   N_PLUS_ONE_AMPLIFICATION,
   NOTABLE_AMPLIFICATION,
@@ -117,19 +119,62 @@ export function severityOf(delta: RawDelta): Severity {
       return "MEDIUM";
     case "DOM_ROLE_CHANGED":
       return "HIGH";
-    case "DOM_ACCESSIBLE_NAME_CHANGED":
+    case "DOM_ACCESSIBLE_NAME_CHANGED": {
+      // NOME PERDIDO ≠ NOME TROCADO. Trocar o rótulo de um botão é copy; ficar
+      // sem rótulo nenhum é o elemento deixando de existir para quem não
+      // enxerga a tela. A condição que separa os dois não é o nome do atributo
+      // que sumiu, é o que sobrou: um link que perde `aria-label` mas mantém o
+      // texto continua anunciável; uma imagem que perde `alt` não tem para onde
+      // cair.
+      //
+      // EVIDÊNCIA (corpus `oscar`, defeito `O7`, medido em 2026-08-15): a
+      // miniatura do produto perde `alt` em todas as listagens — 105 deltas,
+      // todos rotulados como regressão, nenhum falso positivo. O defeito não
+      // muda um pixel e passava inteiro. Nos seis pares sem defeito — dois PRs
+      // reais e quatro pisos de ruído — nenhum nó perdeu o nome acessível.
+      //
+      // A severidade fica no delta de CONSEQUÊNCIA, não no `DOM_ATTRIBUTE_REMOVED@alt`
+      // que o causou: o atributo continua LOW, e assim o mesmo defeito não é
+      // contado duas vezes no relatório.
+      if (delta.after === null && delta.facts["textFallback"] !== true) return "HIGH";
       return "MEDIUM";
+    }
 
     case "DOM_ATTRIBUTE_ADDED": {
       const attribute = stringFact(delta.facts["attribute"]);
       // Controle que passou a nascer desabilitado: função perdida.
       if (attribute === "disabled" || attribute === "readonly") return "HIGH";
+      if (isSentinel(delta.after)) return "HIGH";
       return attribute !== null && BEHAVIORAL_ATTRIBUTES.has(attribute) ? "MEDIUM" : "LOW";
     }
     case "DOM_ATTRIBUTE_CHANGED":
     case "DOM_ATTRIBUTE_REMOVED": {
       const attribute = stringFact(delta.facts["attribute"]);
       if (attribute === null) return "LOW";
+
+      // SENTINELA — o valor virou a representação textual de "nada". Não é
+      // dado diferente, é ausência de dado vazando para dentro da página, e a
+      // consequência independe de qual atributo recebeu: o usuário submete ou
+      // segue um artefato de serialização.
+      //
+      // EVIDÊNCIA (corpus `oscar`, defeito `O3`): `value=""` vira
+      // `value="None"` no campo escondido de busca; paginar o catálogo passa a
+      // buscar pela palavra "None". Zero ocorrências nos seis pares sem defeito.
+      // Ver `SENTINEL_VALUES` para o caso que pode falsificar a regra.
+      if (isSentinel(delta.after) && !isSentinel(delta.before)) return "HIGH";
+
+      // RESTRIÇÃO RELAXADA — o formulário passou a aceitar o que recusava.
+      // Só na REMOÇÃO: o atributo que some tira a barreira inteira, enquanto
+      // um `maxlength` que muda de valor pode estar apertando ou afrouxando, e
+      // decidir qual exigiria comparar números que nenhum par exercita.
+      //
+      // EVIDÊNCIA (corpus `juventude`, defeito `F7`): o campo de e-mail perde
+      // `required` e o clube passa a receber mensagem sem remetente para
+      // responder. Zero ocorrências nos seis pares sem defeito.
+      if (delta.kind === "DOM_ATTRIBUTE_REMOVED" && CONSTRAINT_ATTRIBUTES.has(attribute)) {
+        return "HIGH";
+      }
+
       // Destino de ação do usuário — para onde ele vai ao clicar, para onde o
       // formulário envia. Mudou sem intenção declarada: ou é link morto, ou é
       // dado errado no lugar certo (o WhatsApp do clube com um dígito trocado).
@@ -193,6 +238,17 @@ export function scoreOf(severity: Severity, calibration: Calibration): number {
     calibration.proximityFactor *
     calibration.businessValueFactor
   );
+}
+
+/**
+ * O valor é a representação textual de "nada" que alguma linguagem produziu ao
+ * serializar um valor ausente? Ver `SENTINEL_VALUES`.
+ *
+ * `null` aqui é o atributo NÃO EXISTIR, que é coisa diferente de existir com
+ * valor sentinela — e é por isso que a checagem não trata os dois igual.
+ */
+function isSentinel(value: string | null): boolean {
+  return value !== null && SENTINEL_VALUES.has(value.trim().toLowerCase());
 }
 
 function isInteractive(delta: RawDelta): boolean {

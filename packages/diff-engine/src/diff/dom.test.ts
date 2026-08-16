@@ -76,3 +76,39 @@ describe("remoção de nó: conteúdo perdido × conteúdo reembalado", () => {
     expect(delta?.facts["textPreserved"]).toBe(false);
   });
 });
+
+/**
+ * `textFallback` é o que separa "o rótulo mudou" de "o elemento ficou anônimo".
+ * Sem ele a severidade teria de perguntar QUAL atributo sumiu — que é
+ * exatamente a pergunta que o defeito `O7` mostrou ser a errada.
+ */
+describe("nome acessível perdido: sobrou texto para anunciar?", () => {
+  const named = (
+    tag: string,
+    accessibleName: string | null,
+    text: string | null = null,
+  ): DomNode => ({ ...node(tag, text), role: tag === "img" ? "img" : "link", accessibleName });
+
+  const nameDeltas = (base: DomNode, head: DomNode): RawDelta[] =>
+    diffDom(
+      "obs",
+      normalizeDom(base, opts, createLedger()),
+      normalizeDom(head, opts, createLedger()),
+      new DeltaBudget(500),
+    ).filter((delta) => delta.kind === "DOM_ACCESSIBLE_NAME_CHANGED");
+
+  it("imagem que perde o alt não tem para onde cair", () => {
+    // Defeito `O7`: a miniatura do produto perde `alt` nas listagens.
+    const [delta] = nameDeltas(named("img", "Applied cryptography"), named("img", null));
+    expect(delta?.after).toBeNull();
+    expect(delta?.facts["textFallback"]).toBe(false);
+  });
+
+  it("link que perde o aria-label mas mantém o texto continua anunciável", () => {
+    const [delta] = nameDeltas(
+      named("a", "Ver todas as turmas", "Ver turmas"),
+      named("a", null, "Ver turmas"),
+    );
+    expect(delta?.facts["textFallback"]).toBe(true);
+  });
+});
