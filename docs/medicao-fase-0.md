@@ -904,6 +904,16 @@ medir contra os corpora reais.
 
 ## 11. Reproduzir
 
+> **Se as capturas já estiverem em disco, pule para o fim: `pnpm corpora:medir`**
+> refaz diff, rotulagem e medição dos oito pares e imprime a tabela do PR
+> pronta (`--antes <dir de rodada anterior>` preenche as duas colunas). Ele sai
+> com erro se faltar captura de qualquer par, e marca a linha correspondente
+> como `NÃO MEDIDO` dentro da própria tabela — pela razão da §10.3.1: ambiente
+> pela metade não falha, fabrica resultado plausível.
+>
+> O que vem abaixo é a metade cara e insubstituível: clonar as aplicações,
+> aplicar os defeitos, subir os servidores e **produzir** as capturas.
+
 ```bash
 # 1. duas cópias descartáveis da aplicação; aplicar os defeitos numa delas
 node packages/diff-engine/__corpus__/juventude/apply-faults.mjs <cópia-head>
