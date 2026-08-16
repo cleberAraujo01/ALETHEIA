@@ -22,7 +22,8 @@
     "arch:check:selftest": "node scripts/arch-check.selftest.mjs",
     "protect": "node scripts/branch-protection.mjs",
     "corpus:gate": "node scripts/corpus-gate.mjs",
-    "corpus:baseline": "node scripts/corpus-gate.mjs --write-baseline"
+    "corpus:baseline": "node scripts/corpus-gate.mjs --write-baseline",
+    "corpora:medir": "node scripts/medir-corpora.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

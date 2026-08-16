@@ -421,7 +421,7 @@ Das três direções da §10.6, só **supressão aprendida** sobrevive à mediç
 1. `pnpm lint && pnpm typecheck && pnpm test && pnpm arch:check`
 2. Releia o diff completo contra o checklist §9, item por item
 3. Releia o diff contra os 12 princípios §2 e **declare no corpo do PR qual princípio cada mudança poderia tensionar** — inclusive quando a resposta for "nenhum"
-4. Se tocou `diff-engine`: rode a medição de corpus e cole a tabela antes/depois dos quatro pares
+4. Se tocou `diff-engine`: rode `pnpm corpora:medir` e cole a tabela antes/depois dos quatro pares. Ele exige as capturas em disco e reprova se faltar alguma; produzi-las é a §11 de `docs/medicao-fase-0.md`
 5. Se criou regra de severidade ou normalização: rode piso de ruído em aplicação fora do corpus calibrado
 
 Auto-revisão **não substitui** revisão humana. Ela existe para que a revisão humana não gaste atenção com o que é mecanicamente verificável.

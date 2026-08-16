@@ -40,7 +40,13 @@ em que quem escreveu olha o próprio diff pelo ângulo de quem vai revisar.
 ## Se o PR toca `packages/diff-engine`
 
 **Cole a tabela dos quatro pares.** Um número sozinho não diz nada: detectar mais
-é trivial se reprovar todo mundo for aceitável. Comandos na §11 de
+é trivial se reprovar todo mundo for aceitável.
+
+Com as capturas já em disco, `pnpm corpora:medir` roda os oito pares e imprime a
+tabela pronta; `--antes <dir de uma rodada anterior>` preenche as duas colunas de
+uma vez. Ele **avisa e sai com erro** se faltar captura de algum par — par que
+falta não é par que passou. Para reconstituir as capturas (clonar, aplicar
+defeito, subir servidor, capturar), os comandos estão na §11 de
 `docs/medicao-fase-0.md`.
 
 | Corpus | Antes | Depois |

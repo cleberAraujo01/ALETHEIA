@@ -61,8 +61,10 @@ Depois, à mão — porque nenhuma ferramenta faz por você:
 1. Releia o diff inteiro contra o checklist de [`CLAUDE.md` §9](./CLAUDE.md)
 2. Releia contra os 12 princípios de §2 e **declare no PR qual princípio cada
    mudança poderia tensionar**, mesmo que a resposta seja "nenhum"
-3. Tocou `diff-engine`? Rode a medição de corpus e cole a tabela antes/depois dos
-   quatro pares (ver §11 de `docs/medicao-fase-0.md`)
+3. Tocou `diff-engine`? Rode `pnpm corpora:medir` e cole a tabela antes/depois
+   dos quatro pares. Com as capturas em disco é um comando; produzi-las é a §11
+   de `docs/medicao-fase-0.md`. Ele reprova se faltar captura de qualquer par —
+   par que falta não é par que passou
 4. Criou regra de severidade, normalização ou supressão? Rode o piso de ruído
    numa aplicação **fora** do corpus calibrado. Custa dois minutos e já derrubou
    regra recém-criada três vezes (§8, §9 e §10.2 da medição)
