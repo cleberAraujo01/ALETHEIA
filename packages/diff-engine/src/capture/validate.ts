@@ -60,6 +60,26 @@ export function parseCapture(raw: unknown, source: string): Capture {
       capturedAtUtc: requireString(targetRaw["capturedAtUtc"], "$.target.capturedAtUtc", source),
     },
     observations,
+    interruption: parseInterruption(root["interruption"], "$.interruption", source),
+  };
+}
+
+function parseInterruption(raw: unknown, path: string, source: string): Capture["interruption"] {
+  // Ausente (versões ≤ 0.2.0) ou null: jornada foi até o fim.
+  if (raw === undefined || raw === null) return null;
+  const node = requireObject(raw, path, source);
+  const missing = requireArray(
+    node["missingObservationIds"],
+    `${path}.missingObservationIds`,
+    source,
+  );
+  return {
+    stepId: requireString(node["stepId"], `${path}.stepId`, source),
+    action: requireString(node["action"], `${path}.action`, source),
+    reason: requireString(node["reason"], `${path}.reason`, source),
+    missingObservationIds: missing.map((entry, index) =>
+      requireString(entry, `${path}.missingObservationIds[${index}]`, source),
+    ),
   };
 }
 

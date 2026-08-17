@@ -10,7 +10,8 @@ import {
   type DiffReport,
   type SuppressionRule,
 } from "@aletheia/diff-engine";
-import { capture as runCapture, parseJourney } from "@aletheia/runner";
+import { IR_VERSION, loadJourney } from "@aletheia/ir";
+import { capture as runCapture, type CaptureTrace } from "@aletheia/runner";
 import { PlatformError, systemClock, type Logger, type RunMetadata } from "@aletheia/shared";
 
 import type { CaptureCommandArgs, DiffCommandArgs } from "./args.js";
@@ -33,6 +34,8 @@ export interface CaptureOutcome {
   readonly capture: Capture;
   readonly captureFilePath: string;
   readonly browserVersion: string;
+  readonly trace: CaptureTrace;
+  readonly traceFilePath: string;
 }
 
 export async function performCapture(
@@ -40,13 +43,19 @@ export async function performCapture(
   logger: Logger,
 ): Promise<CaptureOutcome> {
   const journeySource = resolve(args.journey);
-  const journey = parseJourney(await readJson(journeySource), journeySource);
+  const { ir: journey, migrated } = loadJourney(await readJson(journeySource), journeySource);
   const captureFilePath = resolve(args.out, "capture.json");
+  const traceFilePath = resolve(args.out, "trace.json");
 
   logger.info("captura iniciada", {
     baseUrl: args.url,
-    journey: journey.name,
-    observations: journey.observations.length,
+    journey: journey.id,
+    irVersion: journey.irVersion,
+    // Jornada legada (lista de rotas) foi migrada na leitura — declarado, não
+    // escondido: a execução diz o que interpretou (PA-12).
+    migratedFromLegacy: migrated,
+    steps: journey.steps.length,
+    observations: journey.steps.filter((step) => step.action === "observe").length,
     label: args.label,
   });
 
@@ -66,14 +75,22 @@ export async function performCapture(
   });
 
   await writeJson(captureFilePath, result.capture);
+  await writeJson(traceFilePath, result.trace);
 
   logger.info("captura concluída", {
     captureId: result.capture.captureId,
     browserVersion: result.browserVersion,
     observations: result.capture.observations.length,
+    interrupted: result.capture.interruption !== null,
   });
 
-  return { capture: result.capture, captureFilePath, browserVersion: result.browserVersion };
+  return {
+    capture: result.capture,
+    captureFilePath,
+    browserVersion: result.browserVersion,
+    trace: result.trace,
+    traceFilePath,
+  };
 }
 
 export interface DiffOutcome {
@@ -94,7 +111,7 @@ export async function performDiff(
     runId,
     // Componentes ainda inexistentes nesta fase — declarados, não inventados.
     worldModelVersion: null,
-    irVersion: null,
+    irVersion: IR_VERSION,
     runnerVersion: RUNNER_VERSION,
     browserVersion,
     seed: args.seed,

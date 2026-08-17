@@ -40,8 +40,8 @@ jobs:
 Sem PR associado ao deploy, o comentário não é publicado (não há onde) e o
 resultado fica no step summary e no artefato.
 
-`journey` é uma lista de rotas — nesta fatia da Fase 1 ainda não há ações
-(clique, digitação); isso é a IR, próxima fatia. Exemplo:
+`journey` é IR v1 (ações + observações; ver README da raiz) ou, no caso mais
+simples, uma lista de rotas no formato legado — que é migrada na leitura:
 
 ```json
 { "journeyVersion": "0.1.0", "name": "smoke", "viewport": { "width": 1280, "height": 800 },

@@ -416,6 +416,7 @@ Perguntas sobre o sistema, respondidas pelo grafo. É o modo que faz gerente e P
 | RN-EXE-010 | Retry automático é limitado a 2 tentativas e apenas para categorias de falha previamente classificadas como transientes. | Alta |
 | RN-EXE-011 | Cura de seletor aplicada em runtime deve ser registrada com diff, screenshot e nível de confiança, e entrar em fila de aprovação. | 🔒 |
 | RN-EXE-012 | O tempo de convergência é métrica de primeira classe: degradação significativa é reportada como regressão de performance. | Alta |
+| RN-EXE-013 | Passo de jornada que falha (alvo não encontrado, ambíguo, ação recusada) **interrompe** a jornada e é registrado no artefato de captura — passo, motivo, observações não produzidas —, e o relatório declara a lacuna (PA-10). Não é falha de plataforma: sob teste diferencial, o head não alcançar o que a base alcançou é sinal. | Alta |
 
 ### 7.5 Domínio: Dados e Banco (`RN-DAT`)
 

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture — entrar</title>
+  </head>
+  <body>
+    <main>
+      <h1>Entrar</h1>
+      <form action="/ola.html" method="get">
+        <label for="nome">Nome</label>
+        <input id="nome" name="nome" type="text" />
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" />
+        <label for="perfil">Perfil</label>
+        <select id="perfil" name="perfil">
+          <option value="leitor">Leitor</option>
+          <option value="editor">Editor</option>
+        </select>
+        <button type="submit">Entrar</button>
+      </form>
+      <p>Dois links com o mesmo texto, para o teste de ambiguidade:</p>
+      <a href="/ola.html?nome=a">Ver</a> <a href="/ola.html?nome=b">Ver</a>
+    </main>
+  </body>
+</html>
