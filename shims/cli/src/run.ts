@@ -49,7 +49,12 @@ export async function runCommand(
   const out = resolve(args.out);
   const journey = resolve(args.journey);
 
-  const captureArgs = (label: "base" | "head", url: string, commit: string | null) => ({
+  const captureArgs = (
+    label: "base" | "head",
+    url: string,
+    commit: string | null,
+    db: string | null,
+  ) => ({
     url,
     journey,
     out: resolve(out, label),
@@ -60,12 +65,21 @@ export async function runCommand(
     headed: false,
     deadlineMs: args.deadlineMs,
     elements: args.elements,
+    db,
+    capabilities: args.capabilities,
+    dbEnvironment: args.dbEnvironment,
   });
 
   // Base primeiro, sempre: se a base não capturar, o head nem é visitado — e o
   // erro que sai é de plataforma, não veredito.
-  const base = await performCapture(captureArgs("base", args.baseUrl, args.baseRef), logger);
-  const head = await performCapture(captureArgs("head", args.headUrl, args.commit), logger);
+  const base = await performCapture(
+    captureArgs("base", args.baseUrl, args.baseRef, args.baseDb),
+    logger,
+  );
+  const head = await performCapture(
+    captureArgs("head", args.headUrl, args.commit, args.headDb),
+    logger,
+  );
 
   const { report, reportPaths } = await performDiff(
     {

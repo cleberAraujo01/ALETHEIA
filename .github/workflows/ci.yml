@@ -91,3 +91,7 @@ jobs:
       # cabeçalho de scripts/corpus-gate.mjs.
       - name: gate de corpus
         run: pnpm corpus:gate
+
+      # Toda capability versionada passa pela validação estática (§6.1 passo 3).
+      - name: capabilities
+        run: pnpm capabilities:validate && pnpm capabilities:validate:fixtures

@@ -1,0 +1,22 @@
+# Listagem sem chave declarada: alinha por posição — e o diff diz que alinhou
+# por posição (MEDIUM, não HIGH). Existe para o corpus provar essa distinção.
+id: cap_orders_recent
+version: 1
+name: order.listRecent
+description: Últimos pedidos, para o diff de listagem
+operation: READ
+engine: sqlite
+allowedEnvironments: [ephemeral, isolated, staging]
+sql: |
+  SELECT o.id, o.discount_pct
+  FROM orders o
+  ORDER BY o.id
+parameters: {}
+allowlist:
+  tables: [orders]
+  columns: [orders.id, orders.discount_pct]
+constraints: { timeoutMs: 1000, maxRows: 100 }
+approval:
+  status: APPROVED
+  approvedBy: cleber.araujo
+  approvedAt: "2026-08-17"

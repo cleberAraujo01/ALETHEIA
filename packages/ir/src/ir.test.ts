@@ -25,7 +25,7 @@ const login: IrJourney = {
     { id: "st_2", action: "fill", target: { label: "E-mail" }, value: "qa@exemplo.com" },
     { id: "st_3", action: "fill", target: { label: "Senha" }, value: { secretRef: "QA_SENHA" } },
     { id: "st_4", action: "click", target: { role: "button", name: "Entrar" } },
-    { id: "st_5", action: "observe", observationId: "painel", masks: [] },
+    { id: "st_5", action: "observe", observationId: "painel", masks: [], database: [] },
   ],
 };
 

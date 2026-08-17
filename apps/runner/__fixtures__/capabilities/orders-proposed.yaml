@@ -1,0 +1,16 @@
+# PROPOSED de propósito: o executor tem de recusar, e a sonda que a usa vira
+# DB_PROBE_FAILED dos dois lados (LOW — configuração, não regressão).
+id: cap_orders_proposed
+version: 1
+name: order.countAll
+description: Contagem de pedidos (ainda não aprovada)
+operation: READ
+engine: sqlite
+allowedEnvironments: [staging]
+sql: SELECT COUNT(o.id) FROM orders o
+parameters: {}
+allowlist:
+  tables: [orders]
+  columns: [orders.id]
+approval:
+  status: PROPOSED

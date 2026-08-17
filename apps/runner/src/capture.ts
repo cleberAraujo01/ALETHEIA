@@ -6,11 +6,13 @@ import {
   type Capture,
   type CaptureInterruption,
   type ConsoleEntry,
+  type DatabaseObservation,
   type JsonValue,
   type NetworkExchange,
   type Observation,
 } from "@aletheia/diff-engine";
 import {
+  type DatabaseProbe,
   isTargetRef,
   type IrJourney,
   type IrStep,
@@ -85,8 +87,22 @@ export interface CaptureOptions {
   readonly secrets?: (name: string) => string | undefined;
   /** Repositório de elementos (§12.3) para alvos `{ ref }`. Sem ele, `ref` é erro de IR. */
   readonly elements?: ElementRepository | null;
+  /**
+   * Acesso a banco por capability (§14). O runner NUNCA vê conexão nem SQL:
+   * recebe uma função que executa uma capability aprovada por nome (PA-04). Sem
+   * ela, um `observe` com sonda declarada é erro de IR.
+   */
+  readonly database?: DatabaseAccess | null;
   readonly logger: Logger;
   readonly clock: Clock;
+}
+
+/** O que o executor de capabilities expõe ao runner — nome e parâmetros, nada mais. */
+export interface DatabaseAccess {
+  execute(
+    capability: string,
+    params: Readonly<Record<string, string | number | boolean>>,
+  ): Promise<DatabaseObservation>;
 }
 
 export interface StepTrace {
@@ -390,7 +406,13 @@ class JourneySession {
       }
       case "observe": {
         // A convergência já aconteceu no passo anterior; observar é fotografar.
-        const observation = await this.#observe(page, step.observationId, step.masks);
+        const observation = await this.#observe(
+          page,
+          step.observationId,
+          step.masks,
+          step.database,
+          step.id,
+        );
         return { observation, convergenceMs: null, rounds: null, resolution: null };
       }
     }
@@ -534,7 +556,13 @@ class JourneySession {
     return { convergenceMs: outcome.elapsedMs, rounds: outcome.rounds };
   }
 
-  async #observe(page: Page, observationId: string, masks: readonly Rect[]): Promise<Observation> {
+  async #observe(
+    page: Page,
+    observationId: string,
+    masks: readonly Rect[],
+    probes: readonly DatabaseProbe[],
+    stepId: string,
+  ): Promise<Observation> {
     const dom = redactDeep(await page.evaluate(serializeDomInPage), this.#secrets);
 
     const exchanges: NetworkExchange[] = [];
@@ -565,7 +593,60 @@ class JourneySession {
       network: exchanges,
       console: consoleEntries,
       screenshot,
+      database: await this.#probeDatabase(probes, stepId),
     };
+  }
+
+  /**
+   * Sondas de banco do `observe` (O6). A falha de UMA capability não derruba a
+   * captura: vira `error` no resultado, e o diff a trata como delta
+   * (`DB_PROBE_FAILED`) — quebrar a consulta aprovada É evidência. O que
+   * derruba é sonda declarada sem acesso a banco: erro de configuração da
+   * execução, plataforma.
+   */
+  async #probeDatabase(
+    probes: readonly DatabaseProbe[],
+    stepId: string,
+  ): Promise<readonly DatabaseObservation[] | null> {
+    if (probes.length === 0) return null;
+    const access = this.#options.database ?? null;
+    if (access === null) {
+      throw new PlatformError("IR_INVALID", {
+        stepId,
+        reason:
+          "observe declara sonda de banco, mas a execução não tem acesso a banco (--db / --capabilities)",
+      });
+    }
+    const results: DatabaseObservation[] = [];
+    for (const probe of probes) {
+      try {
+        results.push(await access.execute(probe.capability, probe.params));
+      } catch (error) {
+        const reason =
+          error instanceof PlatformError
+            ? `${error.code}: ${String(error.context["reason"] ?? "")}`
+            : firstLine(error);
+        this.#options.logger.warn("sonda de banco falhou", {
+          stepId,
+          capability: probe.capability,
+          reason,
+        });
+        results.push({
+          capability: probe.capability,
+          params: probe.params,
+          columns: [],
+          rows: [],
+          rowCount: 0,
+          truncated: false,
+          keyColumns: [],
+          volatileColumns: [],
+          maskedColumns: [],
+          durationMs: 0,
+          error: reason,
+        });
+      }
+    }
+    return results;
   }
 }
 

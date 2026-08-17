@@ -1,0 +1,19 @@
+{
+  "irVersion": "1.0.0",
+  "id": "jr_fixture_loja",
+  "name": "fixture-loja",
+  "viewport": { "width": 800, "height": 600 },
+  "steps": [
+    { "id": "st_1", "action": "navigate", "path": "/" },
+    {
+      "id": "st_2",
+      "action": "observe",
+      "observationId": "entrar",
+      "database": [
+        { "capability": "order.getDiscount", "params": { "orderId": 42 } },
+        { "capability": "order.listRecent" },
+        { "capability": "order.countAll" }
+      ]
+    }
+  ]
+}

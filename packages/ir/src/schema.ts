@@ -72,6 +72,18 @@ export function isTargetRef(target: TargetSpec): target is TargetRef {
 
 export type IrValue = string | { readonly secretRef: string };
 
+/**
+ * Sonda de banco numa observação — a sexta fonte de oráculo (O6, §14.1). A
+ * jornada NÃO escreve SQL: nomeia uma capability aprovada e passa parâmetros
+ * escalares. Quem executa é o executor de capabilities, com a conexão que a
+ * jornada nunca vê (PA-04, RN-DAT-001).
+ */
+export interface DatabaseProbe {
+  /** `<domínio>.<verbo>` de uma capability do catálogo. */
+  readonly capability: string;
+  readonly params: Readonly<Record<string, string | number | boolean>>;
+}
+
 export type IrStep =
   | { readonly id: string; readonly action: "navigate"; readonly path: string }
   | { readonly id: string; readonly action: "click"; readonly target: TargetSpec }
@@ -100,6 +112,8 @@ export type IrStep =
       readonly observationId: string;
       /** Regiões sabidamente dinâmicas, excluídas da comparação visual. */
       readonly masks: readonly Rect[];
+      /** Capabilities READ a executar neste ponto da jornada. */
+      readonly database: readonly DatabaseProbe[];
     };
 
 export type IrAction = IrStep["action"];

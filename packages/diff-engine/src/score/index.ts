@@ -229,6 +229,33 @@ export function severityOf(delta: RawDelta): Severity {
       const level = stringFact(delta.facts["level"]);
       return level === "error" ? "MEDIUM" : "LOW";
     }
+
+    // Banco (O6). O que uma capability aprovada devolve é ESTADO PERSISTIDO
+    // depois do mesmo caminho na base e no head; divergência aqui é o caso
+    // central do problema do oráculo (a tela renderiza, a API responde 200, o
+    // desconto no banco está errado). HIPÓTESE declarada, sem par real ainda:
+    // valor de campo que muda é HIGH; linha que some ou aparece é HIGH; sonda
+    // que falhou de um lado é HIGH (a mudança quebrou a consulta aprovada);
+    // contagem sozinha é MEDIUM porque a linha correspondente já é delta.
+    // Alinhamento por POSIÇÃO (capability sem keyColumns) rebaixa um degrau: a
+    // identidade da linha é presumida, não declarada.
+    case "DB_FIELD_CHANGED":
+    case "DB_ROW_ADDED":
+    case "DB_ROW_REMOVED":
+      return delta.facts["alignedBy"] === "position" ? "MEDIUM" : "HIGH";
+    case "DB_PROBE_FAILED":
+      // Falhou dos DOIS lados: capability recusada, banco fora, parâmetro
+      // errado — configuração, não regressão. Visível, não bloqueia. Falhou de
+      // UM lado só: a mudança quebrou a consulta aprovada.
+      return delta.facts["failedInBase"] === true && delta.facts["failedInHead"] === true
+        ? "LOW"
+        : "HIGH";
+    case "DB_PROBE_MISSING":
+      // A sonda existiu de um lado só: jornada mudou ou captura antiga. Lacuna
+      // declarada na cobertura; como delta, só chama atenção.
+      return "MEDIUM";
+    case "DB_ROWCOUNT_CHANGED":
+      return "MEDIUM";
   }
 }
 

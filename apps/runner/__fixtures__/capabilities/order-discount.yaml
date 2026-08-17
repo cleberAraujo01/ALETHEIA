@@ -1,0 +1,31 @@
+# Capability de fixture — o desconto de um pedido (o caso central do problema
+# do oráculo, CLAUDE.md §1: a tela renderiza, a API responde 200, o desconto
+# no banco está errado). READ, aprovada, sqlite; PII mascarada na borda.
+id: cap_order_discount
+version: 1
+name: order.getDiscount
+description: Desconto e total de um pedido, com o e-mail do cliente mascarado
+operation: READ
+engine: sqlite
+allowedEnvironments: [ephemeral, isolated, staging]
+sql: |
+  SELECT o.id, o.discount_pct, o.total_cents, o.customer_email
+  FROM orders o
+  WHERE o.id = :orderId
+parameters:
+  orderId: { type: integer, required: true }
+allowlist:
+  tables: [orders]
+  columns:
+    [orders.id, orders.discount_pct, orders.total_cents, orders.customer_email, orders.created_at]
+sensitivity:
+  orders.customer_email: PII
+  orders.total_cents: FINANCIAL
+constraints: { timeoutMs: 1000, maxRows: 5 }
+keyColumns: [id]
+volatileColumns: [created_at]
+approval:
+  status: APPROVED
+  approvedBy: cleber.araujo
+  approvedAt: "2026-08-17"
+  reviewPr: "#15"

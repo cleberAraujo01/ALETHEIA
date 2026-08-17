@@ -1,6 +1,7 @@
 export { IR_ACTIONS, IR_VERSION } from "./schema.js";
 export { isTargetRef } from "./schema.js";
 export type {
+  DatabaseProbe,
   IrAction,
   IrJourney,
   IrStep,

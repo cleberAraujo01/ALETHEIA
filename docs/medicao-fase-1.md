@@ -219,3 +219,80 @@ rede de baixo, não a medição de campo.
   decisão e não aparece em lugar nenhum além do motivo de ambiguidade.
 - **`text` casa qualquer elemento com aquele texto, cabeçalho inclusive.** É
   correto (é o que o autor declarou) e é por isso que a corroboração existe.
+
+## 4. E-02 — diff de banco somente leitura, por capability
+
+### 4.1 O que foi construído
+
+`packages/capabilities` — spec da §14.3 (YAML), **validador estático léxico
+estrito** (um statement, sem comentário, sem palavra-chave que não seja de
+leitura, `:nome` obrigatório, tabela após FROM/JOIN e `tabela.coluna` na
+allowlist, LIMIT ≤ maxRows), **executor `READ`** com sqlite via `node:sqlite`
+aberto em modo somente leitura (privilégio mínimo no próprio engine, não só no
+validador), parâmetro nomeado do driver (RN-DAT-002), `LIMIT` compulsório
+(RN-DAT-004), PII/SECRET mascaradas por hash estável na borda (RN-DAT-008 —
+comparáveis entre base e head, nunca legíveis), auditoria sem valores nem URL
+(§14.8). Só `APPROVED` executa; `PROPOSED` é pergunta. `WRITE`/`DESTRUCTIVE`
+são recusadas com o motivo (RN-DAT-007, E-07).
+
+Na IR, `observe` ganha `database: [{ capability, params }]` — a jornada nomeia,
+nunca escreve SQL. No runner, a captura 0.4.0 carrega o resultado por
+observação; a capability que falha vira `error` no resultado (evidência), não
+derruba a captura. No motor, a camada `DATABASE`: alinhamento por
+`keyColumns` **declaradas** na capability (sem elas, por posição — e o delta
+diz `alignedBy: position` e cai um degrau), colunas voláteis **declaradas**
+ficam de fora, sonda que falhou de um lado só é `DB_PROBE_FAILED` HIGH, dos
+dois lados é LOW (configuração). Na CLI, `--base-db`, `--head-db`,
+`--capabilities`, `--db-env`; a URL morre no shim.
+
+### 4.2 O que foi medido
+
+**Suíte de SQL malicioso e malformado** (§7 do CLAUDE.md, no CI): 12 recusas —
+segundo statement, comentário, `FOR UPDATE`, `DELETE`, `INTO`, `PRAGMA`,
+parâmetro posicional, parâmetro não declarado, tabela e JOIN fora da
+allowlist, coluna fora da allowlist, LIMIT acima do teto — mais WRITE em
+produção, obrigatório não usado, e literal de string que não engana o
+tokenizador. Executor: PII mascarada, auditoria sem e-mail, PROPOSED/ambiente/
+parâmetro/inexistente recusados antes de tocar o banco, e **a conexão
+somente-leitura recusa escrita mesmo se o validador falhasse** (segunda
+barreira, testada).
+
+**Demo `pnpm demo:banco`** — a mesma página estática nas duas builds; dois
+sqlite iguais exceto pelo desconto do pedido 42 (15% → 10%), um pedido a mais e
+`created_at` diferente:
+
+| Sonda | Delta | Severidade | Por quê |
+|---|---|---|---|
+| `order.getDiscount(42)` | `DB_FIELD_CHANGED` discount_pct 15 → 10 | **HIGH → REGRESSION** | chave declarada (`id`); é o problema do oráculo do §1, com DOM idêntico |
+| `order.getDiscount(42)` | — em `created_at` | — | coluna volátil declarada |
+| `order.getDiscount(42)` | — em `customer_email` | — | mascarada por hash, igual dos dois lados |
+| `order.listRecent` | `DB_ROWCOUNT_CHANGED` 2 → 3, `DB_ROW_ADDED`, `DB_FIELD_CHANGED` | MEDIUM | sem `keyColumns`: alinhado por posição, e diz |
+| `order.countAll` (PROPOSED) | `DB_PROBE_FAILED` dos dois lados | LOW | recusada pelo executor nas duas capturas: configuração, não regressão |
+
+Veredito `REGRESSION_DETECTED`, código 1, comentário de PR com uma linha:
+`DB_FIELD_CHANGED · db:order.getDiscount?orderId=42/id=42/discount_pct · 15 → 10`.
+A cobertura deixa de listar `DATABASE` como lacuna quando há sonda; sem sonda,
+a lacuna diz que é de **declaração**, não de motor.
+
+Bancada dos oito pares idêntica: as capturas da Fase 0 não têm sonda, e o motor
+as lê como `database: null`.
+
+### 4.3 O que ficou declarado
+
+- **Léxico, não AST; sem `EXPLAIN`.** O validador erra para o lado de recusar
+  (é o único ponto onde a plataforma toca dado persistente). AST e `EXPLAIN`
+  (item 4 da §14.3) entram com o adaptador PostgreSQL, quando o primeiro piloto
+  o tiver — o adaptador é uma interface de duas funções, e o executor não muda.
+- **Só sqlite.** `node:sqlite` é builtin (Node ≥ 22.13), zero dependência
+  nativa, e é o que os testes e o demo precisam. Não é o engine de cliente.
+- **Base e head são dois bancos**, e o demo os monta iguais de propósito. Em
+  piloto real, "base = produção, head = preview" com bancos diferentes vai
+  produzir diferença de DADOS que não é regressão — o mesmo problema do modo
+  `SHARED_DEGRADED`, agora na sexta fonte. É o que o E-07 (efêmero, template
+  clone) existe para resolver, e até lá o relatório diz o modo.
+- **Severidades são hipótese** sem par real: campo mudou HIGH, linha HIGH,
+  posição MEDIUM, sonda falha de um lado HIGH. Ficam onde estão até um piloto
+  ter banco.
+- **A cobertura de coluna sem qualificador não é conferida** (`SELECT id FROM
+  orders` — o validador não sabe de que tabela é `id`); a allowlist continua o
+  teto, e o executor mascara pelo nome da coluna devolvida.
