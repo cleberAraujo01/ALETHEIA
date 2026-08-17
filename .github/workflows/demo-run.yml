@@ -1,0 +1,44 @@
+# Demo do shim GitHub Actions contra duas URLs — o "PR aberto → comentário" da
+# Fase 1, acionado à mão. Serve para provar que o shim funciona DENTRO do
+# Actions (não só na máquina de quem o escreveu) e para medir quanto tempo o
+# caminho inteiro leva contra o orçamento de 5 minutos do Tier 1 (RN-CI-003).
+#
+# Sem PR não há onde comentar: o resultado vai para o step summary e para o
+# artefato `aletheia-run`. Num repositório de cliente, o gatilho é o PR (ver
+# shims/github-action/README.md).
+name: demo — aletheia run
+on:
+  workflow_dispatch:
+    inputs:
+      base-url:
+        {
+          description: URL da build de referência,
+          required: true,
+          default: https://parabank.parasoft.com,
+        }
+      head-url:
+        {
+          description: URL da build candidata,
+          required: true,
+          default: https://parabank.parasoft.com,
+        }
+      journey:
+        {
+          description: Jornada,
+          relativa a este repositório,
+          required: true,
+          default: apps/runner/__fixtures__/journeys/parabank.json,
+        }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./shims/github-action
+        with:
+          base-url: ${{ inputs.base-url }}
+          head-url: ${{ inputs.head-url }}
+          journey: ${{ inputs.journey }}
+          aletheia-ref: ${{ github.sha }}
+          env: demo

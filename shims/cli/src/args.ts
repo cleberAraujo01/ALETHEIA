@@ -29,6 +29,66 @@ export interface DiffCommandArgs {
   readonly suppressions: string | null;
 }
 
+/**
+ * `aletheia run` — a invocação que o shim de CI faz (§15.2). É composição
+ * estrita de `capture` + `capture` + `diff`, com os mesmos defaults; o que
+ * muda é só o que precisa mudar quando ninguém está olhando o terminal.
+ */
+export interface RunCommandArgs {
+  readonly baseUrl: string;
+  readonly headUrl: string;
+  readonly journey: string;
+  readonly out: string;
+  readonly commit: string | null;
+  readonly baseRef: string | null;
+  readonly environment: string;
+  /**
+   * Default `SHARED_DEGRADED`, o oposto do `diff` avulso. `run` roda contra
+   * duas URLs vivas que a CLI não tem como saber se compartilham banco ou
+   * sessão; declarar o pior caso é RN-EXE-007, e quem sabe mais passa a flag.
+   */
+  readonly confidenceMode: ConfidenceMode;
+  readonly seed: string;
+  readonly suppressions: string | null;
+  readonly screenshots: boolean;
+  readonly deadlineMs: number;
+  readonly failOnRegression: boolean;
+}
+
+export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
+  const flags = toFlagMap(argv);
+  const deadline = Number(flags.get("deadline") ?? "15000");
+  if (!Number.isFinite(deadline) || deadline <= 0) {
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: `--deadline precisa ser um número positivo de milissegundos: ${String(flags.get("deadline"))}`,
+    });
+  }
+  const confidenceMode = (flags.get("confidence-mode") ?? "SHARED_DEGRADED") as ConfidenceMode;
+  if (!CONFIDENCE_MODES.includes(confidenceMode)) {
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: `modo de confiança desconhecido: ${confidenceMode}`,
+      supported: CONFIDENCE_MODES.join(", "),
+    });
+  }
+  return {
+    baseUrl: required(flags, "base-url"),
+    headUrl: required(flags, "head-url"),
+    journey: required(flags, "journey"),
+    out: flags.get("out") ?? ".aletheia/run",
+    // Vazio conta como ausente: um shim que interpola `${{ ... || '' }}` manda
+    // a flag com string vazia, e "" não é um commit.
+    commit: optional(flags, "commit"),
+    baseRef: optional(flags, "base-ref"),
+    environment: flags.get("env") ?? "unknown",
+    confidenceMode,
+    seed: flags.get("seed") ?? "0",
+    suppressions: optional(flags, "suppressions"),
+    screenshots: flags.get("screenshots") !== "false",
+    deadlineMs: deadline,
+    failOnRegression: flags.get("fail-on") !== "none",
+  };
+}
+
 export interface SuppressProposeArgs {
   readonly report: string;
   readonly labels: string;
@@ -182,6 +242,11 @@ function toFlagMap(argv: readonly string[]): Map<string, string> {
     index += 1;
   }
   return flags;
+}
+
+function optional(flags: Map<string, string>, name: string): string | null {
+  const value = flags.get(name);
+  return value === undefined || value.length === 0 ? null : value;
 }
 
 function required(flags: Map<string, string>, name: string): string {

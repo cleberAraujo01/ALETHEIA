@@ -18,6 +18,22 @@ pnpm build
 pnpm test
 ```
 
+## No PR: `aletheia run` e o shim GitHub Actions
+
+`run` é o contrato com os shims de CI (§15.2 da arquitetura): captura base e
+head, difere, e deixa prontos `report.json`, `report.html`, `comment.md` (o
+comentário do PR — mesmos fatos, agrupado, com o que **não** foi validado) e
+`summary.json`. Código de saída: `0` sem regressão, `1` regressão, `2` falha da
+plataforma — que o shim **nunca** transforma em reprovação (RN-CI-005).
+
+```bash
+node shims/cli/dist/main.js run   --base-url https://sua-app.exemplo.com --head-url https://preview-do-pr.exemplo.com   --journey .aletheia/jornada.json --commit $SHA --base-ref $BASE
+```
+
+O shim (`shims/github-action/`) faz três coisas e nada mais: autentica, invoca
+`run`, publica (comentário no PR, step summary, artefato). Uso e exemplo com
+preview da Vercel em [`shims/github-action/README.md`](./shims/github-action/README.md).
+
 ## Observar uma build
 
 ```bash

@@ -1,59 +1,60 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-
-import {
-  compileLearnedRules,
-  parseCapture,
-  runDiff,
-  SUPPRESSION_CATALOG,
-  type Capture,
-  type DiffReport,
-  type SuppressionRule,
-} from "@aletheia/diff-engine";
-import { capture as runCapture, parseJourney } from "@aletheia/runner";
 import {
   EXIT_CODE,
   PlatformError,
   createLogger,
   isPlatformError,
   newRunId,
-  systemClock,
   type Logger,
-  type RunMetadata,
 } from "@aletheia/shared";
 
 import {
   parseCaptureArgs,
   parseDiffArgs,
   parseMeasureArgs,
+  parseRunArgs,
   parseSuppressProposeArgs,
   parseSuppressSimulateArgs,
   type CaptureCommandArgs,
   type DiffCommandArgs,
 } from "./args.js";
-import { readJson, writeJson } from "./io.js";
 import { measureCommand } from "./measure.js";
-import { loadRasters } from "./rasters.js";
-import { renderHtmlReport } from "./report/html.js";
-import { loadSet, suppressProposeCommand, suppressSimulateCommand } from "./suppress.js";
-
-const RUNNER_VERSION = "0.0.0-fase0";
+import { performCapture, performDiff, renderConsoleSummary } from "./ops.js";
+import { runCommand } from "./run.js";
+import { suppressProposeCommand, suppressSimulateCommand } from "./suppress.js";
 
 const USAGE = `
 aletheia — plataforma de engenharia de qualidade autônoma
 
+  aletheia run     --base-url <url> --head-url <url> --journey <jornada.json> [opções]
   aletheia capture --url <baseUrl> --journey <jornada.json> [opções]
   aletheia diff    --base <captura.json> --head <captura.json> [opções]
   aletheia measure --report <report.json> --labels <rotulos.json>
   aletheia suppress propose  --report <report.json> --labels <rotulos.json> --rules <arquivo> --labeled-by <quem>
   aletheia suppress simulate --report <report.json> --rules <arquivo> [--labels <rotulos.json>]
 
+\`run\` é o contrato com os shims de CI: captura base e head, difere, e deixa
+prontos report.json, report.html, comment.md (comentário de PR) e summary.json.
 \`capture\` observa uma build e produz um artefato de captura.
 \`diff\` compara duas capturas (oráculo O5) e emite veredito determinístico.
 \`measure\` confronta o relatório com rotulagem humana e mede precisão e recall.
 \`suppress\` fecha o laço de RN-ORC-010: rótulos NOISE viram regras PROPOSED por
 projeto, e a simulação diz o que elas fariam antes de alguém ativá-las.
+
+Opções de run:
+  --base-url <url>        Build de referência                     (obrigatório)
+  --head-url <url>        Build candidata                         (obrigatório)
+  --journey <arquivo>     Jornada: rotas a visitar               (obrigatório)
+  --out <diretório>       Destino de capturas e relatórios       (default: .aletheia/run)
+  --commit <sha>          Commit da build head
+  --base-ref <ref>        Referência da build base
+  --env <nome>            Nome do ambiente observado
+  --confidence-mode <m>   ISOLATED | PARTITIONED | SHARED_DEGRADED (default: SHARED_DEGRADED)
+  --seed <valor>          Semente determinística
+  --suppressions <arq>    Regras de supressão aprendidas do projeto; só ACTIVE valem
+  --screenshots false     Não capturar imagem (a camada visual vira lacuna declarada)
+  --deadline <ms>         Deadline de convergência               (default: 15000)
+  --fail-on none          Não altera o código de saída em caso de regressão
 
 Opções de capture:
   --url <baseUrl>         URL base da build a observar           (obrigatório)
@@ -114,6 +115,9 @@ async function main(argv: readonly string[]): Promise<number> {
   const runId = newRunId();
   const logger = createLogger({ context: { runId, orgId: null, projectId: null } });
 
+  if (command === "run") {
+    return runCommand(parseRunArgs(argv.slice(1)), runId, logger);
+  }
   if (command === "capture") {
     return captureCommand(parseCaptureArgs(argv.slice(1)), runId, logger);
   }
@@ -141,153 +145,24 @@ async function captureCommand(
   runId: string,
   logger: Logger,
 ): Promise<number> {
-  const journeySource = resolve(args.journey);
-  const journey = parseJourney(await readJson(journeySource), journeySource);
-  const captureFilePath = resolve(args.out, "capture.json");
-
-  logger.info("captura iniciada", {
-    baseUrl: args.url,
-    journey: journey.name,
-    observations: journey.observations.length,
-    label: args.label,
-  });
-
-  const result = await runCapture({
-    baseUrl: args.url,
-    label: args.label,
-    commit: args.commit,
-    journey,
-    outDir: resolve(args.out),
-    captureFilePath,
-    seed: args.seed,
-    screenshots: args.screenshots,
-    headed: args.headed,
-    quiescence: { deadlineMs: args.deadlineMs, quietWindowMs: 250 },
-    logger,
-    clock: systemClock,
-  });
-
-  await writeJson(captureFilePath, result.capture);
-
-  logger.info("captura concluída", {
-    runId,
-    captureId: result.capture.captureId,
-    browserVersion: result.browserVersion,
-    observations: result.capture.observations.length,
-  });
-
+  const result = await performCapture(args, logger);
   process.stdout.write(
     `\n  captura     ${result.capture.captureId}\n` +
+      `  execução    ${runId}\n` +
       `  browser     ${result.browserVersion}\n` +
       `  observações ${result.capture.observations.length}\n` +
-      `  artefato    ${captureFilePath}\n\n`,
+      `  artefato    ${result.captureFilePath}\n\n`,
   );
-
   return EXIT_CODE.OK;
 }
 
 async function diffCommand(args: DiffCommandArgs, runId: string, logger: Logger): Promise<number> {
-  const base = await loadCapture(args.base);
-  const head = await loadCapture(args.head);
-
-  const metadata: RunMetadata = {
-    runId,
-    // Componentes ainda inexistentes nesta fase — declarados, não inventados.
-    worldModelVersion: null,
-    irVersion: null,
-    runnerVersion: RUNNER_VERSION,
-    browserVersion: null,
-    seed: args.seed,
-    commit: args.commit,
-    baseRef: args.baseRef,
-    environment: args.environment,
-    confidenceMode: args.confidenceMode,
-    autonomyLevel: 1,
-    startedAtUtc: systemClock.nowUtcIso(),
-  };
-
-  const rasters = args.visual
-    ? {
-        base: await loadRasters(base, args.base),
-        head: await loadRasters(head, args.head),
-      }
-    : undefined;
-
-  // Regras aprendidas somam-se ao catálogo do motor; não o substituem. Só as
-  // ACTIVE chegam aqui, e o motor ainda vai validar a evidência de cada uma.
-  const learned: readonly SuppressionRule[] =
-    args.suppressions === null ? [] : compileLearnedRules(await loadSet(args.suppressions));
-  const suppressionRules = [...SUPPRESSION_CATALOG, ...learned];
-
-  logger.info("diff iniciado", {
-    baseCapture: base.captureId,
-    headCapture: head.captureId,
-    baseObservations: base.observations.length,
-    headObservations: head.observations.length,
-    visualEnabled: args.visual,
-    rastersLoaded: (rasters?.base.size ?? 0) + (rasters?.head.size ?? 0),
-    suppressionRules: suppressionRules.length,
-  });
-
-  const report = runDiff(base, head, {
-    metadata,
-    suppressionRules,
-    ...(rasters === undefined ? {} : { rasters }),
-  });
-  await writeReports(report, args);
-
-  logger.info("diff concluído", {
-    verdict: report.verdict.code,
-    blocking: report.verdict.blocking,
-    deltas: report.summary.total,
-    regressions: report.summary.byClassification.REGRESSION,
-    regressionGroups: report.summary.groups.REGRESSION,
-    undetermined: report.summary.byClassification.UNDETERMINED,
-    noise: report.summary.byClassification.NOISE,
-    normalizations: report.normalization.total,
-  });
-
-  process.stdout.write(renderConsoleSummary(report, args));
-
+  const { report, reportPaths } = await performDiff(args, runId, logger);
+  process.stdout.write(renderConsoleSummary(report, reportPaths));
   if (report.verdict.blocking && args.failOnRegression) {
     return EXIT_CODE.QUALITY_GATE_FAILED;
   }
   return EXIT_CODE.OK;
-}
-
-async function loadCapture(path: string): Promise<Capture> {
-  const absolute = resolve(path);
-  return parseCapture(await readJson(absolute), absolute);
-}
-
-async function writeReports(report: DiffReport, args: DiffCommandArgs): Promise<void> {
-  for (const format of args.formats) {
-    const target = resolve(args.out, format === "json" ? "report.json" : "report.html");
-    const content =
-      format === "json" ? `${JSON.stringify(report, null, 2)}\n` : renderHtmlReport(report);
-    try {
-      await mkdir(dirname(target), { recursive: true });
-      await writeFile(target, content, "utf8");
-    } catch (cause) {
-      throw new PlatformError("REPORT_WRITE_FAILED", { path: target, format }, cause);
-    }
-  }
-}
-
-function renderConsoleSummary(report: DiffReport, args: DiffCommandArgs): string {
-  const lines = [
-    "",
-    `  veredito     ${report.verdict.code}${report.verdict.blocking ? "  (bloqueia)" : ""}`,
-    `  oráculo      ${report.oracle} — teste diferencial contra a build base`,
-    `  deltas       ${report.summary.total}  ·  regressões ${report.summary.byClassification.REGRESSION}  ·  indeterminados ${report.summary.byClassification.UNDETERMINED}  ·  ruído ${report.summary.byClassification.NOISE}`,
-    `  grupos       ${report.summary.groups.total}  ·  de regressão ${report.summary.groups.REGRESSION}  —  um grupo é uma causa provável (mesmo tipo, mesmo lugar, qualquer página)`,
-    `  camadas      DOM ${report.summary.byLayer.DOM}  ·  rede ${report.summary.byLayer.NETWORK}  ·  visual ${report.summary.byLayer.VISUAL}  ·  console ${report.summary.byLayer.CONSOLE}`,
-    `  observações  ${report.coverage.observationsCompared} comparada(s)`,
-    `  não validado ${report.coverage.layersNotValidated.map((gap) => gap.layer).join(", ")}`,
-    `  relatórios   ${args.formats.map((format) => resolve(args.out, `report.${format}`)).join("  ")}`,
-    "",
-  ];
-  return `${lines.join("\n")}\n`;
 }
 
 try {
