@@ -15,11 +15,12 @@
   },
   "dependencies": {
     "@aletheia/diff-engine": "workspace:*",
+    "@aletheia/runner": "workspace:*",
     "@aletheia/shared": "workspace:*",
-    "pngjs": "7.0.0",
-    "@aletheia/runner": "workspace:*"
+    "pngjs": "7.0.0"
   },
   "devDependencies": {
-    "@types/pngjs": "6.0.5"
+    "@types/pngjs": "6.0.5",
+    "vitest": "3.2.7"
   }
 }
