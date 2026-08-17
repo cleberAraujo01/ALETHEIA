@@ -1,0 +1,26 @@
+{
+  "irVersion": "1.0.0",
+  "id": "jr_parabank_login",
+  "name": "parabank-login",
+  "viewport": { "width": 1280, "height": 800 },
+  "steps": [
+    { "id": "st_1", "action": "navigate", "path": "/parabank/index.htm" },
+    { "id": "st_2", "action": "observe", "observationId": "home" },
+    {
+      "id": "st_3",
+      "action": "fill",
+      "target": { "css": "input[name=username]", "placeholder": "Username" },
+      "value": "john"
+    },
+    {
+      "id": "st_4",
+      "action": "fill",
+      "target": { "css": "input[name=password]", "placeholder": "Password" },
+      "value": "demo"
+    },
+    { "id": "st_5", "action": "click", "target": { "role": "button", "name": "Log In" } },
+    { "id": "st_6", "action": "observe", "observationId": "overview" },
+    { "id": "st_7", "action": "click", "target": { "role": "link", "name": "Log Out" } },
+    { "id": "st_8", "action": "observe", "observationId": "after-logout" }
+  ]
+}

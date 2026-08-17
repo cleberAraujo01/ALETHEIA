@@ -150,8 +150,11 @@ async function captureCommand(
     `\n  captura     ${result.capture.captureId}\n` +
       `  execução    ${runId}\n` +
       `  browser     ${result.browserVersion}\n` +
-      `  observações ${result.capture.observations.length}\n` +
-      `  artefato    ${result.captureFilePath}\n\n`,
+      `  observações ${result.capture.observations.length}` +
+      (result.capture.interruption === null
+        ? ""
+        : `  ·  JORNADA INTERROMPIDA no passo ${result.capture.interruption.stepId}: ${result.capture.interruption.reason}`) +
+      `\n  artefatos   ${result.captureFilePath}  ${result.traceFilePath}\n\n`,
   );
   return EXIT_CODE.OK;
 }

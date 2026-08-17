@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture — olá</title>
+  </head>
+  <body>
+    <main>
+      <h1 id="saudacao">Olá</h1>
+      <p id="eco"></p>
+      <script>
+        // Ecoa TUDO que veio na query, senha inclusive: é o pior caso que a
+        // captura precisa mascarar (PA-09).
+        const params = new URLSearchParams(location.search);
+        document.getElementById("saudacao").textContent = "Olá, " + (params.get("nome") || "?");
+        document.getElementById("eco").textContent =
+          "perfil=" + params.get("perfil") + " senha=" + params.get("senha");
+      </script>
+    </main>
+  </body>
+</html>

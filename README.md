@@ -43,8 +43,39 @@ node shims/cli/dist/main.js capture \
   --out .aletheia/base --label base --seed 42
 ```
 
-A jornada é uma lista de rotas. **Não há ações** (clique, digitação): isso é IR
-e chega na Fase 1. Nesta fase só se observa o que é alcançável por URL.
+A jornada é **IR v1** (`packages/ir`, §12.1 da arquitetura): declarativa,
+versionada, interpretada pelo runner — nunca código gerado. Cinco ações e uma
+observação; o estado da aplicação atravessa os passos:
+
+```json
+{
+  "irVersion": "1.0.0",
+  "id": "jr_login",
+  "name": "login",
+  "steps": [
+    { "id": "st_1", "action": "navigate", "path": "/entrar" },
+    { "id": "st_2", "action": "fill", "target": { "label": "E-mail" }, "value": "qa@exemplo.com" },
+    { "id": "st_3", "action": "fill", "target": { "label": "Senha" }, "value": { "secretRef": "QA_SENHA" } },
+    { "id": "st_4", "action": "click", "target": { "role": "button", "name": "Entrar" } },
+    { "id": "st_5", "action": "observe", "observationId": "painel" }
+  ]
+}
+```
+
+- **Alvo é fingerprint, não seletor** (§3.5): `testId`, `role`+`name`, `label`,
+  `placeholder`, `text` — ao menos um sinal semântico; `css` só como complemento.
+  O runner tenta do sinal mais estável ao mais frágil e registra em `trace.json`
+  qual resolveu (`resolvedBy`).
+- **Segredo é referência** (`{ "secretRef": "VARIAVEL" }`): lido do ambiente na
+  hora, mascarado como `<secret>` em DOM, rede, console e URL da captura (PA-09).
+- **Passo que falha interrompe a jornada** e a interrupção vai para dentro da
+  captura (`interruption`): o relatório declara quais observações não foram
+  produzidas (PA-10). Sob O5, "o head não chegou onde a base chegou" é sinal —
+  aparece como observação só na base, HIGH.
+- **Sem `sleep`**: cada ação converge por sinais de progresso com deadline
+  (PA-07); estourar é `TIMEOUT_CONVERGENCE`, falha de plataforma.
+- O formato legado da Fase 0 (`journeyVersion: "0.1.0"`, lista de rotas)
+  continua aceito e é migrado na leitura; a migração é testada nas duas direções.
 
 ## Comparar duas builds
 

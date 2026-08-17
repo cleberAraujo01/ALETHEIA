@@ -5,6 +5,7 @@ export { parseCapture } from "./capture/validate.js";
 export { CAPTURE_VERSION, SUPPORTED_CAPTURE_VERSIONS } from "./types/capture.js";
 export type {
   Capture,
+  CaptureInterruption,
   CaptureTarget,
   ConsoleEntry,
   DomNode,

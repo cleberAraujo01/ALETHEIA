@@ -174,3 +174,53 @@ describe("distinção entre falha de plataforma e veredito de qualidade (RN-CI-0
     }
   });
 });
+
+describe("jornada interrompida — a captura diz, o relatório declara", () => {
+  const base = loadFixture("base");
+  const head = loadFixture("head-with-regressions");
+
+  it("head interrompido: observação que faltou aparece só na base e a cobertura explica por quê", () => {
+    const interruptedHead = {
+      ...head,
+      observations: [],
+      interruption: {
+        stepId: "st_2",
+        action: "click",
+        reason: "alvo não encontrado (sinais tentados: role+name)",
+        missingObservationIds: ["checkout.summary"],
+      },
+    };
+    // Sem observação em comum não há diff — e isso é falha de plataforma, não
+    // veredito. O caso testado abaixo mantém uma observação em comum.
+    expect(() => runDiff(base, interruptedHead, { metadata: METADATA })).toThrow(PlatformError);
+
+    const partialHead = {
+      ...head,
+      interruption: {
+        stepId: "st_9",
+        action: "click",
+        reason: "alvo não encontrado (sinais tentados: role+name)",
+        missingObservationIds: ["pagamento"],
+      },
+    };
+    const partialBase = {
+      ...base,
+      observations: [
+        ...base.observations,
+        { ...base.observations[0]!, observationId: "pagamento" },
+      ],
+    };
+    const report = runDiff(partialBase, partialHead, { metadata: METADATA });
+    expect(report.coverage.observationsOnlyInBase).toEqual(["pagamento"]);
+    const note = report.coverage.notes.find((entry) => entry.includes("INTERROMPIDA"));
+    expect(note).toContain("captura head no passo st_9 (click)");
+    expect(note).toContain("Observações não produzidas: pagamento");
+    expect(note).toContain("A base chegou até o fim");
+    // E o veredito continua vindo dos deltas: observação só na base é HIGH.
+    expect(report.deltas.some((delta) => delta.kind === "OBSERVATION_REMOVED")).toBe(true);
+  });
+
+  it("captura de versão antiga sem o campo é lida como não interrompida", () => {
+    expect(base.interruption).toBeNull();
+  });
+});

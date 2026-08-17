@@ -216,6 +216,8 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       consoleGaps,
       networkGaps,
       visualGaps,
+      baseInterruption: base.interruption,
+      headInterruption: head.interruption,
     }),
     deltas,
     groups,
@@ -363,6 +365,8 @@ interface CoverageInput {
   readonly networkGaps: readonly string[];
   readonly visualGaps: readonly string[];
   readonly consoleGaps: readonly string[];
+  readonly baseInterruption: Capture["interruption"];
+  readonly headInterruption: Capture["interruption"];
 }
 
 function coverageOf(input: CoverageInput): CoverageReport {
@@ -416,6 +420,24 @@ function coverageOf(input: CoverageInput): CoverageReport {
   if (input.truncated.length > 0) {
     notes.push(
       `Orçamento de deltas esgotado em ${input.truncated.length} observação(ões): o diff destas está INCOMPLETO.`,
+    );
+  }
+  // Jornada interrompida é a lacuna mais fácil de virar silêncio: a captura
+  // simplesmente tem menos observações. Declarar de que lado parou, em qual
+  // passo e por quê é o que separa "não olhamos" de "olhamos e estava igual".
+  for (const [side, interruption] of [
+    ["base", input.baseInterruption],
+    ["head", input.headInterruption],
+  ] as const) {
+    if (interruption === null) continue;
+    notes.push(
+      `Jornada INTERROMPIDA na captura ${side} no passo ${interruption.stepId} (${interruption.action}): ${interruption.reason}. ` +
+        (interruption.missingObservationIds.length > 0
+          ? `Observações não produzidas: ${interruption.missingObservationIds.join(", ")}.`
+          : "Nenhuma observação ficou por produzir.") +
+        (side === "head" && input.baseInterruption === null
+          ? " A base chegou até o fim: o que o head não alcançou aparece como observação só na base."
+          : ""),
     );
   }
 

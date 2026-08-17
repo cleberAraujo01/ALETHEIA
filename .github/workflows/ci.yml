@@ -69,6 +69,11 @@ jobs:
       - name: typecheck
         run: pnpm typecheck
 
+      # O runner tem teste de ponta a ponta com browser de verdade (interpretador
+      # da IR contra fixture local). Chromium só; é o que o produto usa.
+      - name: chromium para os testes do runner
+        run: pnpm --filter @aletheia/runner exec playwright install --with-deps chromium
+
       - name: testes
         run: pnpm test
 

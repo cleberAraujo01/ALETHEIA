@@ -7,16 +7,18 @@
  * contra corpus versionado (§7 do CLAUDE.md).
  */
 
-export const CAPTURE_VERSION = "0.2.0";
+export const CAPTURE_VERSION = "0.3.0";
 
 /**
  * Versões de captura que esta build do motor sabe ler.
  *
  * `0.1.0` não tem screenshot; é lida normalmente e a camada visual aparece
- * como lacuna declarada no relatório. Rejeitar a versão antiga invalidaria o
- * corpus de referência já coletado, que é o ativo mais caro desta fase.
+ * como lacuna declarada no relatório. `0.2.0` não tem `interruption` (a jornada
+ * era só rotas; não havia como ser interrompida) e é lida como não
+ * interrompida. Rejeitar versão antiga invalidaria o corpus de referência já
+ * coletado, que é o ativo mais caro do projeto.
  */
-export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0"];
+export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.3.0"];
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -26,6 +28,22 @@ export interface Capture {
   readonly captureId: string;
   readonly target: CaptureTarget;
   readonly observations: readonly Observation[];
+  /**
+   * A jornada parou antes do fim? Um passo que falha (alvo sumiu, ação
+   * recusada) interrompe a jornada e as observações seguintes NÃO EXISTEM nesta
+   * captura. Isto tem de estar no artefato, não só no log: é o Diff Engine que
+   * precisa declarar no relatório que aquelas observações não foram comparadas
+   * (PA-10) — e, quando só o head parou, é sinal, não lacuna.
+   */
+  readonly interruption: CaptureInterruption | null;
+}
+
+export interface CaptureInterruption {
+  readonly stepId: string;
+  readonly action: string;
+  readonly reason: string;
+  /** Observações que a jornada teria produzido depois do passo que falhou. */
+  readonly missingObservationIds: readonly string[];
 }
 
 export interface CaptureTarget {

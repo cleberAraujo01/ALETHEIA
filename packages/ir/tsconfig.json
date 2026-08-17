@@ -6,10 +6,5 @@
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"],
-  "references": [
-    { "path": "../../packages/shared" },
-    { "path": "../../packages/diff-engine" },
-    { "path": "../../packages/ir" },
-    { "path": "../../apps/runner" }
-  ]
+  "references": [{ "path": "../shared" }]
 }

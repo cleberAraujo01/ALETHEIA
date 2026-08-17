@@ -71,12 +71,19 @@ importers:
       '@aletheia/diff-engine':
         specifier: workspace:*
         version: link:../../packages/diff-engine
+      '@aletheia/ir':
+        specifier: workspace:*
+        version: link:../../packages/ir
       '@aletheia/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       playwright:
         specifier: 1.62.1
         version: 1.62.1
+    devDependencies:
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.6.1)(tsx@4.23.12)
 
   packages/diff-engine:
     dependencies:
@@ -91,6 +98,16 @@ importers:
         specifier: 3.2.7
         version: 3.2.7(@types/node@24.13.3)(jiti@2.6.1)(tsx@4.23.12)
 
+  packages/ir:
+    dependencies:
+      '@aletheia/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.6.1)(tsx@4.23.12)
+
   packages/shared: {}
 
   shims/cli:
@@ -98,6 +115,9 @@ importers:
       '@aletheia/diff-engine':
         specifier: workspace:*
         version: link:../../packages/diff-engine
+      '@aletheia/ir':
+        specifier: workspace:*
+        version: link:../../packages/ir
       '@aletheia/runner':
         specifier: workspace:*
         version: link:../../apps/runner

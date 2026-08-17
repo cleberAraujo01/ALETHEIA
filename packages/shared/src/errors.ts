@@ -28,6 +28,12 @@ export type PlatformErrorCode =
   | "REPORT_WRITE_FAILED"
   /** Conjunto de regras de supressão aprendidas ilegível ou fora do contrato. */
   | "SUPPRESSION_SET_INVALID"
+  /** Jornada (IR) fora do schema: passo, alvo ou valor mal formados. */
+  | "IR_INVALID"
+  /** Versão de IR que este runner não interpreta nem migra. */
+  | "IR_VERSION_UNSUPPORTED"
+  /** Um passo da jornada não pôde ser executado: alvo não encontrado, ambíguo, ação recusada pela página. */
+  | "STEP_FAILED"
   /** Convergência não atingida dentro do deadline (RN-EXE-006). */
   | "TIMEOUT_CONVERGENCE"
   /** Invariante interna do nosso próprio código foi violada. Sempre bug nosso. */

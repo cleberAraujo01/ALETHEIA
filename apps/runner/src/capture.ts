@@ -4,15 +4,16 @@ import { dirname, join, relative } from "node:path";
 import {
   CAPTURE_VERSION,
   type Capture,
+  type CaptureInterruption,
   type ConsoleEntry,
   type JsonValue,
   type NetworkExchange,
   type Observation,
 } from "@aletheia/diff-engine";
+import type { IrJourney, IrStep, IrValue, Rect, Target } from "@aletheia/ir";
 import { PlatformError, type Clock, type Logger } from "@aletheia/shared";
 import { chromium, type Browser, type BrowserContext, type Page, type Response } from "playwright";
 
-import type { Journey, JourneyObservation } from "./journey.js";
 import {
   DEFAULT_QUIESCENCE,
   MUTATION_OBSERVER_SCRIPT,
@@ -20,13 +21,35 @@ import {
   waitForQuiescence,
   type QuiescenceOptions,
 } from "./quiescence.js";
+import { redactDeep, redactString } from "./redact.js";
+import { isFailure, resolveTarget } from "./resolve.js";
 import { serializeDomInPage } from "./serialize-dom.js";
+
+/**
+ * Runner interpretador — E-04. Interpreta a IR (§12.1), passo a passo, numa
+ * única página: o estado da aplicação atravessa os passos, que é o ponto de
+ * existir ação. Não gera código; a IR é a fonte da verdade e isto é a projeção.
+ *
+ * O que continua igual à Fase 0, de propósito: a convergência (PA-07: nada de
+ * `sleep`; sinais de progresso com deadline), a serialização de DOM, a coleta
+ * de rede e console, o screenshot. Só mudou QUANDO isso acontece — em cada
+ * `observe`, com o que trafegou desde a observação anterior.
+ *
+ * FALHA DE PASSO NÃO É FALHA DE PLATAFORMA. Alvo que sumiu, ação que a página
+ * recusou: sob O5, base e head rodam a mesma IR, e "o head não chegou onde a
+ * base chegou" é sinal, não ruído. Por isso um passo que falha INTERROMPE a
+ * jornada e a interrupção vai para dentro da captura (`interruption`): o Diff
+ * Engine declara no relatório o que não foi comparado (PA-10), e as
+ * observações que faltam no head aparecem como "só na base". O que continua
+ * sendo falha de plataforma: não conseguir abrir o browser, navegação sem
+ * resposta, convergência estourando o deadline (RN-EXE-006).
+ */
 
 export interface CaptureOptions {
   readonly baseUrl: string;
   readonly label: string;
   readonly commit: string | null;
-  readonly journey: Journey;
+  readonly journey: IrJourney;
   readonly outDir: string;
   readonly captureFilePath: string;
   readonly seed: string;
@@ -37,13 +60,37 @@ export interface CaptureOptions {
    */
   readonly headed: boolean;
   readonly quiescence?: QuiescenceOptions;
+  /** De onde `{ secretRef }` lê. Default: variáveis de ambiente do processo. */
+  readonly secrets?: (name: string) => string | undefined;
   readonly logger: Logger;
   readonly clock: Clock;
+}
+
+export interface StepTrace {
+  readonly id: string;
+  readonly action: IrStep["action"];
+  readonly status: "ok" | "failed";
+  readonly elapsedMs: number;
+  /** Só em ações que convergem (todas menos `observe`). RN-EXE-012. */
+  readonly convergenceMs: number | null;
+  readonly rounds: number | null;
+  /** Qual sinal do fingerprint resolveu o alvo. Calibração futura do E-05. */
+  readonly resolvedBy: string | null;
+  readonly url: string | null;
+  readonly reason: string | null;
+}
+
+export interface CaptureTrace {
+  readonly irVersion: string;
+  readonly journeyId: string;
+  readonly steps: readonly StepTrace[];
+  readonly interruption: CaptureInterruption | null;
 }
 
 export interface CaptureResult {
   readonly capture: Capture;
   readonly browserVersion: string;
+  readonly trace: CaptureTrace;
 }
 
 /** Corpo de resposta acima disto não é guardado — a evidência vira peso morto. */
@@ -57,13 +104,12 @@ export async function capture(options: CaptureOptions): Promise<CaptureResult> {
   try {
     const context = await createContext(browser, options);
     try {
-      const observations: Observation[] = [];
-      for (const step of options.journey.observations) {
-        observations.push(await captureObservation(context, step, options));
-      }
+      const session = new JourneySession(context, options);
+      const { observations, trace } = await session.run();
 
       return {
         browserVersion: `chromium/${browser.version()}`,
+        trace,
         capture: {
           captureVersion: CAPTURE_VERSION,
           captureId: `cap_${options.label}_${options.journey.name}`,
@@ -74,6 +120,7 @@ export async function capture(options: CaptureOptions): Promise<CaptureResult> {
             capturedAtUtc: options.clock.nowUtcIso(),
           },
           observations,
+          interruption: trace.interruption,
         },
       };
     } finally {
@@ -97,6 +144,9 @@ async function createContext(browser: Browser, options: CaptureOptions): Promise
     colorScheme: "light",
     reducedMotion: "reduce",
   });
+  // Ação do Playwright espera o elemento ficar acionável; o limite dessa espera
+  // é o mesmo deadline da convergência — um só orçamento, declarado.
+  context.setDefaultTimeout((options.quiescence ?? DEFAULT_QUIESCENCE).deadlineMs);
 
   await context.addInitScript(MUTATION_OBSERVER_SCRIPT);
   await context.addInitScript(seededRandomScript(options.seed));
@@ -131,95 +181,288 @@ function seededRandomScript(seed: string): string {
 `;
 }
 
-async function captureObservation(
-  context: BrowserContext,
-  step: JourneyObservation,
-  options: CaptureOptions,
-): Promise<Observation> {
-  const page = await context.newPage();
-  const tracker = new NetworkTracker();
-  const responses: Response[] = [];
-  const consoleEntries: ConsoleEntry[] = [];
+class JourneySession {
+  readonly #context: BrowserContext;
+  readonly #options: CaptureOptions;
+  readonly #tracker = new NetworkTracker();
+  readonly #responses: Response[] = [];
+  readonly #console: ConsoleEntry[] = [];
+  readonly #secrets: string[] = [];
+  #responsesTaken = 0;
+  #consoleTaken = 0;
+  #currentRoute = "";
 
-  tracker.attach(page);
-  page.on("console", (message) => {
-    const level = message.type();
-    consoleEntries.push({
-      level:
-        level === "warning"
-          ? "warn"
-          : level === "error"
-            ? "error"
-            : level === "info"
-              ? "info"
-              : "log",
-      text: message.text().slice(0, 2000),
-    });
-  });
-  // A troca é montada depois da convergência, não aqui: ler o corpo de uma
-  // resposta que a página abandonou trava para sempre, e só depois de convergir
-  // se sabe quais foram abandonadas.
-  page.on("response", (response) => {
-    responses.push(response);
-  });
+  constructor(context: BrowserContext, options: CaptureOptions) {
+    this.#context = context;
+    this.#options = options;
+  }
 
-  const url = new URL(step.path, options.baseUrl).toString();
-
-  try {
-    const response = await page.goto(url, { waitUntil: "commit" });
-    if (response === null) {
-      throw new PlatformError("CAPTURE_UNREADABLE", {
-        observationId: step.observationId,
-        url,
-        reason: "navegação não produziu resposta",
+  async run(): Promise<{ observations: Observation[]; trace: CaptureTrace }> {
+    const page = await this.#context.newPage();
+    this.#tracker.attach(page);
+    page.on("console", (message) => {
+      const level = message.type();
+      this.#console.push({
+        level:
+          level === "warning"
+            ? "warn"
+            : level === "error"
+              ? "error"
+              : level === "info"
+                ? "info"
+                : "log",
+        text: message.text().slice(0, 2000),
       });
+    });
+    // A troca é montada na observação, não aqui: ler o corpo de uma resposta
+    // que a página abandonou trava para sempre, e só depois de convergir se
+    // sabe quais foram abandonadas.
+    page.on("response", (response) => {
+      this.#responses.push(response);
+    });
+
+    const observations: Observation[] = [];
+    const steps: StepTrace[] = [];
+    let interruption: CaptureInterruption | null = null;
+
+    try {
+      for (const [index, step] of this.#options.journey.steps.entries()) {
+        const startedAt = performance.now();
+        try {
+          const outcome = await this.#execute(page, step);
+          if (outcome.observation !== null) observations.push(outcome.observation);
+          steps.push({
+            id: step.id,
+            action: step.action,
+            status: "ok",
+            elapsedMs: Math.round(performance.now() - startedAt),
+            convergenceMs: outcome.convergenceMs,
+            rounds: outcome.rounds,
+            resolvedBy: outcome.resolvedBy,
+            url: page.url(),
+            reason: null,
+          });
+        } catch (error) {
+          if (!(error instanceof PlatformError) || error.code !== "STEP_FAILED") throw error;
+          const reason = String(error.context["reason"] ?? error.code);
+          steps.push({
+            id: step.id,
+            action: step.action,
+            status: "failed",
+            elapsedMs: Math.round(performance.now() - startedAt),
+            convergenceMs: null,
+            rounds: null,
+            resolvedBy: null,
+            url: page.url(),
+            reason,
+          });
+          interruption = {
+            stepId: step.id,
+            action: step.action,
+            reason,
+            missingObservationIds: this.#options.journey.steps
+              .slice(index)
+              .flatMap((rest) => (rest.action === "observe" ? [rest.observationId] : [])),
+          };
+          this.#options.logger.warn("jornada interrompida", {
+            stepId: step.id,
+            action: step.action,
+            reason,
+            missingObservations: interruption.missingObservationIds.length,
+          });
+          break;
+        }
+      }
+    } finally {
+      await page.close();
     }
 
+    return {
+      observations,
+      trace: {
+        irVersion: this.#options.journey.irVersion,
+        journeyId: this.#options.journey.id,
+        steps,
+        interruption,
+      },
+    };
+  }
+
+  async #execute(
+    page: Page,
+    step: IrStep,
+  ): Promise<{
+    observation: Observation | null;
+    convergenceMs: number | null;
+    rounds: number | null;
+    resolvedBy: string | null;
+  }> {
+    const options = this.#options;
+    switch (step.action) {
+      case "navigate": {
+        const url = new URL(step.path, options.baseUrl).toString();
+        this.#currentRoute = step.path;
+        const response = await page.goto(url, { waitUntil: "commit" });
+        if (response === null) {
+          throw new PlatformError("CAPTURE_UNREADABLE", {
+            stepId: step.id,
+            url,
+            reason: "navegação não produziu resposta",
+          });
+        }
+        const converged = await this.#converge(page, step.id);
+        return { observation: null, ...converged, resolvedBy: null };
+      }
+      case "click": {
+        const { locator, resolvedBy } = await this.#locate(page, step.id, step.target);
+        await this.#act(step.id, () => locator.click());
+        const converged = await this.#converge(page, step.id);
+        return { observation: null, ...converged, resolvedBy };
+      }
+      case "fill": {
+        const { locator, resolvedBy } = await this.#locate(page, step.id, step.target);
+        const value = this.#valueOf(step.id, step.value);
+        await this.#act(step.id, () => locator.fill(value));
+        const converged = await this.#converge(page, step.id);
+        return { observation: null, ...converged, resolvedBy };
+      }
+      case "select": {
+        const { locator, resolvedBy } = await this.#locate(page, step.id, step.target);
+        await this.#act(step.id, async () => {
+          await locator.selectOption(step.value);
+        });
+        const converged = await this.#converge(page, step.id);
+        return { observation: null, ...converged, resolvedBy };
+      }
+      case "press": {
+        let resolvedBy: string | null = null;
+        if (step.target !== undefined) {
+          const resolution = await this.#locate(page, step.id, step.target);
+          resolvedBy = resolution.resolvedBy;
+          await this.#act(step.id, () => resolution.locator.press(step.key));
+        } else {
+          await this.#act(step.id, () => page.keyboard.press(step.key));
+        }
+        const converged = await this.#converge(page, step.id);
+        return { observation: null, ...converged, resolvedBy };
+      }
+      case "observe": {
+        // A convergência já aconteceu no passo anterior; observar é fotografar.
+        const observation = await this.#observe(page, step.observationId, step.masks);
+        return { observation, convergenceMs: null, rounds: null, resolvedBy: null };
+      }
+    }
+  }
+
+  async #locate(page: Page, stepId: string, target: Target) {
+    const resolution = await resolveTarget(page, target);
+    if (isFailure(resolution)) {
+      throw new PlatformError("STEP_FAILED", {
+        stepId,
+        reason:
+          resolution.kind === "not-found"
+            ? `alvo não encontrado (sinais tentados: ${resolution.tried.join(", ")})`
+            : `alvo ambíguo (${Object.entries(resolution.counts)
+                .map(([signal, count]) => `${signal}=${count}`)
+                .join(", ")}); use nth`,
+      });
+    }
+    return resolution;
+  }
+
+  /** Erro do Playwright ao agir (não acionável, destacado, timeout) vira falha do passo. */
+  async #act(stepId: string, action: () => Promise<void>): Promise<void> {
+    try {
+      await action();
+    } catch (cause) {
+      throw new PlatformError(
+        "STEP_FAILED",
+        { stepId, reason: `ação recusada: ${firstLine(cause)}` },
+        cause,
+      );
+    }
+  }
+
+  #valueOf(stepId: string, value: IrValue): string {
+    if (typeof value === "string") return value;
+    const read = this.#options.secrets ?? ((name: string) => process.env[name]);
+    const secret = read(value.secretRef);
+    if (secret === undefined || secret.length === 0) {
+      throw new PlatformError("CAPTURE_INVALID", {
+        stepId,
+        reason: `segredo ${value.secretRef} não definido no ambiente`,
+      });
+    }
+    this.#secrets.push(secret);
+    return secret;
+  }
+
+  async #converge(page: Page, stepId: string): Promise<{ convergenceMs: number; rounds: number }> {
     const outcome = await waitForQuiescence(
       page,
-      tracker,
-      step.observationId,
-      options.quiescence ?? DEFAULT_QUIESCENCE,
+      this.#tracker,
+      stepId,
+      this.#options.quiescence ?? DEFAULT_QUIESCENCE,
     );
-    options.logger.info("observação convergiu", {
-      observationId: step.observationId,
-      url,
+    this.#options.logger.info("passo convergiu", {
+      stepId,
       rounds: outcome.rounds,
       // RN-EXE-012: tempo de convergência é métrica de primeira classe.
       convergenceMs: outcome.elapsedMs,
       undrainedResponses: outcome.undrainedResponses,
     });
+    return { convergenceMs: outcome.elapsedMs, rounds: outcome.rounds };
+  }
 
-    const dom = await page.evaluate(serializeDomInPage);
+  async #observe(page: Page, observationId: string, masks: readonly Rect[]): Promise<Observation> {
+    const dom = redactDeep(await page.evaluate(serializeDomInPage), this.#secrets);
+
     const exchanges: NetworkExchange[] = [];
-    for (const response of responses) {
-      exchanges.push(await collectExchange(response, tracker.isUndrained(response.request())));
+    for (const response of this.#responses.slice(this.#responsesTaken)) {
+      exchanges.push(
+        redactDeep(
+          await collectExchange(response, this.#tracker.isUndrained(response.request())),
+          this.#secrets,
+        ),
+      );
     }
+    this.#responsesTaken = this.#responses.length;
 
-    const screenshot = options.screenshots ? await captureScreenshot(page, step, options) : null;
+    const consoleEntries = this.#console
+      .slice(this.#consoleTaken)
+      .map((entry) => ({ ...entry, text: redactString(entry.text, this.#secrets) }));
+    this.#consoleTaken = this.#console.length;
+
+    const screenshot = this.#options.screenshots
+      ? await captureScreenshot(page, observationId, masks, this.#options)
+      : null;
 
     return {
-      observationId: step.observationId,
-      route: step.path,
-      url,
+      observationId,
+      route: this.#currentRoute,
+      url: redactString(page.url(), this.#secrets),
       dom,
       network: exchanges,
       console: consoleEntries,
       screenshot,
     };
-  } finally {
-    await page.close();
   }
+}
+
+function firstLine(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.split("\n")[0]?.slice(0, 300) ?? "";
 }
 
 async function captureScreenshot(
   page: Page,
-  step: JourneyObservation,
+  observationId: string,
+  masks: readonly Rect[],
   options: CaptureOptions,
 ): Promise<Observation["screenshot"]> {
   const directory = join(options.outDir, "screenshots");
   await mkdir(directory, { recursive: true });
-  const file = join(directory, `${sanitize(step.observationId)}.png`);
+  const file = join(directory, `${sanitize(observationId)}.png`);
 
   const buffer = await page.screenshot({ fullPage: true, animations: "disabled" });
   await writeFile(file, buffer);
@@ -231,7 +474,7 @@ async function captureScreenshot(
     path: relative(dirname(options.captureFilePath), file).split("\\").join("/"),
     width: dimensions.width,
     height: dimensions.height,
-    masks: step.masks,
+    masks,
   };
 }
 
