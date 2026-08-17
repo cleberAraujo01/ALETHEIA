@@ -1,5 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import {
   measure,
@@ -12,6 +11,7 @@ import {
 import { EXIT_CODE, PlatformError } from "@aletheia/shared";
 
 import type { MeasureCommandArgs } from "./args.js";
+import { readJson, writeJson } from "./io.js";
 
 /**
  * Fecha o laço da Fase 0: relatório + rotulagem humana ⇒ precisão e recall.
@@ -24,8 +24,7 @@ export async function measureCommand(args: MeasureCommandArgs): Promise<number> 
 
   if (args.emitLabels !== null) {
     const target = resolve(args.emitLabels);
-    await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, `${JSON.stringify(scaffoldLabels(report.deltas), null, 2)}\n`, "utf8");
+    await writeJson(target, scaffoldLabels(report.deltas));
     process.stdout.write(
       `\n  esqueleto de rotulagem escrito em ${target}\n` +
         `  ${report.deltas.length} delta(s) para rotular como REGRESSION, INTENDED_CHANGE ou NOISE\n\n`,
@@ -50,7 +49,7 @@ export async function measureCommand(args: MeasureCommandArgs): Promise<number> 
   return result.exitCriteria.met ? EXIT_CODE.OK : EXIT_CODE.QUALITY_GATE_FAILED;
 }
 
-function parseLabels(raw: unknown, source: string): LabelSet {
+export function parseLabels(raw: unknown, source: string): LabelSet {
   if (typeof raw !== "object" || raw === null) {
     throw new PlatformError("CAPTURE_INVALID", { source, reason: "arquivo de rótulos inválido" });
   }
@@ -118,18 +117,4 @@ function render(result: Measurement, report: DiffReport): string {
   }
 
   return `${lines.join("\n")}\n`;
-}
-
-async function readJson(absolute: string): Promise<unknown> {
-  let content: string;
-  try {
-    content = await readFile(absolute, "utf8");
-  } catch (cause) {
-    throw new PlatformError("CAPTURE_UNREADABLE", { path: absolute }, cause);
-  }
-  try {
-    return JSON.parse(content);
-  } catch (cause) {
-    throw new PlatformError("CAPTURE_INVALID", { path: absolute, reason: "JSON inválido" }, cause);
-  }
 }

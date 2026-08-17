@@ -52,6 +52,12 @@ export interface NormalizationSummary {
 
 export interface SuppressionSummary {
   readonly catalogSize: number;
+  /**
+   * Ids de TODAS as regras em vigor nesta execução — do catálogo e aprendidas.
+   * PA-12: sem isto, reconstituir o veredito exigiria adivinhar qual arquivo
+   * de supressão estava carregado.
+   */
+  readonly activeRuleIds: readonly string[];
   readonly deltasSuppressed: number;
   readonly byRule: Readonly<Record<string, number>>;
 }

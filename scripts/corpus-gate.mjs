@@ -28,14 +28,20 @@
  * folgada no teste — falha aqui. Deslocamento silencioso dentro do limite é
  * exatamente como detecção se perde sem ninguém perceber.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parseCapture, runDiff } from "@aletheia/diff-engine";
+import {
+  parseCapture,
+  parseSuppressionSet,
+  runDiff,
+  validateSuppressionSet,
+} from "@aletheia/diff-engine";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FIXTURES = join(ROOT, "packages/diff-engine/__fixtures__/checkout");
+const CORPORA = join(ROOT, "packages/diff-engine/__corpus__");
 const BASELINE = join(ROOT, "packages/diff-engine/__fixtures__/baseline.json");
 
 const METADATA = {
@@ -127,6 +133,40 @@ if (atual.pisoDeRuido.deltas > baseline.pisoDeRuido.deltas) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Regras de supressão aprendidas versionadas no corpus
+//
+// `__corpus__/<app>/suppressions.json` é dado que o motor consome. O CI não tem
+// as capturas para simular o custo delas (isso é `pnpm corpora:medir`, na
+// máquina de quem calibra), mas tem como garantir o que é estrutural: o arquivo
+// lê, os ids são únicos, e NENHUMA regra está ACTIVE sem revisor identificado e
+// sem evidência de execuções distintas. É a mesma barreira que o motor aplica
+// em runtime, só que antes do merge — regra ativada na marra não chega à main.
+// ---------------------------------------------------------------------------
+
+const arquivosDeSupressao = existsSync(CORPORA)
+  ? readdirSync(CORPORA)
+      .map((app) => join(CORPORA, app, "suppressions.json"))
+      .filter((arquivo) => existsSync(arquivo))
+  : [];
+let regrasNoCorpus = 0;
+let regrasAtivas = 0;
+for (const arquivo of arquivosDeSupressao) {
+  try {
+    const set = parseSuppressionSet(JSON.parse(readFileSync(arquivo, "utf8")), arquivo);
+    regrasNoCorpus += set.rules.length;
+    regrasAtivas += set.rules.filter((rule) => rule.status === "ACTIVE").length;
+    const issues = validateSuppressionSet(set);
+    for (const issue of issues) {
+      problemas.push(
+        `Supressão aprendida inválida em ${arquivo}: ${issue.ruleId ?? "-"}: ${issue.problem}`,
+      );
+    }
+  } catch (erro) {
+    problemas.push(`Supressão aprendida ilegível em ${arquivo}: ${String(erro?.message ?? erro)}`);
+  }
+}
+
 const linha = (rotulo, antes, depois) => {
   const seta = antes === depois ? "=" : depois > antes ? "↑" : "↓";
   return `    ${rotulo.padEnd(34)} ${String(antes).padStart(4)} → ${String(depois).padStart(4)}  ${seta}\n`;
@@ -149,6 +189,10 @@ process.stdout.write(
     baseline.pisoDeRuido.bloqueantes,
     atual.pisoDeRuido.bloqueantes,
   ),
+);
+
+process.stdout.write(
+  `    ${"supressão aprendida: regras".padEnd(34)} ${String(regrasNoCorpus).padStart(4)} em ${arquivosDeSupressao.length} arquivo(s), ${regrasAtivas} ACTIVE\n`,
 );
 
 process.stdout.write(

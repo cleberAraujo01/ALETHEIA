@@ -902,11 +902,172 @@ uma miniatura com `alt`. O gate de corpus sai de 11 para 14 regressões, com o
 piso de ruído intacto em 0. É a rede de baixo para regras que o CI não consegue
 medir contra os corpora reais.
 
+## 10.12 Supressão aprendida — o mecanismo existe, aprendeu duas regras, e nenhuma pode ser ativada
+
+A §10.8 fechou com uma frase: das três direções para os 20 falso positivo do
+oscar, só **supressão aprendida** sobrevive à medição, porque age depois da
+severidade e por isso funciona num sinal sobredeterminado. Esta seção registra
+o que aconteceu quando ela foi construída e apontada para os dois PRs legítimos.
+O resultado tem três partes, e a terceira é a que mais importa.
+
+### O que foi construído
+
+Até aqui, supressão era `packages/diff-engine/src/suppress/`: uma interface de
+regra em código, um catálogo vazio de propósito e um validador que exige três
+casos rotulados `NOISE` em execuções distintas. Faltava o lado **por
+aplicação**, que RN-ORC-010 descreve — "delta classificado como `NOISE` alimenta
+automaticamente as regras de supressão, com revisão humana". Entrou:
+
+- **Regra declarativa, em arquivo do projeto** (`suppressions.json`), com uma
+  `signature` de três campos comparados por igualdade: camada, tipo e
+  **esqueleto do caminho** — o caminho de identidade com os nomes acessíveis
+  apagados. `li[role=listitem "Books Fiction Non-Fiction"] > div["Browse
+  store"] > a[role=link "Fiction"]` vira `li[role=listitem] > div[*] >
+  a[role=link]`. O nome muda com o conteúdo; a estrutura é o que se repete de um
+  PR para o outro. Não há prefixo nem curinga: alargar é decisão que ainda não
+  tem caso que a peça.
+- **Ciclo de vida com revisão humana:** `PROPOSED` → `ACTIVE` | `REJECTED` |
+  `RETIRED`, no espírito de RN-ORC-003/004. Só `ACTIVE` suprime. Mudar de
+  status exige `reviewedBy` — supressão nunca é anônima — e `ACTIVE` exige a
+  mesma evidência do catálogo: **três execuções distintas**. O motor se recusa a
+  rodar com `ACTIVE` que não cumpra (falha de plataforma, código 2, neutra para
+  o gate). Não existe flag para forçar; se existisse, seria usada.
+- **Aprendizado (`aletheia suppress propose`):** lê relatório + rótulos, agrupa
+  os `NOISE` de DOM por assinatura e escreve regras `PROPOSED` com a evidência
+  anexada — quem rotulou, quando, em qual execução, qual delta. **Barreira
+  estrutural:** assinatura que também casa com qualquer delta rotulado
+  `REGRESSION` no mesmo relatório não vira regra, vira conflito reportado. É o
+  §6.4 aplicado antes de a regra existir. Só DOM: ruído de rede e visual têm
+  outros instrumentos (normalização, máscara), e todo ruído de rede encontrado
+  nos pisos era identidade de sessão ou token.
+- **Simulação (`aletheia suppress simulate`):** "se estas regras valessem, o que
+  mudaria neste relatório, a que custo?" — por regra, quantos deltas casaria,
+  como o motor os classificou e como o humano os rotulou. **Detecção perdida**
+  é delta bloqueado pelo motor **e** rotulado `REGRESSION` que a regra
+  suprimiria; qualquer número acima de zero reprova a regra antes de ela existir.
+  A bancada (`pnpm corpora:medir`) imprime essa simulação para os pares do
+  corpus ao lado da tabela real.
+- **`diff --suppressions <arquivo>`:** aplica as `ACTIVE`, somadas ao catálogo,
+  e registra `activeRuleIds` no relatório (PA-12: sem isso, reconstituir o
+  veredito exigiria adivinhar qual arquivo estava carregado).
+
+### A rotulagem dos pares legítimos, e a decisão que ela contém
+
+Os dois pares sem defeito não tinham rotulador — não havia o que medir neles
+além de "quantos bloqueantes". Agora têm (`oscar/label-intentional.mjs`,
+`juventude/label-pr2.mjs`), porque a supressão precisa de rótulo `NOISE` para
+aprender, e a distinção entre `NOISE` e `INTENDED_CHANGE` é **a** decisão:
+
+- `INTENDED_CHANGE` é "aconteceu uma vez, de propósito". Não ensina nada ao
+  motor, e não deve — a próxima ocorrência da mesma evidência pode ser bug.
+- `NOISE` é "isto vai se repetir e ninguém quer ver de novo". É o único rótulo
+  que alimenta regra, e ao dá-lo o humano aceita **deixar de ver** o que a regra
+  cobre.
+
+| Par | Mudança | Rótulo | Por quê |
+|---|---|---|---|
+| oscar | `M1` — menu passa a listar só o primeiro nível (20 bloqueantes + 10 nomes de `li`) | **`NOISE`** | O menu "Browse store" é gerado da árvore de categorias do banco (`category_tree`). Item entrando e saindo dali é manutenção de catálogo nesta aplicação. **O que se aceita deixar de ver está na `note`:** um bug que apague um nível do menu produz a mesma evidência e passa. |
+| oscar | `M2`, `M3`, `M4` — id no campo, classe na imagem, regra de disponibilidade | `INTENDED_CHANGE` | Feitas uma vez. Rotulá-las `NOISE` ensinaria o motor a ignorar mudança de atributo em formulário e imagem — a família das três regras da §10.11. |
+| juventude | `P1` — rota `/apoie` removida: `<li>` sai do rodapé em 7 páginas, CTA reapontado (8 bloqueantes) | **`INTENDED_CHANGE`** | O rodapé é escrito à mão no código. Link sumindo dali é decisão de produto desta vez e pode ser bug na próxima — `F6-rota-quem-somos` é um link **do mesmo rodapé** apontando errado. Rotular como rotina ensinaria o motor a não olhar para onde um dos nove defeitos mora. |
+| juventude | `P2` redesenho de `/parceiros` (3 bloqueantes), `P3` novo apoiador na home | `INTENDED_CHANGE` | Feitas uma vez. |
+| ambos | Rede: bundle com hash, corpo RSC com `_rsc=`, corpo HTML elidido | `NOISE` de motor | Artefato de build e identidade de sessão. Achado de **normalização**, e o aprendizado ignora rede de propósito. |
+
+As duas decisões que pesam vão em direções opostas, e as duas estão declaradas
+no rotulador para serem contestadas. Se alguém discordar de qualquer uma, o
+custo de virar é uma linha e uma rodada da bancada.
+
+### O que o aprendizado produziu
+
+```
+oscar      2 regras PROPOSED
+  SUP-oscar-001  DOM_NODE_REMOVED @ body#default > header > nav > div#navbarSupportedContent
+                                    > ul > li[role=listitem] > div[*] > a[role=link]
+                 evidência: 20 deltas em 1 execução distinta
+  SUP-oscar-002  DOM_ACCESSIBLE_NAME_CHANGED @ … > ul > li[role=listitem]
+                 evidência: 10 deltas em 1 execução distinta
+juventude  0 regras — os 11 bloqueantes são INTENDED_CHANGE; 72 NOISE, todos fora do DOM
+```
+
+Os arquivos estão versionados em `__corpus__/<app>/suppressions.json`, com
+status `PROPOSED`. Simulação sobre os pares do corpus:
+
+| Par | Regras | Suprimiria | Bloqueantes hoje → se valessem | Detecção perdida |
+|---|---|---|---|---|
+| Oscar — 7 defeitos | 2 | **0** | 135 → 135 · 6 de 7 intactos | **0** |
+| Oscar — mudança intencional | 2 | 30 | **20 → 0** | 0 |
+| Oscar — piso, mesma build | 2 | 0 | 0 → 0 | — |
+| Juventude — 9 defeitos | 0 | 0 | 56 → 56 | 0 |
+| Juventude — PR real #2 | 0 | 0 | 11 → 11 | 0 |
+
+**A leitura de cada linha:**
+
+- **Custo zero nos defeitos do oscar, e não por sorte.** `O4` (href do link
+  "Offers" quebrado) mora no **mesmo menu** que `M1` — mesmo `nav`, mesmo `ul`,
+  mesmo `div["Browse store"]`. A regra não o toca porque a assinatura leva o
+  **tipo**: `DOM_NODE_REMOVED` não é `DOM_ATTRIBUTE_CHANGED`. Uma regra por
+  prefixo de caminho, sem tipo, teria apagado `O4` — e é por isso que o alargamento
+  não entrou.
+- **20 → 0 é in-sample e não prova generalização.** As regras foram aprendidas
+  deste par e aplicadas a ele. O que provaria alguma coisa é um terceiro PR do
+  oscar que mexa no menu — que é, não por coincidência, o que falta para ativar.
+- **A tabela real não mudou em nada.** Nenhuma regra é `ACTIVE`; a
+  bancada continua imprimindo 20 e 11 bloqueantes, e o PR template continua
+  cobrando esses números.
+
+### Por que nenhuma pode ser ativada — e por que isso é o resultado certo
+
+`SUP-oscar-001` tem 20 deltas de evidência e **uma** execução. Vinte deltas do
+mesmo PR são a mesma mudança vista em dez páginas: um caso, não vinte. O
+validador exige três execuções distintas, e o aprendizado deduplica evidência
+por `deltaId`, não por `runId` — re-diffar o mesmo par três vezes gera três
+`runId` e zero evidência nova. Não há como acumular três casos sem três PRs.
+
+O corpus tem um PR legítimo por aplicação que exercita as regras. Então: **o
+mecanismo está pronto, aprendeu o que havia para aprender, e vai esperar dois
+PRs do oscar que mexam no menu antes de suprimir qualquer coisa.** Isto não é o
+mecanismo falhando; é a barreira de §6.4 funcionando no primeiro dia. Um sistema
+que ativasse `SUP-oscar-001` hoje estaria dizendo "nesta loja, link sumindo do
+menu nunca é bug" com base numa observação.
+
+**E o placar dos 31 falso positivo fica assim:**
+
+| Origem | Quantos | Supressão aprendida resolve? |
+|---|---|---|
+| oscar, `M1` | 20 | **Sim, em tese** — padrão real desta aplicação; falta evidência (2 PRs) |
+| juventude, `P1` + `P2` | 11 | **Não** — mudança pretendida uma vez; suprimir seria ensinar o motor a ignorar o rodapé onde `F6` mora |
+
+Os 11 continuam sendo o que a §10.9 disse: sem fonte de intenção, remoção
+deliberada e link quebrado são indistinguíveis, e a resposta é O2 — intenção
+derivada do diff de código — na Fase 2. A supressão aprendida cobre a metade do
+problema que é **padrão da aplicação**; não cobre, e não deve cobrir, a metade
+que é **decisão pontual**.
+
+### O que fica declarado
+
+- **A rotulagem `NOISE` de `M1` é uma decisão, não um fato.** Está no rotulador
+  com a consequência escrita. Quem ativar `SUP-oscar-001` um dia estará
+  aceitando que um bug de profundidade de menu passe.
+- **O esqueleto de caminho é uma função de string.** Nome acessível que
+  contenha aspas sai mais grosseiro do que o ideal — determinístico, aplicado
+  igual dos dois lados, e por isso aceito.
+- **Só DOM aprende.** Se um dia rede precisar, o instrumento é normalização, e
+  a lista de achados dos pisos (§8, §9, §10.2) diz o mesmo.
+- **Nada aqui toca severidade**, e a bancada prova: os oito pares saem
+  idênticos, coluna a coluna.
+- **O CI valida os arquivos de regra do corpus** (`pnpm corpus:gate`): leitura,
+  ids únicos, e nenhuma `ACTIVE` sem revisor ou sem três execuções distintas.
+  A mesma barreira que o motor aplica em runtime, aplicada antes do merge — regra
+  ativada na marra não chega à `main`. O custo (simulação contra os pares reais)
+  continua sendo `pnpm corpora:medir`, na máquina de quem calibra, porque o CI
+  não tem as capturas.
+
 ## 11. Reproduzir
 
 > **Se as capturas já estiverem em disco, pule para o fim: `pnpm corpora:medir`**
 > refaz diff, rotulagem e medição dos oito pares e imprime a tabela do PR
-> pronta (`--antes <dir de rodada anterior>` preenche as duas colunas). Ele sai
+> pronta (`--antes <dir de rodada anterior>` preenche as duas colunas), e logo
+> abaixo a **simulação das regras de supressão** de `__corpus__/<app>/suppressions.json`
+> (§10.12) — o que elas suprimiriam em cada par e a que custo. Ele sai
 > com erro se faltar captura de qualquer par, e marca a linha correspondente
 > como `NÃO MEDIDO` dentro da própria tabela — pela razão da §10.3.1: ambiente
 > pela metade não falha, fabrica resultado plausível.

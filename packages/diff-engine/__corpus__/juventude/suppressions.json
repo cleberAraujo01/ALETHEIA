@@ -1,0 +1,6 @@
+{
+  "version": "0.1.0",
+  "projectId": "juventude",
+  "note": "Aprendido por `aletheia suppress propose` a partir do PR real 910181f (label-pr2.mjs), bancada de 2026-08-17. Nenhuma regra: os 11 bloqueantes são INTENDED_CHANGE. Ver docs/medicao-fase-0.md §10.12.",
+  "rules": []
+}

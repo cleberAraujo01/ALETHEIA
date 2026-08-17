@@ -22,6 +22,48 @@ export interface DiffCommandArgs {
   readonly failOnRegression: boolean;
   /** Quando `false`, a camada visual vira lacuna declarada em vez de rodar. */
   readonly visual: boolean;
+  /**
+   * Arquivo de supressão aprendida do projeto. Só regras `ACTIVE` valem, e o
+   * motor recusa `ACTIVE` sem evidência — não há flag para forçar.
+   */
+  readonly suppressions: string | null;
+}
+
+export interface SuppressProposeArgs {
+  readonly report: string;
+  readonly labels: string;
+  /** Arquivo de regras: lido se existir, reescrito com as propostas. */
+  readonly rules: string;
+  /** Obrigatório se o arquivo ainda não existe. */
+  readonly project: string | null;
+  /** Quem rotulou. Evidência anônima não é evidência. */
+  readonly labeledBy: string;
+}
+
+export interface SuppressSimulateArgs {
+  readonly report: string;
+  readonly rules: string;
+  readonly labels: string | null;
+}
+
+export function parseSuppressProposeArgs(argv: readonly string[]): SuppressProposeArgs {
+  const flags = toFlagMap(argv);
+  return {
+    report: required(flags, "report"),
+    labels: required(flags, "labels"),
+    rules: required(flags, "rules"),
+    project: flags.get("project") ?? null,
+    labeledBy: required(flags, "labeled-by"),
+  };
+}
+
+export function parseSuppressSimulateArgs(argv: readonly string[]): SuppressSimulateArgs {
+  const flags = toFlagMap(argv);
+  return {
+    report: required(flags, "report"),
+    rules: required(flags, "rules"),
+    labels: flags.get("labels") ?? null,
+  };
 }
 
 export interface CaptureCommandArgs {
@@ -116,6 +158,7 @@ export function parseDiffArgs(argv: readonly string[]): DiffCommandArgs {
     seed: flags.get("seed") ?? "0",
     failOnRegression: flags.get("fail-on") !== "none",
     visual: flags.get("visual") !== "false",
+    suppressions: flags.get("suppressions") ?? null,
   };
 }
 

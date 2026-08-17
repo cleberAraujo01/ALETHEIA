@@ -36,6 +36,8 @@ motor. É um teste mais duro, e de propósito.
 | `label.mjs` | Atribui cada delta do relatório a um defeito, ou a ruído |
 | `intentional.mjs` | As 4 mudanças **legítimas** (sem defeito nenhum), com o commit upstream de cada |
 | `apply-intentional.mjs` | Aplica a inversa delas, produzindo a build `pr-antes` |
+| `label-intentional.mjs` | Rotula o par intencional: qual mudança é `INTENDED_CHANGE` (uma vez, de propósito) e qual é `NOISE` (padrão desta aplicação). Só `NOISE` alimenta supressão |
+| `suppressions.json` | As regras que `aletheia suppress propose` aprendeu do par intencional — todas `PROPOSED`, nenhuma ativável com um único PR (§10.12 da medição) |
 
 São **dois** corpora, e eles medem coisas opostas: o de defeito mede detecção, o
 de mudança intencional mede falso positivo. Um número sozinho não diz nada —
@@ -48,6 +50,15 @@ legítima — e a ablação da §10.8 provou que eles são **sobredeterminados**
 regras de nó interativo e de texto perdido os marcam HIGH independentemente, e só
 somem retirando as duas, ao custo de 4 defeitos. Não é problema de regra, é falta
 de sinal. **Não tente resolver mexendo em severidade.**
+
+**A supressão aprendida os cobre em tese, e não em prática ainda** (§10.12).
+`label-intentional.mjs` rotula `M1` como `NOISE` — o menu "Browse store" é gerado
+da árvore de categorias, item entrando e saindo dali é manutenção de catálogo —
+e o aprendizado produziu duas regras `PROPOSED` (`SUP-oscar-001/002`) com custo
+simulado **zero** nos 7 defeitos: `O4` mora no mesmo menu, mas é mudança de `href`,
+e a assinatura leva o tipo. Ativar exige evidência de 3 execuções distintas e há
+um PR; faltam dois PRs do oscar que mexam no menu. A `note` do rótulo diz o que se
+aceita deixar de ver: um bug que apague um nível do menu passaria.
 
 O que **não** tem: a aplicação, as capturas, os relatórios e os screenshots.
 Pesam e são reconstituíveis — ver §10.4 do documento de medição.

@@ -1,8 +1,16 @@
 #!/usr/bin/env node
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-import { parseCapture, runDiff, type Capture, type DiffReport } from "@aletheia/diff-engine";
+import {
+  compileLearnedRules,
+  parseCapture,
+  runDiff,
+  SUPPRESSION_CATALOG,
+  type Capture,
+  type DiffReport,
+  type SuppressionRule,
+} from "@aletheia/diff-engine";
 import { capture as runCapture, parseJourney } from "@aletheia/runner";
 import {
   EXIT_CODE,
@@ -19,12 +27,16 @@ import {
   parseCaptureArgs,
   parseDiffArgs,
   parseMeasureArgs,
+  parseSuppressProposeArgs,
+  parseSuppressSimulateArgs,
   type CaptureCommandArgs,
   type DiffCommandArgs,
 } from "./args.js";
+import { readJson, writeJson } from "./io.js";
 import { measureCommand } from "./measure.js";
 import { loadRasters } from "./rasters.js";
 import { renderHtmlReport } from "./report/html.js";
+import { loadSet, suppressProposeCommand, suppressSimulateCommand } from "./suppress.js";
 
 const RUNNER_VERSION = "0.0.0-fase0";
 
@@ -34,10 +46,14 @@ aletheia — plataforma de engenharia de qualidade autônoma
   aletheia capture --url <baseUrl> --journey <jornada.json> [opções]
   aletheia diff    --base <captura.json> --head <captura.json> [opções]
   aletheia measure --report <report.json> --labels <rotulos.json>
+  aletheia suppress propose  --report <report.json> --labels <rotulos.json> --rules <arquivo> --labeled-by <quem>
+  aletheia suppress simulate --report <report.json> --rules <arquivo> [--labels <rotulos.json>]
 
 \`capture\` observa uma build e produz um artefato de captura.
 \`diff\` compara duas capturas (oráculo O5) e emite veredito determinístico.
 \`measure\` confronta o relatório com rotulagem humana e mede precisão e recall.
+\`suppress\` fecha o laço de RN-ORC-010: rótulos NOISE viram regras PROPOSED por
+projeto, e a simulação diz o que elas fariam antes de alguém ativá-las.
 
 Opções de capture:
   --url <baseUrl>         URL base da build a observar           (obrigatório)
@@ -62,11 +78,24 @@ Opções de diff:
   --confidence-mode <m>   ISOLATED | PARTITIONED | SHARED_DEGRADED
   --seed <valor>          Seed registrado no relatório
   --fail-on none          Não altera o código de saída em caso de regressão
+  --suppressions <arq>    Regras de supressão aprendidas do projeto; só ACTIVE valem
 
 Opções de measure:
   --report <arquivo>      report.json produzido por \`diff\`      (obrigatório)
   --labels <arquivo>      Rótulos humanos por deltaId
   --emit-labels <arquivo> Gera esqueleto de rotulagem para preencher
+
+Opções de suppress propose:
+  --report <arquivo>      report.json produzido por \`diff\`      (obrigatório)
+  --labels <arquivo>      Rótulos humanos por deltaId              (obrigatório)
+  --rules <arquivo>       Arquivo de regras do projeto; criado se não existir
+  --project <id>          Identificador do projeto (obrigatório ao criar o arquivo)
+  --labeled-by <quem>     Quem rotulou — vira evidência              (obrigatório)
+
+Opções de suppress simulate:
+  --report <arquivo>      report.json produzido por \`diff\`      (obrigatório)
+  --rules <arquivo>       Arquivo de regras do projeto              (obrigatório)
+  --labels <arquivo>      Rótulos humanos; sem eles o custo é desconhecido, não zero
 
 Códigos de saída:
   0  nenhuma regressão
@@ -93,6 +122,15 @@ async function main(argv: readonly string[]): Promise<number> {
   }
   if (command === "measure") {
     return measureCommand(parseMeasureArgs(argv.slice(1)));
+  }
+  if (command === "suppress") {
+    const sub = argv[1];
+    if (sub === "propose") return suppressProposeCommand(parseSuppressProposeArgs(argv.slice(2)));
+    if (sub === "simulate")
+      return suppressSimulateCommand(parseSuppressSimulateArgs(argv.slice(2)));
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: `subcomando de suppress desconhecido: ${String(sub)} (propose | simulate)`,
+    });
   }
 
   throw new PlatformError("CAPTURE_INVALID", { reason: `comando desconhecido: ${command}` });
@@ -175,6 +213,12 @@ async function diffCommand(args: DiffCommandArgs, runId: string, logger: Logger)
       }
     : undefined;
 
+  // Regras aprendidas somam-se ao catálogo do motor; não o substituem. Só as
+  // ACTIVE chegam aqui, e o motor ainda vai validar a evidência de cada uma.
+  const learned: readonly SuppressionRule[] =
+    args.suppressions === null ? [] : compileLearnedRules(await loadSet(args.suppressions));
+  const suppressionRules = [...SUPPRESSION_CATALOG, ...learned];
+
   logger.info("diff iniciado", {
     baseCapture: base.captureId,
     headCapture: head.captureId,
@@ -182,9 +226,14 @@ async function diffCommand(args: DiffCommandArgs, runId: string, logger: Logger)
     headObservations: head.observations.length,
     visualEnabled: args.visual,
     rastersLoaded: (rasters?.base.size ?? 0) + (rasters?.head.size ?? 0),
+    suppressionRules: suppressionRules.length,
   });
 
-  const report = runDiff(base, head, rasters === undefined ? { metadata } : { metadata, rasters });
+  const report = runDiff(base, head, {
+    metadata,
+    suppressionRules,
+    ...(rasters === undefined ? {} : { rasters }),
+  });
   await writeReports(report, args);
 
   logger.info("diff concluído", {
@@ -193,6 +242,7 @@ async function diffCommand(args: DiffCommandArgs, runId: string, logger: Logger)
     deltas: report.summary.total,
     regressions: report.summary.byClassification.REGRESSION,
     undetermined: report.summary.byClassification.UNDETERMINED,
+    noise: report.summary.byClassification.NOISE,
     normalizations: report.normalization.total,
   });
 
@@ -207,29 +257,6 @@ async function diffCommand(args: DiffCommandArgs, runId: string, logger: Logger)
 async function loadCapture(path: string): Promise<Capture> {
   const absolute = resolve(path);
   return parseCapture(await readJson(absolute), absolute);
-}
-
-async function readJson(absolute: string): Promise<unknown> {
-  let content: string;
-  try {
-    content = await readFile(absolute, "utf8");
-  } catch (cause) {
-    throw new PlatformError("CAPTURE_UNREADABLE", { path: absolute }, cause);
-  }
-  try {
-    return JSON.parse(content);
-  } catch (cause) {
-    throw new PlatformError("CAPTURE_INVALID", { path: absolute, reason: "JSON inválido" }, cause);
-  }
-}
-
-async function writeJson(target: string, value: unknown): Promise<void> {
-  try {
-    await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, `${JSON.stringify(value, null, 2)}\n`, "utf8");
-  } catch (cause) {
-    throw new PlatformError("REPORT_WRITE_FAILED", { path: target }, cause);
-  }
 }
 
 async function writeReports(report: DiffReport, args: DiffCommandArgs): Promise<void> {

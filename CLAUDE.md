@@ -297,10 +297,12 @@ Sem isso, RN-EXE-001 e PA-12 são violados e o veredito é inválido.
 
 Este é o componente de maior impacto na taxa de falso positivo. Cuidado extremo.
 
-1. Toda regra de supressão precisa de **evidência**: pelo menos 3 casos reais rotulados como `NOISE`
+1. Toda regra de supressão precisa de **evidência**: pelo menos 3 casos reais rotulados como `NOISE`, em **execuções distintas** — vinte deltas do mesmo PR são um caso
 2. Adicionar caso de regressão em `packages/diff-engine/__fixtures__/`
 3. Medir impacto no corpus de referência **antes e depois** — nenhuma regra pode reduzir a detecção verdadeira
 4. Supressão excessiva causa **falso negativo silencioso**, que é pior que falso positivo (PA-10)
+
+**Regra aprendida, por aplicação** (RN-ORC-010/011; §10.12 da medição): não se escreve à mão. `aletheia suppress propose --report … --labels … --rules <arquivo> --labeled-by <quem>` transforma os rótulos `NOISE` de DOM em regras `PROPOSED` com a evidência anexada e recusa qualquer assinatura que também case com delta rotulado `REGRESSION`; `aletheia suppress simulate` responde o que cada regra suprimiria e a que custo **antes** de existir como `ACTIVE`; `pnpm corpora:medir` imprime a mesma simulação para os pares do corpus. A promoção a `ACTIVE` é edição humana do arquivo com `reviewedBy`, e o motor recusa `ACTIVE` sem três execuções distintas — não há flag para forçar. Só rótulo `NOISE` alimenta regra; `INTENDED_CHANGE` é "aconteceu uma vez, de propósito" e não ensina nada ao motor, de propósito.
 
 ### 6.5 Adicionar um conector
 
@@ -353,7 +355,7 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 **Os 20 e os 11 são o item aberto mais importante do projeto — e NÃO são um problema de regra** (§10.8). A ablação nos quatro pares mostrou que os 20 deltas são interativos **e** com texto perdido ao mesmo tempo: as duas regras os marcam HIGH independentemente, e só somem retirando as duas — ao custo de 4 defeitos, que é a troca que PA-10 proíbe. É problema de **sinal**: "tiraram o item do menu de propósito" e "o link quebrou" produzem evidência idêntica no DOM.
 
-Das três direções da §10.6, só **supressão aprendida** sobrevive à medição, porque age depois da severidade e funciona num sinal sobredeterminado. Ela exige ≥ 3 casos reais rotulados como `NOISE` (§6.4) e é por aplicação. **Não tente resolver mexendo em severidade** — já está medido que não dá.
+Das três direções da §10.6, só **supressão aprendida** sobrevive à medição, porque age depois da severidade e funciona num sinal sobredeterminado. **Ela existe desde 2026-08-17** (§10.12 da medição): regra declarativa por aplicação com esqueleto de caminho, ciclo `PROPOSED → ACTIVE | REJECTED | RETIRED`, aprendizado a partir dos rótulos `NOISE`, simulação de custo, e barreira que recusa assinatura que case regressão rotulada. Apontada para os dois PRs legítimos, aprendeu **2 regras `PROPOSED` no oscar** (as 20 do menu; custo zero simulado nos 7 defeitos, porque a assinatura leva o tipo) e **nenhuma no juventude** — os 11 são `INTENDED_CHANGE`, decisão pontual, e suprimi-los ensinaria o motor a ignorar o rodapé onde `F6` mora. **Nenhuma pode ser ativada:** ativar exige 3 execuções distintas e há 1 PR legítimo por aplicação. É a barreira do §6.4 funcionando no primeiro dia, não o mecanismo falhando. O que falta é corpus — dois PRs do oscar que mexam no menu —, não código. **Não tente resolver mexendo em severidade** — já está medido que não dá. E não invente evidência: o aprendizado deduplica por `deltaId`, então re-diffar o mesmo par não conta.
 
 **A junta comum dos dois corpora fechou** (§10.11 da medição, 2026-08-16). `F7` no `juventude` (`required` perdido), `O3` e `O7` no `oscar` (`value` virando `None`, `alt` removido) eram todos mudança de atributo com consequência comportamental que o motor não inferia da mudança em si. Três regras de **consequência** — restrição relaxada, valor que vira sentinela, nome acessível perdido sem texto de sobra — levaram a detecção de **5/9 para 6/9** e de **4/7 para 6/7**, com os 110 deltas casados todos rotulados como regressão e **zero ocorrência nos sete pares sem defeito**. Falso positivo inalterado nos quatro pares.
 

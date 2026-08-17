@@ -72,9 +72,14 @@ mesma build, sem build e sem login.
 - [ ] Zero delta bloqueante — é o mínimo aceitável: build reprovando a si mesma é
       o pior falso positivo possível
 
-## Se o PR adiciona regra de supressão
+## Se o PR adiciona ou ativa regra de supressão
 
-- [ ] Pelo menos **3 casos reais** rotulados como `NOISE` (§6.4)
+- [ ] Pelo menos **3 casos reais** rotulados como `NOISE`, em **execuções distintas** (§6.4)
 - [ ] Caso de regressão adicionado em `packages/diff-engine/__fixtures__/`
 - [ ] Impacto medido no corpus antes e depois — nenhuma regra pode reduzir
       detecção verdadeira
+- [ ] Se é regra aprendida (`suppressions.json`): `aletheia suppress simulate` com os
+      rótulos dos pares de defeito do projeto mostra **detecção perdida 0**, e a tabela
+      de simulação de `pnpm corpora:medir` está colada abaixo
+- [ ] Se muda status para `ACTIVE`: `reviewedBy` preenchido, e a `description` diz
+      **o que o motor deixa de ver** com a regra em vigor
