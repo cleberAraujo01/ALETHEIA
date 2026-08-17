@@ -105,6 +105,24 @@ describe("parseIr", () => {
     expect(code(() => parseIr(dupObs, "t"))).toBe("IR_INVALID:$.steps[5].observationId");
   });
 
+  it("alvo pode ser referência ao repositório — e não se mistura com sinais inline", () => {
+    const step = (target: Record<string, string>) => ({
+      ...login,
+      steps: [login.steps[0], { id: "x", action: "click", target }, login.steps[4]],
+    });
+    expect(parseIr(step({ ref: "el_btn_entrar" }), "t").steps[1]).toEqual({
+      id: "x",
+      action: "click",
+      target: { ref: "el_btn_entrar" },
+    });
+    expect(code(() => parseIr(step({ ref: "el_btn", text: "Entrar" }), "t"))).toBe(
+      "IR_INVALID:$.steps[1].target",
+    );
+    expect(code(() => parseIr(step({ ref: "botao" }), "t"))).toBe(
+      "IR_INVALID:$.steps[1].target.ref",
+    );
+  });
+
   it("segredo é referência a variável de ambiente, nunca valor", () => {
     const ir = {
       ...login,

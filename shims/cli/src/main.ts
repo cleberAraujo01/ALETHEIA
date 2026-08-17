@@ -55,6 +55,7 @@ Opções de run:
   --screenshots false     Não capturar imagem (a camada visual vira lacuna declarada)
   --deadline <ms>         Deadline de convergência               (default: 15000)
   --fail-on none          Não altera o código de saída em caso de regressão
+  --elements <arquivo>    Repositório de elementos para alvos { ref } na jornada
 
 Opções de capture:
   --url <baseUrl>         URL base da build a observar           (obrigatório)
@@ -66,6 +67,7 @@ Opções de capture:
   --screenshots false     Não capturar imagem
   --headed                Abre o browser visível, para acompanhar a navegação
   --deadline <ms>         Deadline de convergência               (default: 15000)
+  --elements <arquivo>    Repositório de elementos para alvos { ref } na jornada
 
 Opções de diff:
   --base <arquivo>        Captura da build de referência         (obrigatório)
@@ -154,6 +156,9 @@ async function captureCommand(
       (result.capture.interruption === null
         ? ""
         : `  ·  JORNADA INTERROMPIDA no passo ${result.capture.interruption.stepId}: ${result.capture.interruption.reason}`) +
+      (result.trace.healings.length === 0
+        ? ""
+        : `\n  curas       ${result.trace.healings.length} PROPOSTA(S) — nenhuma aplicada; veja healing.json`) +
       `\n  artefatos   ${result.captureFilePath}  ${result.traceFilePath}\n\n`,
   );
   return EXIT_CODE.OK;

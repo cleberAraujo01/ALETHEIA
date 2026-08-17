@@ -53,6 +53,7 @@ export interface RunCommandArgs {
   readonly screenshots: boolean;
   readonly deadlineMs: number;
   readonly failOnRegression: boolean;
+  readonly elements: string | null;
 }
 
 export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
@@ -86,6 +87,7 @@ export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
     screenshots: flags.get("screenshots") !== "false",
     deadlineMs: deadline,
     failOnRegression: flags.get("fail-on") !== "none",
+    elements: optional(flags, "elements"),
   };
 }
 
@@ -136,6 +138,8 @@ export interface CaptureCommandArgs {
   readonly screenshots: boolean;
   readonly headed: boolean;
   readonly deadlineMs: number;
+  /** Repositório de elementos (§12.3) para alvos `{ ref }`. */
+  readonly elements: string | null;
 }
 
 export interface MeasureCommandArgs {
@@ -172,6 +176,7 @@ export function parseCaptureArgs(argv: readonly string[]): CaptureCommandArgs {
     screenshots: flags.get("screenshots") !== "false",
     headed: flags.get("headed") === "true" || flags.get("headed") === "",
     deadlineMs: deadline,
+    elements: optional(flags, "elements"),
   };
 }
 

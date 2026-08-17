@@ -1,5 +1,5 @@
 {
-  "name": "@aletheia/runner",
+  "name": "@aletheia/selector-engine",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -18,11 +18,8 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@aletheia/diff-engine": "workspace:*",
     "@aletheia/ir": "workspace:*",
-    "@aletheia/selector-engine": "workspace:*",
-    "@aletheia/shared": "workspace:*",
-    "playwright": "1.62.1"
+    "@aletheia/shared": "workspace:*"
   },
   "devDependencies": {
     "vitest": "3.2.7"

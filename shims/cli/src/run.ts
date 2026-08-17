@@ -34,6 +34,8 @@ export interface RunSummary {
   readonly noise: number;
   readonly observationsCompared: number;
   readonly confidenceMode: string;
+  /** Curas de seletor PROPOSTAS (RN-EXE-011) em base + head; nenhuma aplicada. */
+  readonly healingsProposed: number;
   readonly report: string;
   readonly reportHtml: string;
   readonly comment: string;
@@ -57,6 +59,7 @@ export async function runCommand(
     screenshots: args.screenshots,
     headed: false,
     deadlineMs: args.deadlineMs,
+    elements: args.elements,
   });
 
   // Base primeiro, sempre: se a base não capturar, o head nem é visitado — e o
@@ -101,6 +104,7 @@ export async function runCommand(
     noise: report.summary.byClassification.NOISE,
     observationsCompared: report.coverage.observationsCompared,
     confidenceMode: report.metadata.confidenceMode,
+    healingsProposed: base.trace.healings.length + head.trace.healings.length,
     report: reportPaths[0] ?? resolve(out, "report.json"),
     reportHtml: reportPaths[1] ?? resolve(out, "report.html"),
     comment: commentPath,
