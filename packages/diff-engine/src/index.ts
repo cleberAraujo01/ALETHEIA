@@ -66,6 +66,8 @@ export type {
   SuppressionStatus,
 } from "./suppress/learned.js";
 export { proposeSuppressions, simulateSuppression } from "./suppress/learn.js";
+export { groupDeltas, groupIdOf } from "./group/index.js";
+export type { DeltaGroup } from "./group/index.js";
 export type {
   ProposalInput,
   ProposalOutcome,
@@ -77,6 +79,7 @@ export type {
 export { NORMALIZATION_RULES } from "./normalize/volatile.js";
 
 export {
+  assessGrouping,
   measure,
   scaffoldLabels,
   PHASE_0_MAX_FALSE_POSITIVE_RATE,
@@ -85,6 +88,7 @@ export {
 export type {
   ConfusionMatrix,
   DefectCoverage,
+  GroupingAssessment,
   ExitCriteriaCheck,
   HumanLabel,
   LabelEntry,

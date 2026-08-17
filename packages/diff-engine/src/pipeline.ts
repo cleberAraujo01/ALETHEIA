@@ -6,6 +6,7 @@ import { diffDom } from "./diff/dom.js";
 import { diffNetwork } from "./diff/network.js";
 import { DEFAULT_DELTA_BUDGET_PER_OBSERVATION, DeltaBudget, type RawDelta } from "./diff/types.js";
 import { diffVisual } from "./diff/visual.js";
+import { type DeltaGroup, groupDeltas, groupIdOf } from "./group/index.js";
 import { normalizeDom } from "./normalize/dom.js";
 import { createLedger } from "./normalize/ledger.js";
 import { normalizeExchange } from "./normalize/network.js";
@@ -191,6 +192,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
   }
 
   const deltas = finalize(raw, rules, calibration);
+  const groups = groupDeltas(deltas);
 
   return {
     reportVersion: REPORT_VERSION,
@@ -201,8 +203,8 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       "Não detecta defeito que já existia na base.",
     base: summarizeCapture(base),
     head: summarizeCapture(head),
-    verdict: verdictOf(deltas),
-    summary: summarize(deltas),
+    verdict: verdictOf(deltas, groups),
+    summary: summarize(deltas, groups),
     normalization: { total: ledger.total(), byRule: ledger.counts() },
     suppression: summarizeSuppression(deltas, rules),
     coverage: coverageOf({
@@ -216,6 +218,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       visualGaps,
     }),
     deltas,
+    groups,
   };
 }
 
@@ -253,6 +256,7 @@ function finalize(
       score,
       classification: classify(score, suppressedBy, calibration),
       suppressedBy,
+      groupId: groupIdOf(delta),
       facts: delta.facts,
     };
   });
@@ -268,15 +272,18 @@ function finalize(
   );
 }
 
-function verdictOf(deltas: readonly Delta[]): Verdict {
+function verdictOf(deltas: readonly Delta[], groups: readonly DeltaGroup[]): Verdict {
   const regressions = deltas.filter((delta) => delta.classification === "REGRESSION").length;
   const undetermined = deltas.filter((delta) => delta.classification === "UNDETERMINED").length;
+  const regressionGroups = groups.filter((group) => group.classification === "REGRESSION").length;
 
   if (regressions > 0) {
     return {
       code: "REGRESSION_DETECTED",
       blocking: true,
-      rationale: `${regressions} delta(s) atingiram o limiar de regressão contra a build base.`,
+      rationale:
+        `${regressions} delta(s) em ${regressionGroups} grupo(s) atingiram o limiar de regressão ` +
+        "contra a build base.",
     };
   }
   if (undetermined > 0) {
@@ -295,7 +302,7 @@ function verdictOf(deltas: readonly Delta[]): Verdict {
   };
 }
 
-function summarize(deltas: readonly Delta[]): DiffReport["summary"] {
+function summarize(deltas: readonly Delta[], groups: readonly DeltaGroup[]): DiffReport["summary"] {
   const byClassification: Record<Classification, number> = {
     REGRESSION: 0,
     INTENDED_CHANGE: 0,
@@ -311,7 +318,21 @@ function summarize(deltas: readonly Delta[]): DiffReport["summary"] {
     byLayer[delta.layer] += 1;
   }
 
-  return { total: deltas.length, byClassification, bySeverity, byLayer };
+  const groupsByClassification: Record<Classification, number> = {
+    REGRESSION: 0,
+    INTENDED_CHANGE: 0,
+    NOISE: 0,
+    UNDETERMINED: 0,
+  };
+  for (const group of groups) groupsByClassification[group.classification] += 1;
+
+  return {
+    total: deltas.length,
+    byClassification,
+    bySeverity,
+    byLayer,
+    groups: { ...groupsByClassification, total: groups.length },
+  };
 }
 
 function summarizeSuppression(

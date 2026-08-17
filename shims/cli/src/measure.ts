@@ -1,9 +1,11 @@
 import { resolve } from "node:path";
 
 import {
+  assessGrouping,
   measure,
   scaffoldLabels,
   type DiffReport,
+  type GroupingAssessment,
   type LabelEntry,
   type LabelSet,
   type Measurement,
@@ -38,11 +40,10 @@ export async function measureCommand(args: MeasureCommandArgs): Promise<number> 
     });
   }
 
-  const result = measure(
-    report.deltas,
-    parseLabels(await readJson(resolve(args.labels)), args.labels),
-  );
+  const labels = parseLabels(await readJson(resolve(args.labels)), args.labels);
+  const result = measure(report.deltas, labels);
   process.stdout.write(render(result, report));
+  process.stdout.write(renderGrouping(assessGrouping(report.groups, labels)));
 
   // O código de saída reflete o critério de saída da fase, não o veredito da
   // aplicação: aqui quem está sendo avaliado é o motor.
@@ -116,5 +117,35 @@ function render(result: Measurement, report: DiffReport): string {
     );
   }
 
+  return `${lines.join("\n")}\n`;
+}
+
+/**
+ * Grupo é afirmação ("mesma causa provável"); o defeito rotulado é a causa de
+ * verdade. Mostrar a distância entre os dois é o que impede o número de grupos
+ * de virar um número bonito que ninguém confere.
+ */
+function renderGrouping(assessment: GroupingAssessment): string {
+  const perDefect = Object.entries(assessment.regressionGroupsPerDefect).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+  const spread = perDefect.filter(([, count]) => count > 1);
+  const lines = [
+    "  AGRUPAMENTO — grupo é causa provável, defeito é causa rotulada",
+    `    ${assessment.groups} grupo(s), ${assessment.regressionGroups} de regressão, ${assessment.labeledGroups} com algum delta rotulado`,
+    `    grupos que misturam defeitos distintos: ${assessment.mixedDefects.length}` +
+      (assessment.mixedDefects.length > 0 ? `  (${assessment.mixedDefects.join(", ")})` : ""),
+    `    grupos que misturam regressão com ruído/intencional: ${assessment.mixedWithNonRegression.length}` +
+      (assessment.mixedWithNonRegression.length > 0
+        ? `  (${assessment.mixedWithNonRegression.join(", ")}) — rotular o grupo como ruído apagaria regressão`
+        : ""),
+  ];
+  if (perDefect.length > 0) {
+    lines.push(
+      `    defeitos em mais de um grupo de regressão: ${spread.length} de ${perDefect.length}` +
+        (spread.length > 0 ? `  (${spread.map(([id, n]) => `${id}: ${n}`).join(", ")})` : ""),
+    );
+  }
+  lines.push("");
   return `${lines.join("\n")}\n`;
 }

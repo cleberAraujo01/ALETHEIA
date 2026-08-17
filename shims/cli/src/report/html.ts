@@ -1,4 +1,4 @@
-import type { Delta, DiffReport } from "@aletheia/diff-engine";
+import type { Delta, DeltaGroup, DiffReport } from "@aletheia/diff-engine";
 
 /**
  * Relatório HTML — entregável da Fase 0.
@@ -85,9 +85,11 @@ export function renderHtmlReport(report: DiffReport): string {
     <h2>Resumo</h2>
     <div class="counters">
       ${counter("Regressões", report.summary.byClassification.REGRESSION, "bad")}
+      ${counter("Grupos de regressão", report.summary.groups.REGRESSION, "bad")}
       ${counter("Indeterminados", report.summary.byClassification.UNDETERMINED, "warn")}
       ${counter("Ruído suprimido", report.summary.byClassification.NOISE, "muted")}
       ${counter("Total de deltas", report.summary.total, "")}
+      ${counter("Grupos", report.summary.groups.total, "")}
     </div>
     <div class="counters">
       ${counter("DOM", report.summary.byLayer.DOM, "")}
@@ -97,13 +99,24 @@ export function renderHtmlReport(report: DiffReport): string {
     </div>
   </section>
 
-  ${deltaSection("Regressões", regressions, "Atingiram o limiar. Bloqueiam o gate.")}
+  ${deltaSection(
+    "Regressões",
+    regressions,
+    report.groups,
+    "Atingiram o limiar. Bloqueiam o gate. Agrupados por assinatura — mesma camada, tipo e lugar estrutural, em qualquer página: um grupo é uma causa provável, não um commit provado.",
+  )}
   ${deltaSection(
     "Indeterminados",
     undetermined,
+    report.groups,
     "Divergem da base mas não atingem o limiar. Nunca bloqueiam (RN-ORC-009) — requerem triagem. Rotular estes casos é o que gera as regras de supressão com evidência.",
   )}
-  ${deltaSection("Ruído suprimido", noise, "Classificados como NOISE por regra de supressão. Listados para auditoria.")}
+  ${deltaSection(
+    "Ruído suprimido",
+    noise,
+    report.groups,
+    "Classificados como NOISE por regra de supressão. Listados para auditoria.",
+  )}
 
   <section>
     <h2>Normalização aplicada</h2>
@@ -116,34 +129,65 @@ export function renderHtmlReport(report: DiffReport): string {
 `;
 }
 
-function deltaSection(title: string, deltas: readonly Delta[], hint: string): string {
+function deltaSection(
+  title: string,
+  deltas: readonly Delta[],
+  groups: readonly DeltaGroup[],
+  hint: string,
+): string {
   if (deltas.length === 0) {
     return `<section><h2>${esc(title)} <span class="muted">(0)</span></h2><p class="hint">${esc(hint)}</p></section>`;
   }
 
-  const rows = deltas
-    .map(
-      (delta) => `<tr>
+  // A seção é por classificação do DELTA; dentro dela, os deltas se juntam
+  // pelo grupo do relatório, na ordem em que os grupos aparecem (mais grave
+  // primeiro). Um grupo pode aparecer em duas seções se metade dos deltas
+  // bloqueia e metade não — e isso é informação, não é escondido.
+  const byGroup = new Map<string, Delta[]>();
+  for (const delta of deltas) {
+    const members = byGroup.get(delta.groupId);
+    if (members === undefined) byGroup.set(delta.groupId, [delta]);
+    else members.push(delta);
+  }
+  const ordered = groups.filter((group) => byGroup.has(group.groupId));
+
+  const blocks = ordered
+    .map((group) => {
+      const members = byGroup.get(group.groupId) ?? [];
+      const worst = members[0]?.severity ?? group.severity;
+      const pages = new Set(members.map((delta) => delta.observationId)).size;
+      return `<details class="group"${members.length === 1 ? " open" : ""}>
+      <summary>
+        <span class="sev sev-${esc(worst)}">${esc(worst)}</span>
+        <code>${esc(group.kind)}</code>
+        <code class="skeleton">${esc(group.pathSkeleton)}</code>
+        <span class="muted">${members.length} delta(s) · ${pages} observação(ões)</span>
+      </summary>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Severidade</th><th>Onde</th><th>Base</th><th>Head</th><th>Score</th></tr></thead>
+          <tbody>${members.map(renderRow).join("\n")}</tbody>
+        </table>
+      </div>
+    </details>`;
+    })
+    .join("\n");
+
+  return `<section>
+    <h2>${esc(title)} <span class="muted">(${deltas.length} em ${ordered.length} grupo(s))</span></h2>
+    <p class="hint">${esc(hint)}</p>
+    ${blocks}
+  </section>`;
+}
+
+function renderRow(delta: Delta): string {
+  return `<tr>
       <td><span class="sev sev-${esc(delta.severity)}">${esc(delta.severity)}</span></td>
-      <td><code>${esc(delta.kind)}</code></td>
       <td class="path"><code>${esc(delta.path)}</code><br><span class="muted">${esc(delta.observationId)}</span></td>
       <td class="value">${renderValue(delta.before)}</td>
       <td class="value">${renderValue(delta.after)}</td>
       <td class="muted">${delta.score}${delta.suppressedBy === null ? "" : `<br>${esc(delta.suppressedBy)}`}</td>
-    </tr>`,
-    )
-    .join("\n");
-
-  return `<section>
-    <h2>${esc(title)} <span class="muted">(${deltas.length})</span></h2>
-    <p class="hint">${esc(hint)}</p>
-    <div class="table-scroll">
-      <table>
-        <thead><tr><th>Severidade</th><th>Tipo</th><th>Onde</th><th>Base</th><th>Head</th><th>Score</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  </section>`;
+    </tr>`;
 }
 
 function renderCounts(counts: Readonly<Record<string, number>>): string {
@@ -224,4 +268,11 @@ tr:last-child td { border-bottom:0; }
 .path { min-width:260px; } .value { max-width:280px; }
 .sev { font-size:11px; font-weight:600; padding:2px 7px; border-radius:99px; border:1px solid currentColor; white-space:nowrap; }
 .sev-CRITICAL, .sev-HIGH { color:var(--bad); } .sev-MEDIUM { color:var(--warn); } .sev-LOW { color:var(--muted); }
+.group { border:1px solid var(--line); border-radius:8px; margin:10px 0; }
+.group > summary { cursor:pointer; padding:10px 12px; display:flex; flex-wrap:wrap; gap:10px; align-items:baseline; list-style:none; }
+.group > summary::-webkit-details-marker { display:none; }
+.group > summary::before { content:"▸"; color:var(--muted); }
+.group[open] > summary::before { content:"▾"; }
+.group .skeleton { flex:1 1 320px; }
+.group .table-scroll { border:0; border-top:1px solid var(--line); border-radius:0 0 8px 8px; }
 `;

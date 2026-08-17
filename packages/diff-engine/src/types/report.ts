@@ -1,5 +1,7 @@
 import type { QualityVerdictCode, RunMetadata } from "@aletheia/shared";
 
+import type { DeltaGroup } from "../group/index.js";
+
 import type { Classification, Delta, DeltaLayer, OracleSource, Severity } from "./delta.js";
 
 export const REPORT_VERSION = "0.1.0";
@@ -16,6 +18,11 @@ export interface DiffReport {
   readonly verdict: Verdict;
   readonly summary: DeltaSummary;
   readonly deltas: readonly Delta[];
+  /**
+   * Deltas agrupados por assinatura (mesma causa provável), mais grave
+   * primeiro. Apresentação e chave de triagem; nunca muda veredito.
+   */
+  readonly groups: readonly DeltaGroup[];
   readonly normalization: NormalizationSummary;
   readonly suppression: SuppressionSummary;
   /** RN-COB-001 — o que NÃO foi validado. */
@@ -41,6 +48,8 @@ export interface Verdict {
 export interface DeltaSummary {
   readonly total: number;
   readonly byClassification: Readonly<Record<Classification, number>>;
+  /** Grupos de deltas (ver `groups`) — o número que cabe na cabeça de quem triage. */
+  readonly groups: Readonly<Record<Classification, number>> & { readonly total: number };
   readonly bySeverity: Readonly<Record<Severity, number>>;
   readonly byLayer: Readonly<Record<DeltaLayer, number>>;
 }
