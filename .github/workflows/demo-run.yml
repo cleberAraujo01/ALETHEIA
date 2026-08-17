@@ -3,11 +3,19 @@
 # Actions (não só na máquina de quem o escreveu) e para medir quanto tempo o
 # caminho inteiro leva contra o orçamento de 5 minutos do Tier 1 (RN-CI-003).
 #
-# Sem PR não há onde comentar: o resultado vai para o step summary e para o
-# artefato `aletheia-run`. Num repositório de cliente, o gatilho é o PR (ver
-# shims/github-action/README.md).
+# Roda em todo PR que toque o runner, a CLI, o motor ou o shim — contra o
+# ParaBank público, base = head, o piso de ruído mais barato que existe — e
+# COMENTA no próprio PR: é o demo da Fase 1 provado em cada mudança que poderia
+# quebrá-lo. `workflow_dispatch` aceita outras URLs, mas só existe na branch
+# padrão; enquanto a fase vive em `fase/1-*`, o gatilho de PR é o que roda.
 name: demo — aletheia run
 on:
+  pull_request:
+    paths:
+      - shims/**
+      - apps/runner/**
+      - packages/**
+      - .github/workflows/demo-run.yml
   workflow_dispatch:
     inputs:
       base-url:
@@ -33,12 +41,15 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: ./shims/github-action
         with:
-          base-url: ${{ inputs.base-url }}
-          head-url: ${{ inputs.head-url }}
-          journey: ${{ inputs.journey }}
-          aletheia-ref: ${{ github.sha }}
+          base-url: ${{ inputs.base-url || 'https://parabank.parasoft.com' }}
+          head-url: ${{ inputs.head-url || 'https://parabank.parasoft.com' }}
+          journey: ${{ inputs.journey || 'apps/runner/__fixtures__/journeys/parabank.json' }}
+          aletheia-ref: ${{ github.event.pull_request.head.sha || github.sha }}
           env: demo
