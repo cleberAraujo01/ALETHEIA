@@ -334,42 +334,36 @@ Ironia produtiva: uma plataforma de qualidade precisa de qualidade exemplar.
 
 > Atualize esta seção a cada transição de fase.
 
-**Fase atual:** Fase 0 — Prova de vida do oráculo. **Critério de saída atingido em 2026-08-11** ([`docs/medicao-fase-0.md`](./docs/medicao-fase-0.md)): 5 defeitos distintos bloqueados de 9 presentes, 0% de falso positivo, e um PR real da mesma aplicação passou sem nenhum delta bloqueante.
+**Fase atual:** **Fase 1 — Cunha comercial.** Aberta em 2026-08-17 na branch `fase/1-cunha-comercial`, a partir de `main` `b0b7494`. Proposta (§21.3 da arquitetura): *"Detecção autônoma de regressão em todo Pull Request."* Escopo estreito, dor enorme, valor no dia 1, zero configuração.
 
-**Escopo permitido agora:**
-- Diff Engine (DOM, rede, visual, console)
-- CLI mínima
-- Relatório JSON e HTML
+**A Fase 0 foi encerrada em 2026-08-17.** Critério atingido em 2026-08-11 e medido em [`docs/medicao-fase-0.md`](./docs/medicao-fase-0.md); o que ela legou e continua valendo está no fim desta seção. **Não reabra a Fase 0** — o item que ficou (falso positivo contra mudança legítima) foi analisado até o fundo e depende de evidência que só uso real produz, ou de O2, que é Fase 2.
 
-**Explicitamente fora de escopo nesta fase:** World Model, LLM em qualquer lugar, UI, capabilities de banco, shims além da CLI, integrações.
+### Escopo permitido — na ordem da cunha, uma fatia por vez
 
-**Critério de saída:** detectar ≥ 5 regressões reais em aplicação real com < 10% de falso positivo, sem uma única linha de teste escrita.
+A ordem importa mais que a lista. Cada fatia entra em branch curta a partir de `fase/1-cunha-comercial`, é **demonstrável de ponta a ponta** ("PR aberto → comentário") antes de a próxima começar, e nenhuma fatia começa "em paralelo porque é independente" — R-14 é o risco de execução número um deste projeto, e independência aparente é como ele se realiza.
 
-**O segundo corpus existe desde 2026-08-13** (`packages/diff-engine/__corpus__/oscar/`, §10 da medição): django-oscar, Python/Django renderizado no servidor. 4 de 7 defeitos bloqueados, 0% de falso positivo no corpus de defeito, 7 de 7 visíveis.
+| # | Épico | O que entrega | Por que nesta posição |
+|---|---|---|---|
+| 1 | **E-06** CLI genérica + shim GitHub Actions | `aletheia run` sobre o que já existe (captura + diff O5) e **comentário estruturado no PR** com o relatório agrupado | Torna o demo real com o motor de hoje, antes de existir IR, banco ou seletor. Shim < 60 linhas, três coisas: autenticar, invocar, publicar (PA-11) |
+| 2 | **E-03 + E-04** IR v1 + runner interpretador | Jornada com **ações** (clique, digitação, submit), não só URLs | É o que faz o oráculo alcançar o que está atrás de um formulário. Nasce com migração de versão testada nas duas direções (§7) |
+| 3 | **E-05** seletores multi-sinal + repositório de elementos | `targetRef` resolvido por consenso; cura registrada (PA-08) | Só faz sentido depois de haver ação para mirar |
+| 4 | **E-02** diff de banco (read-only) | Camada `DATABASE` no diff, via capability `READ` compilada (PA-04, §14.3) | É o diferencial da cunha (§21.3), e é a fatia de maior risco de princípio: entra depois de o resto estar demonstrável, nunca antes |
+| 5 | **E-07** ambiente efêmero via template clone | `confidenceMode: ISOLATED` de verdade | Pré-requisito escondido (§15.4); até lá o demo roda `PARTITIONED`/`SHARED_DEGRADED` **declarado** no relatório (RN-EXE-007) |
 
-**E ele cobrou caro em falso positivo** (§10.6). O corpus de mudança intencional do oscar — quatro mudanças reais e legítimas do projeto upstream — produziu **22 deltas bloqueantes, todos falso positivo**, de duas regras: 20 de **"nó interativo removido → HIGH"** (o menu passou a listar só categorias de primeiro nível) e 2 de **"nó com texto removido → HIGH"** (uma reembalagem em que o texto nem desapareceu, só trocou de invólucro). A regra `href`/`action` → HIGH sobreviveu e saiu mais forte.
+**Fora de escopo nesta fase — sinalize antes de implementar:** World Model (F2); **LLM em qualquer lugar**, inclusive Narrator (F3+); UI web; capabilities `WRITE`/`DESTRUCTIVE`; shims além de GitHub Actions e CLI; verificador de invariantes; oráculos além de O5 (O2 é F2); integrações além do GitHub; qualquer coisa que dependa de conector.
 
-**Os 2 de reembalagem já foram consertados** (§10.7): `textPreserved` no `DOM_NODE_REMOVED` separa conteúdo perdido de conteúdo reembalado, a custo zero de detecção nos dois corpora de defeito.
+**Critério de saída (§21.3):** demo **"PR aberto → comentário em < 5 min"** funcionando em aplicação de cliente; **3 clientes-piloto**; NPS de piloto ≥ 40. Medição documentada em `docs/medicao-fase-1.md`, no padrão da Fase 0: o que foi medido, contra o quê, o que ficou de fora. Merge de `fase/1-cunha-comercial` em `main` só com isso.
 
-**O placar de falso positivo contra mudança legítima é 2 de 3 PRs reais** (§10.9): 0 bloqueantes no primeiro PR do juventude, **11 no segundo** (`910181f`, que remove a rota `/apoie`), **20 no oscar**. O "0%" que fechou a fase foi medido no único dos três que não exercita nenhuma das duas regras. **A regra `href` → HIGH deixou de estar vindicada** — ela produz 1 dos 11, num link legitimamente reapontado para a página que substituiu a removida.
+### O que a Fase 0 legou — vale como lei operacional
 
-**Os 20 e os 11 são o item aberto mais importante do projeto — e NÃO são um problema de regra** (§10.8). A ablação nos quatro pares mostrou que os 20 deltas são interativos **e** com texto perdido ao mesmo tempo: as duas regras os marcam HIGH independentemente, e só somem retirando as duas — ao custo de 4 defeitos, que é a troca que PA-10 proíbe. É problema de **sinal**: "tiraram o item do menu de propósito" e "o link quebrou" produzem evidência idêntica no DOM.
+- **Detecção: 6/9 no juventude, 6/7 no oscar**, precisão bloqueante 1,000 nos dois corpora de defeito. O que passa é uma família só — consequência puramente visual (`F1`, `F2`, `F3`, `O2`) — presa pelo `VISUAL_SEVERITY_CEILING`, decisão declarada que só se revê com proximidade ao diff de código (F2). **Não suba o teto visual antes disso.**
+- **Falso positivo contra mudança legítima: 31 em 3 PRs reais** (§10.9) — 20 no oscar (padrão de aplicação: menu gerado do catálogo), 11 no juventude (decisão pontual). Está medido por ablação que **não é problema de regra**: severidade já foi tentada e custa 4 defeitos (§10.8). **Não tente resolver mexendo em severidade.**
+- **Supressão aprendida existe** (§10.12): regra declarativa por aplicação, `PROPOSED → ACTIVE | REJECTED | RETIRED`, `aletheia suppress propose|simulate`, `diff --suppressions`. Cobre os 20 em tese; **nenhuma regra ativável** — ativar exige 3 execuções distintas e há 1 PR por aplicação. **Os pilotos da Fase 1 são de onde essa evidência deve vir**; não a fabrique com pares sintéticos. Os 11 do juventude são `INTENDED_CHANGE` e só O2 resolve.
+- **O relatório agrupa por assinatura** (§10.13): 135 bloqueantes viram 10 grupos, pureza conferida contra os rótulos. Grupo é causa provável, não commit provado; **não alargue a assinatura sem tipo** — teria apagado `O4`.
+- **Toda mudança no `diff-engine` reporta os oito pares** (`pnpm corpora:medir`) — quatro de medição, quatro de piso —, e **toda regra nova de severidade ou normalização passa por piso de ruído em aplicação de stack estranha** antes de ser considerada estável. Duas capturas da mesma build, dois minutos, já derrubaram regra três vezes.
+- **Achado de normalização em aberto, cabe em branch curta a qualquer momento:** `_rsc=<token>` do Next.js (identidade de sessão em query) espalha um mesmo evento por vários grupos e é a mesma família dos três pisos. Não bloqueia a fase.
 
-Das três direções da §10.6, só **supressão aprendida** sobrevive à medição, porque age depois da severidade e funciona num sinal sobredeterminado. **Ela existe desde 2026-08-17** (§10.12 da medição): regra declarativa por aplicação com esqueleto de caminho, ciclo `PROPOSED → ACTIVE | REJECTED | RETIRED`, aprendizado a partir dos rótulos `NOISE`, simulação de custo, e barreira que recusa assinatura que case regressão rotulada. Apontada para os dois PRs legítimos, aprendeu **2 regras `PROPOSED` no oscar** (as 20 do menu; custo zero simulado nos 7 defeitos, porque a assinatura leva o tipo) e **nenhuma no juventude** — os 11 são `INTENDED_CHANGE`, decisão pontual, e suprimi-los ensinaria o motor a ignorar o rodapé onde `F6` mora. **Nenhuma pode ser ativada:** ativar exige 3 execuções distintas e há 1 PR legítimo por aplicação. É a barreira do §6.4 funcionando no primeiro dia, não o mecanismo falhando. O que falta é corpus — dois PRs do oscar que mexam no menu —, não código. **Não tente resolver mexendo em severidade** — já está medido que não dá. E não invente evidência: o aprendizado deduplica por `deltaId`, então re-diffar o mesmo par não conta.
-
-**A junta comum dos dois corpora fechou** (§10.11 da medição, 2026-08-16). `F7` no `juventude` (`required` perdido), `O3` e `O7` no `oscar` (`value` virando `None`, `alt` removido) eram todos mudança de atributo com consequência comportamental que o motor não inferia da mudança em si. Três regras de **consequência** — restrição relaxada, valor que vira sentinela, nome acessível perdido sem texto de sobra — levaram a detecção de **5/9 para 6/9** e de **4/7 para 6/7**, com os 110 deltas casados todos rotulados como regressão e **zero ocorrência nos sete pares sem defeito**. Falso positivo inalterado nos quatro pares.
-
-**O relatório agrupa deltas por assinatura desde 2026-08-17** (§10.13 da medição): mesma camada, tipo e esqueleto de caminho, em qualquer página — a mesma chave da supressão aprendida. Os 135 bloqueantes do oscar viram 10 grupos, os 56 do juventude viram 27, e a pureza é conferida contra os rótulos de defeito (`assessGrouping`, na bancada): zero grupos misturam defeitos, zero misturam regressão com ruído. Grupo é **causa provável**, não commit provado; a unidade da medição continua sendo o defeito rotulado, e o grupo não muda veredito, severidade nem classificação. Visual não agrupa entre páginas de propósito. Não alargue a assinatura para juntar mais: sem tipo, ela teria apagado `O4`.
-
-**O que ainda passa é de uma família só: consequência puramente visual.** `F1`, `F2` e `F3` no juventude (splash, contraste) e `O2` no oscar (menu empilha por mudança de classe). Todos presos pelo `VISUAL_SEVERITY_CEILING`, que é decisão declarada e só se revê com proximidade ao diff de código — Fase 2. Não tente subir o teto visual antes disso.
-
-**Antes de considerar estável qualquer regra nova de severidade ou normalização**, rode o piso de ruído numa aplicação de stack estranha: duas capturas da mesma build, sem build nem login, dois minutos (comandos na §11 da medição). Zero delta bloqueante é o mínimo aceitável. Três aplicações desconhecidas, três achados de normalização — sempre identidade de sessão ou token, nunca severidade errada. O teste continua pagando.
-
-**Toda mudança no `diff-engine` reporta delta de precisão e recall nos DOIS corpora de defeito** — `__corpus__/juventude/` e `__corpus__/oscar/` — e no de mudança intencional. Detectar mais é trivial se reprovar todo mundo for aceitável; o par de números é que diz alguma coisa.
-
-> Se lhe pedirem para construir algo fora do escopo da fase atual, **sinalize antes de implementar**. O maior risco de execução deste projeto é escopo simultâneo (R-14).
-
----
+> Se lhe pedirem para construir algo fora do escopo da fatia atual, **sinalize antes de implementar**. O maior risco de execução deste projeto é escopo simultâneo (R-14).
 
 ## 9. Checklist antes de abrir PR
 
@@ -416,7 +410,7 @@ Das três direções da §10.6, só **supressão aprendida** sobrevive à mediç
 2. No mesmo commit, atualizar §8 deste documento com escopo permitido, escopo proibido e critério de saída da fase
 3. Publicar a branch e aplicar branch protection
 
-> A Fase 0 foi desenvolvida direto na `main`, antes desta regra existir. Não há branch `fase/0-oraculo` retroativa — criar uma agora seria ficção. A regra vale a partir da Fase 1.
+> A Fase 0 foi desenvolvida direto na `main`, antes desta regra existir. Não há branch `fase/0-oraculo` retroativa — criar uma agora seria ficção. A regra vale a partir da Fase 1 — e a Fase 1 nasceu assim: `fase/1-cunha-comercial`, aberta em 2026-08-17 a partir de `main` `b0b7494`, com o §8 reescrito no mesmo commit.
 
 **Durante a fase.** Todo trabalho sai da branch da fase em branch curta (`feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`), com vida máxima de 3 dias. Branch de trabalho curta existe para que a branch de fase não divirja de `main` por três meses e o merge final não vire um evento de risco.
 

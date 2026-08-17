@@ -7,6 +7,9 @@ sem uma única linha de teste escrita.
 0% de falso positivo no recorte bloqueante, 9 de 9 defeitos visíveis na triagem.
 Um PR legítimo da mesma aplicação passou sem nenhum delta bloqueante.
 
+**Fase encerrada em 2026-08-17.** A Fase 1 (`fase/1-cunha-comercial`) começou com o §8 do
+`CLAUDE.md` reescrito; o que esta medição legou como lei operacional está resumido lá.
+
 Este documento existe para que o número acima possa ser contestado. Ele registra
 o que foi medido, contra o quê, o que ficou de fora e o que ainda não sabemos.
 
