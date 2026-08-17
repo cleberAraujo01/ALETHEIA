@@ -34,6 +34,12 @@ export type PlatformErrorCode =
   | "IR_VERSION_UNSUPPORTED"
   /** Um passo da jornada não pôde ser executado: alvo não encontrado, ambíguo, ação recusada pela página. */
   | "STEP_FAILED"
+  /** Capability fora do schema ou reprovada na validação estática (§14.3). */
+  | "CAPABILITY_INVALID"
+  /** Capability válida mas não executável aqui: não aprovada, ambiente não permitido, operação não suportada. */
+  | "CAPABILITY_REJECTED"
+  /** Banco inalcançável ou URL de conexão não suportada. Nunca carrega a URL no contexto. */
+  | "DATABASE_UNREACHABLE"
   /** Convergência não atingida dentro do deadline (RN-EXE-006). */
   | "TIMEOUT_CONVERGENCE"
   /** Invariante interna do nosso próprio código foi violada. Sempre bug nosso. */

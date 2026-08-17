@@ -7,6 +7,7 @@ import {
   type IrJourney,
   type IrStep,
   type IrValue,
+  type DatabaseProbe,
   type Rect,
   type Target,
   type TargetSpec,
@@ -128,7 +129,11 @@ export function parseIr(raw: unknown, source: string): IrJourney {
         const masks = Array.isArray(masksRaw)
           ? masksRaw.map((mask, at) => parseRect(mask, `${where}.masks[${at}]`, fail))
           : [];
-        return { id: stepId, action: "observe", observationId, masks };
+        const databaseRaw = entry["database"];
+        const database = Array.isArray(databaseRaw)
+          ? databaseRaw.map((probe, at) => parseProbe(probe, `${where}.database[${at}]`, fail))
+          : [];
+        return { id: stepId, action: "observe", observationId, masks, database };
       }
     }
   });
@@ -226,6 +231,33 @@ function parseValue(
     return { secretRef: raw["secretRef"] };
   }
   return fail(where, "string ou { secretRef: NOME_DA_VARIAVEL_DE_AMBIENTE }");
+}
+
+const CAPABILITY_NAME = /^[a-z][a-zA-Z0-9]*\.[a-z][a-zA-Z0-9]*$/;
+
+function parseProbe(
+  raw: unknown,
+  where: string,
+  fail: (path: string, reason: string) => never,
+): DatabaseProbe {
+  if (!isRecord(raw)) return fail(where, "objeto esperado");
+  const capability = raw["capability"];
+  if (typeof capability !== "string" || !CAPABILITY_NAME.test(capability)) {
+    return fail(
+      `${where}.capability`,
+      "esperado nome de capability `<domínio>.<verbo>` — a jornada nunca carrega SQL",
+    );
+  }
+  const paramsRaw = raw["params"] ?? {};
+  if (!isRecord(paramsRaw)) return fail(`${where}.params`, "objeto esperado");
+  const params: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(paramsRaw)) {
+    if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") {
+      return fail(`${where}.params.${key}`, "escalar esperado (string, número ou booleano)");
+    }
+    params[key] = value;
+  }
+  return { capability, params };
 }
 
 function parseRect(

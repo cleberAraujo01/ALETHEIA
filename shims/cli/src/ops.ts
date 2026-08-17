@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
+import { loadCatalog, openExecutor, type CapabilityExecutor } from "@aletheia/capabilities";
 import {
   compileLearnedRules,
   parseCapture,
@@ -11,7 +12,7 @@ import {
   type SuppressionRule,
 } from "@aletheia/diff-engine";
 import { IR_VERSION, loadJourney } from "@aletheia/ir";
-import { capture as runCapture, type CaptureTrace } from "@aletheia/runner";
+import { capture as runCapture, type CaptureTrace, type DatabaseAccess } from "@aletheia/runner";
 import { parseElementRepository, type ElementRepository } from "@aletheia/selector-engine";
 import { PlatformError, systemClock, type Logger, type RunMetadata } from "@aletheia/shared";
 
@@ -52,6 +53,34 @@ export async function performCapture(
       ? null
       : parseElementRepository(await readJson(args.elements, "IR_INVALID"), args.elements);
 
+  // Banco por capability (§14, PA-04): a URL fica AQUI, no shim, e morre com o
+  // executor. O runner recebe uma função que executa capability por nome; o
+  // catálogo é lido do diretório versionado do cliente.
+  let executor: CapabilityExecutor | null = null;
+  if (args.db !== null) {
+    if (args.capabilities === null) {
+      throw new PlatformError("CAPTURE_INVALID", {
+        reason:
+          "--db exige --capabilities <dir|arquivo> — sem catálogo aprovado não há o que executar",
+      });
+    }
+    executor = openExecutor(args.db, {
+      catalog: loadCatalog(resolve(args.capabilities)),
+      environment: args.dbEnvironment,
+      logger,
+    });
+  }
+  const opened = executor;
+  const database: DatabaseAccess | null =
+    opened === null
+      ? null
+      : {
+          execute: async (capability, params) => ({
+            ...(await opened.execute(capability, params)),
+            error: null,
+          }),
+        };
+
   logger.info("captura iniciada", {
     baseUrl: args.url,
     journey: journey.id,
@@ -76,9 +105,10 @@ export async function performCapture(
     headed: args.headed,
     quiescence: { deadlineMs: args.deadlineMs, quietWindowMs: 250 },
     elements,
+    database,
     logger,
     clock: systemClock,
-  });
+  }).finally(() => opened?.close());
 
   await writeJson(captureFilePath, result.capture);
   await writeJson(traceFilePath, result.trace);
@@ -221,7 +251,7 @@ export function renderConsoleSummary(report: DiffReport, reportPaths: readonly s
     `  oráculo      ${report.oracle} — teste diferencial contra a build base`,
     `  deltas       ${report.summary.total}  ·  regressões ${report.summary.byClassification.REGRESSION}  ·  indeterminados ${report.summary.byClassification.UNDETERMINED}  ·  ruído ${report.summary.byClassification.NOISE}`,
     `  grupos       ${report.summary.groups.total}  ·  de regressão ${report.summary.groups.REGRESSION}  —  um grupo é uma causa provável (mesmo tipo, mesmo lugar, qualquer página)`,
-    `  camadas      DOM ${report.summary.byLayer.DOM}  ·  rede ${report.summary.byLayer.NETWORK}  ·  visual ${report.summary.byLayer.VISUAL}  ·  console ${report.summary.byLayer.CONSOLE}`,
+    `  camadas      DOM ${report.summary.byLayer.DOM}  ·  rede ${report.summary.byLayer.NETWORK}  ·  visual ${report.summary.byLayer.VISUAL}  ·  console ${report.summary.byLayer.CONSOLE}  ·  banco ${report.summary.byLayer.DATABASE}`,
     `  observações  ${report.coverage.observationsCompared} comparada(s)`,
     `  não validado ${report.coverage.layersNotValidated.map((gap) => gap.layer).join(", ")}`,
     `  relatórios   ${reportPaths.join("  ")}`,

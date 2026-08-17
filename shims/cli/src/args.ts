@@ -54,6 +54,10 @@ export interface RunCommandArgs {
   readonly deadlineMs: number;
   readonly failOnRegression: boolean;
   readonly elements: string | null;
+  readonly baseDb: string | null;
+  readonly headDb: string | null;
+  readonly capabilities: string | null;
+  readonly dbEnvironment: DbEnvironment;
 }
 
 export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
@@ -88,6 +92,10 @@ export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
     deadlineMs: deadline,
     failOnRegression: flags.get("fail-on") !== "none",
     elements: optional(flags, "elements"),
+    baseDb: optional(flags, "base-db"),
+    headDb: optional(flags, "head-db"),
+    capabilities: optional(flags, "capabilities"),
+    dbEnvironment: dbEnvironmentOf(flags),
   };
 }
 
@@ -140,6 +148,31 @@ export interface CaptureCommandArgs {
   readonly deadlineMs: number;
   /** Repositório de elementos (§12.3) para alvos `{ ref }`. */
   readonly elements: string | null;
+  /** URL de conexão do banco desta build (`sqlite:<arquivo>`). Nunca logada. */
+  readonly db: string | null;
+  /** Diretório ou arquivo de capabilities YAML (§14.3). */
+  readonly capabilities: string | null;
+  /** Ambiente para `allowedEnvironments` das capabilities. */
+  readonly dbEnvironment: DbEnvironment;
+}
+
+export type DbEnvironment = "ephemeral" | "isolated" | "staging" | "production";
+const DB_ENVIRONMENTS: readonly DbEnvironment[] = [
+  "ephemeral",
+  "isolated",
+  "staging",
+  "production",
+];
+
+function dbEnvironmentOf(flags: Map<string, string>): DbEnvironment {
+  const value = (flags.get("db-env") ?? "staging") as DbEnvironment;
+  if (!DB_ENVIRONMENTS.includes(value)) {
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: `--db-env desconhecido: ${value}`,
+      supported: DB_ENVIRONMENTS.join(", "),
+    });
+  }
+  return value;
 }
 
 export interface MeasureCommandArgs {
@@ -177,6 +210,9 @@ export function parseCaptureArgs(argv: readonly string[]): CaptureCommandArgs {
     headed: flags.get("headed") === "true" || flags.get("headed") === "",
     deadlineMs: deadline,
     elements: optional(flags, "elements"),
+    db: optional(flags, "db"),
+    capabilities: optional(flags, "capabilities"),
+    dbEnvironment: dbEnvironmentOf(flags),
   };
 }
 

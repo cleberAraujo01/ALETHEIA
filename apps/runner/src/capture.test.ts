@@ -80,7 +80,7 @@ const options = (ir: IrJourney, elements: ElementRepository | null = null) => ({
   secrets: (name: string) => (name === "TEST_SECRET" ? SECRET : undefined),
   logger: createLogger({
     context: { runId: "run_test", orgId: null, projectId: null },
-    level: "error",
+    minLevel: "error",
   }),
   clock: systemClock,
 });
@@ -91,7 +91,7 @@ describe("interpretador da IR", () => {
       options(
         journey([
           { id: "s1", action: "navigate", path: "/" },
-          { id: "s2", action: "observe", observationId: "entrar", masks: [] },
+          { id: "s2", action: "observe", observationId: "entrar", masks: [], database: [] },
           { id: "s3", action: "fill", target: { label: "Nome" }, value: "Ana" },
           {
             id: "s4",
@@ -101,7 +101,7 @@ describe("interpretador da IR", () => {
           },
           { id: "s5", action: "select", target: { label: "Perfil" }, value: "editor" },
           { id: "s6", action: "click", target: { role: "button", name: "Entrar" } },
-          { id: "s7", action: "observe", observationId: "ola", masks: [] },
+          { id: "s7", action: "observe", observationId: "ola", masks: [], database: [] },
         ]),
       ),
     );
@@ -145,9 +145,9 @@ describe("interpretador da IR", () => {
       options(
         journey([
           { id: "s1", action: "navigate", path: "/" },
-          { id: "s2", action: "observe", observationId: "entrar", masks: [] },
+          { id: "s2", action: "observe", observationId: "entrar", masks: [], database: [] },
           { id: "s3", action: "click", target: { role: "button", name: "Sair" } },
-          { id: "s4", action: "observe", observationId: "depois", masks: [] },
+          { id: "s4", action: "observe", observationId: "depois", masks: [], database: [] },
         ]),
       ),
     );
@@ -167,7 +167,7 @@ describe("interpretador da IR", () => {
         journey([
           { id: "s1", action: "navigate", path: "/" },
           { id: "s2", action: "click", target: { text: "Ver" } },
-          { id: "s3", action: "observe", observationId: "x", masks: [] },
+          { id: "s3", action: "observe", observationId: "x", masks: [], database: [] },
         ]),
       ),
     );
@@ -178,7 +178,7 @@ describe("interpretador da IR", () => {
         journey([
           { id: "s1", action: "navigate", path: "/" },
           { id: "s2", action: "click", target: { text: "Ver", nth: 1 } },
-          { id: "s3", action: "observe", observationId: "x", masks: [] },
+          { id: "s3", action: "observe", observationId: "x", masks: [], database: [] },
         ]),
       ),
     );
@@ -201,7 +201,7 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
     journey([
       { id: "s1", action: "navigate", path: `/${page}` },
       { id: "s2", action: "click", target },
-      { id: "s3", action: "observe", observationId: "depois", masks: [] },
+      { id: "s3", action: "observe", observationId: "depois", masks: [], database: [] },
     ]);
 
   const CASES: {
@@ -286,7 +286,7 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
         journey([
           { id: "s1", action: "navigate", path: "/mut-testid-renomeado.html" },
           { id: "s2", action: "click", target: { ref: "el_btn_entrar" } },
-          { id: "s3", action: "observe", observationId: "depois", masks: [] },
+          { id: "s3", action: "observe", observationId: "depois", masks: [], database: [] },
         ]),
         repository,
       ),
@@ -302,10 +302,89 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
           journey([
             { id: "s1", action: "navigate", path: "/index.html" },
             { id: "s2", action: "click", target: { ref: "el_x" } },
-            { id: "s3", action: "observe", observationId: "d", masks: [] },
+            { id: "s3", action: "observe", observationId: "d", masks: [], database: [] },
           ]),
         ),
       ),
     ).rejects.toMatchObject({ code: "IR_INVALID" });
   }, 60_000);
+});
+
+describe("sondas de banco no observe (O6)", () => {
+  const probeStep = (capabilities: readonly string[]): IrStep => ({
+    id: "s2",
+    action: "observe",
+    observationId: "entrar",
+    masks: [],
+    database: capabilities.map((capability) => ({ capability, params: { orderId: 42 } })),
+  });
+  const withAccess = (ir: IrJourney) => ({
+    ...options(ir),
+    database: {
+      execute: (
+        capability: string,
+        params: Readonly<Record<string, string | number | boolean>>,
+      ) => {
+        if (capability === "order.getDiscount") {
+          return Promise.resolve({
+            capability,
+            params,
+            columns: ["id", "discount_pct", "customer_email"],
+            rows: [[42, 15, "<masked:abc>"]],
+            rowCount: 1,
+            truncated: false,
+            keyColumns: ["id"],
+            volatileColumns: [],
+            maskedColumns: ["customer_email"],
+            durationMs: 1,
+            error: null,
+          });
+        }
+        return Promise.reject(
+          new PlatformError("CAPABILITY_REJECTED", { capability, reason: "status PROPOSED" }),
+        );
+      },
+    },
+  });
+
+  it("o resultado da capability entra na observação; a que falhou vira `error`, não derruba a captura", async () => {
+    const result = await capture(
+      withAccess(
+        journey([
+          { id: "s1", action: "navigate", path: "/" },
+          probeStep(["order.getDiscount", "order.countAll"]),
+        ]),
+      ),
+    );
+    const database = result.capture.observations[0]?.database ?? [];
+    expect(database).toHaveLength(2);
+    expect(database[0]).toMatchObject({
+      capability: "order.getDiscount",
+      rows: [[42, 15, "<masked:abc>"]],
+      error: null,
+    });
+    expect(database[1]).toMatchObject({
+      capability: "order.countAll",
+      rows: [],
+      error: "CAPABILITY_REJECTED: status PROPOSED",
+    });
+    expect(result.capture.interruption).toBeNull();
+  });
+
+  it("observe sem sonda tem database null — lacuna declarada, não lista vazia", async () => {
+    const result = await capture(
+      withAccess(journey([{ id: "s1", action: "navigate", path: "/" }, probeStep([])])),
+    );
+    expect(result.capture.observations[0]?.database).toBeNull();
+  });
+
+  it("sonda declarada sem acesso a banco é erro de IR (plataforma), não interrupção", async () => {
+    await expect(
+      capture(
+        options(
+          journey([{ id: "s1", action: "navigate", path: "/" }, probeStep(["order.getDiscount"])]),
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "IR_INVALID" });
+  });
 });

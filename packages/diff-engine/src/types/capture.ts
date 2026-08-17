@@ -7,7 +7,7 @@
  * contra corpus versionado (§7 do CLAUDE.md).
  */
 
-export const CAPTURE_VERSION = "0.3.0";
+export const CAPTURE_VERSION = "0.4.0";
 
 /**
  * Versões de captura que esta build do motor sabe ler.
@@ -18,7 +18,7 @@ export const CAPTURE_VERSION = "0.3.0";
  * interrompida. Rejeitar versão antiga invalidaria o corpus de referência já
  * coletado, que é o ativo mais caro do projeto.
  */
-export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.3.0"];
+export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.3.0", "0.4.0"];
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -77,6 +77,32 @@ export interface Observation {
    */
   readonly console: readonly ConsoleEntry[] | null;
   readonly screenshot: ScreenshotRef | null;
+  /**
+   * Resultado das capabilities READ executadas neste ponto da jornada (O6,
+   * §14). `null` = nenhuma sonda declarada; a camada de banco aparece como
+   * lacuna declarada. Versões ≤ 0.3.0 não têm o campo e são lidas como `null`.
+   */
+  readonly database: readonly DatabaseObservation[] | null;
+}
+
+/**
+ * Uma capability executada: colunas, linhas (valores JÁ mascarados na borda do
+ * executor — RN-DAT-008), e o que o diff precisa para alinhar sem adivinhar:
+ * `keyColumns` e `volatileColumns` vêm da própria capability.
+ */
+export interface DatabaseObservation {
+  readonly capability: string;
+  readonly params: Readonly<Record<string, string | number | boolean>>;
+  readonly columns: readonly string[];
+  readonly rows: readonly (readonly (string | number | boolean | null)[])[];
+  readonly rowCount: number;
+  readonly truncated: boolean;
+  readonly keyColumns: readonly string[];
+  readonly volatileColumns: readonly string[];
+  readonly maskedColumns: readonly string[];
+  readonly durationMs: number;
+  /** A capability falhou neste lado: o motivo, sem valores nem URL. */
+  readonly error: string | null;
 }
 
 /**

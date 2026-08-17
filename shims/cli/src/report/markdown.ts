@@ -94,7 +94,7 @@ export function renderPrComment(report: DiffReport, options: PrCommentOptions = 
     "<details><summary>Resumo e execução</summary>",
     "",
     `- deltas: ${report.summary.total} · regressões ${report.summary.byClassification.REGRESSION} · indeterminados ${undetermined} · ruído suprimido ${report.summary.byClassification.NOISE}`,
-    `- camadas: DOM ${report.summary.byLayer.DOM} · rede ${report.summary.byLayer.NETWORK} · visual ${report.summary.byLayer.VISUAL} · console ${report.summary.byLayer.CONSOLE}`,
+    `- camadas: DOM ${report.summary.byLayer.DOM} · rede ${report.summary.byLayer.NETWORK} · visual ${report.summary.byLayer.VISUAL} · console ${report.summary.byLayer.CONSOLE} · banco ${report.summary.byLayer.DATABASE}`,
     `- normalizações aplicadas: ${report.normalization.total} · regras de supressão em vigor: ${report.suppression.activeRuleIds.length}${report.suppression.activeRuleIds.length > 0 ? ` (${report.suppression.activeRuleIds.join(", ")})` : ""}`,
     `- runId \`${report.metadata.runId}\` · commit ${code(report.metadata.commit ?? "—")} · baseRef ${code(report.metadata.baseRef ?? "—")} · ambiente ${code(report.metadata.environment)} · seed ${code(report.metadata.seed)}`,
     `- runner ${code(report.metadata.runnerVersion)} · browser ${code(report.metadata.browserVersion ?? "—")} · relatório ${code(report.reportVersion)}`,

@@ -8,6 +8,7 @@ export type {
   CaptureInterruption,
   CaptureTarget,
   ConsoleEntry,
+  DatabaseObservation,
   DomNode,
   JsonValue,
   NetworkExchange,

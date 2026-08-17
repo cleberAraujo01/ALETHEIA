@@ -56,6 +56,10 @@ Opções de run:
   --deadline <ms>         Deadline de convergência               (default: 15000)
   --fail-on none          Não altera o código de saída em caso de regressão
   --elements <arquivo>    Repositório de elementos para alvos { ref } na jornada
+  --base-db <url>         Banco da build base (sqlite:<arquivo>) — só com --capabilities
+  --head-db <url>         Banco da build head (sqlite:<arquivo>)
+  --capabilities <dir>    Catálogo de capabilities YAML (§14.3); só READ APPROVED executa
+  --db-env <ambiente>     ephemeral | isolated | staging | production (default: staging)
 
 Opções de capture:
   --url <baseUrl>         URL base da build a observar           (obrigatório)
@@ -68,6 +72,9 @@ Opções de capture:
   --headed                Abre o browser visível, para acompanhar a navegação
   --deadline <ms>         Deadline de convergência               (default: 15000)
   --elements <arquivo>    Repositório de elementos para alvos { ref } na jornada
+  --db <url>              Banco desta build (sqlite:<arquivo>) — só com --capabilities
+  --capabilities <dir>    Catálogo de capabilities YAML (§14.3)
+  --db-env <ambiente>     ephemeral | isolated | staging | production (default: staging)
 
 Opções de diff:
   --base <arquivo>        Captura da build de referência         (obrigatório)

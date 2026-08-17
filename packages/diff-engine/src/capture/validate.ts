@@ -4,6 +4,7 @@ import {
   SUPPORTED_CAPTURE_VERSIONS,
   type Capture,
   type ConsoleEntry,
+  type DatabaseObservation,
   type DomNode,
   type JsonValue,
   type NetworkExchange,
@@ -102,10 +103,55 @@ function parseObservation(raw: unknown, path: string, source: string): Observati
         : requireArray(node["console"], `${path}.console`, source).map((entry, index) =>
             parseConsoleEntry(entry, `${path}.console[${index}]`, source),
           ),
+    database:
+      node["database"] == null
+        ? null
+        : requireArray(node["database"], `${path}.database`, source).map((entry, index) =>
+            parseDatabaseObservation(entry, `${path}.database[${index}]`, source),
+          ),
     screenshot:
       node["screenshot"] == null
         ? null
         : parseScreenshot(node["screenshot"], `${path}.screenshot`, source),
+  };
+}
+
+function parseDatabaseObservation(raw: unknown, path: string, source: string): DatabaseObservation {
+  const node = requireObject(raw, path, source);
+  const columns = requireArray(node["columns"], `${path}.columns`, source).map((entry, index) =>
+    requireString(entry, `${path}.columns[${index}]`, source),
+  );
+  const rows = requireArray(node["rows"], `${path}.rows`, source).map((row, rowIndex) =>
+    requireArray(row, `${path}.rows[${rowIndex}]`, source).map((cell) =>
+      typeof cell === "string" || typeof cell === "number" || typeof cell === "boolean"
+        ? cell
+        : null,
+    ),
+  );
+  const strings = (key: string): string[] =>
+    node[key] === undefined
+      ? []
+      : requireArray(node[key], `${path}.${key}`, source).map((entry, index) =>
+          requireString(entry, `${path}.${key}[${index}]`, source),
+        );
+  const paramsRaw = requireObject(node["params"] ?? {}, `${path}.params`, source);
+  const params: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(paramsRaw)) {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean")
+      params[key] = value;
+  }
+  return {
+    capability: requireString(node["capability"], `${path}.capability`, source),
+    params,
+    columns,
+    rows,
+    rowCount: typeof node["rowCount"] === "number" ? node["rowCount"] : rows.length,
+    truncated: node["truncated"] === true,
+    keyColumns: strings("keyColumns"),
+    volatileColumns: strings("volatileColumns"),
+    maskedColumns: strings("maskedColumns"),
+    durationMs: typeof node["durationMs"] === "number" ? node["durationMs"] : 0,
+    error: optionalString(node["error"], `${path}.error`, source),
   };
 }
 

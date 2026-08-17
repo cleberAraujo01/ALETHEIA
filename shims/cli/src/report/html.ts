@@ -94,6 +94,7 @@ export function renderHtmlReport(report: DiffReport): string {
     <div class="counters">
       ${counter("DOM", report.summary.byLayer.DOM, "")}
       ${counter("Rede", report.summary.byLayer.NETWORK, "")}
+      ${counter("Banco", report.summary.byLayer.DATABASE, "")}
       ${counter("Normalizações aplicadas", report.normalization.total, "muted")}
       ${counter("Regras de supressão", report.suppression.catalogSize, "muted")}
     </div>

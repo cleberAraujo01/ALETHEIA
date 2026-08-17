@@ -2,6 +2,7 @@ import { PlatformError, stableHash, type RunMetadata } from "@aletheia/shared";
 
 import { classify } from "./classify/index.js";
 import { diffConsole } from "./diff/console.js";
+import { diffDatabase } from "./diff/database.js";
 import { diffDom } from "./diff/dom.js";
 import { diffNetwork } from "./diff/network.js";
 import { DEFAULT_DELTA_BUDGET_PER_OBSERVATION, DeltaBudget, type RawDelta } from "./diff/types.js";
@@ -96,6 +97,8 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
   const consoleGaps: string[] = [];
   const networkGaps: string[] = [];
   const visualGaps: string[] = [];
+  const databaseGaps: string[] = [];
+  let databaseProbes = 0;
   const budgetLimit = options.deltaBudgetPerObservation ?? DEFAULT_DELTA_BUDGET_PER_OBSERVATION;
 
   for (const id of onlyInBase) {
@@ -188,6 +191,13 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       consoleGaps.push(id);
     }
 
+    if (baseObservation.database !== null && headObservation.database !== null) {
+      databaseProbes += Math.max(baseObservation.database.length, headObservation.database.length);
+      raw.push(...diffDatabase(id, baseObservation.database, headObservation.database, budget));
+    } else {
+      databaseGaps.push(id);
+    }
+
     if (budget.truncated) truncated.push(id);
   }
 
@@ -216,6 +226,8 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       consoleGaps,
       networkGaps,
       visualGaps,
+      databaseGaps,
+      databaseProbes,
       baseInterruption: base.interruption,
       headInterruption: head.interruption,
     }),
@@ -312,7 +324,13 @@ function summarize(deltas: readonly Delta[], groups: readonly DeltaGroup[]): Dif
     UNDETERMINED: 0,
   };
   const bySeverity: Record<Severity, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
-  const byLayer: Record<DeltaLayer, number> = { DOM: 0, NETWORK: 0, VISUAL: 0, CONSOLE: 0 };
+  const byLayer: Record<DeltaLayer, number> = {
+    DOM: 0,
+    NETWORK: 0,
+    VISUAL: 0,
+    CONSOLE: 0,
+    DATABASE: 0,
+  };
 
   for (const delta of deltas) {
     byClassification[delta.classification] += 1;
@@ -365,6 +383,8 @@ interface CoverageInput {
   readonly networkGaps: readonly string[];
   readonly visualGaps: readonly string[];
   readonly consoleGaps: readonly string[];
+  readonly databaseGaps: readonly string[];
+  readonly databaseProbes: number;
   readonly baseInterruption: Capture["interruption"];
   readonly headInterruption: Capture["interruption"];
 }
@@ -372,16 +392,29 @@ interface CoverageInput {
 function coverageOf(input: CoverageInput): CoverageReport {
   const layersNotValidated: LayerGap[] = [
     {
-      layer: "DATABASE",
-      reason: "diff de banco entra na Fase 1 (E-02)",
-      observations: [],
-    },
-    {
       layer: "TRACE",
       reason: "diff de spans depende de instrumentação OTel (Fase 2)",
       observations: [],
     },
   ];
+
+  // Banco: a camada existe (E-02), mas só compara o que uma capability aprovada
+  // devolveu. Sem sonda declarada na jornada, é lacuna — e a razão diz que a
+  // lacuna é de declaração, não de motor.
+  if (input.databaseProbes === 0) {
+    layersNotValidated.unshift({
+      layer: "DATABASE",
+      reason:
+        "nenhuma capability READ declarada nos `observe` da jornada — o banco só é comparado pelo que uma capability aprovada devolve (§14)",
+      observations: [],
+    });
+  } else if (input.databaseGaps.length > 0) {
+    layersNotValidated.push({
+      layer: "DATABASE",
+      reason: "sondas de banco ausentes em base ou head para estas observações",
+      observations: input.databaseGaps,
+    });
+  }
 
   if (input.domGaps.length > 0) {
     layersNotValidated.push({

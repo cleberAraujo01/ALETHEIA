@@ -23,6 +23,7 @@ export function journeyToIr(journey: LegacyJourney): IrJourney {
       action: "observe",
       observationId: observation.observationId,
       masks: observation.masks,
+      database: [],
     });
   });
   return {
@@ -44,6 +45,14 @@ export function irToJourney(ir: IrJourney): LegacyJourney {
       continue;
     }
     if (step.action === "observe") {
+      if (step.database.length > 0) {
+        throw new PlatformError("IR_INVALID", {
+          source: ir.id,
+          path: step.id,
+          reason:
+            "sonda de banco não existe no formato 0.1.0 — a migração para baixo perderia a capability",
+        });
+      }
       if (pendingPath === null) {
         throw new PlatformError("IR_INVALID", {
           source: ir.id,

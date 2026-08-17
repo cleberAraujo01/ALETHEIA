@@ -6,7 +6,7 @@
  * LLM não participa em momento algum desta fase (PA-01).
  */
 
-export type DeltaLayer = "DOM" | "NETWORK" | "VISUAL" | "CONSOLE";
+export type DeltaLayer = "DOM" | "NETWORK" | "VISUAL" | "CONSOLE" | "DATABASE";
 
 export type DeltaKind =
   // Nível de observação
@@ -37,7 +37,14 @@ export type DeltaKind =
   // Console
   | "CONSOLE_MESSAGE_ADDED"
   | "CONSOLE_MESSAGE_REMOVED"
-  | "CONSOLE_COUNT_CHANGED";
+  | "CONSOLE_COUNT_CHANGED"
+  // Banco (O6)
+  | "DB_ROW_ADDED"
+  | "DB_ROW_REMOVED"
+  | "DB_FIELD_CHANGED"
+  | "DB_ROWCOUNT_CHANGED"
+  | "DB_PROBE_FAILED"
+  | "DB_PROBE_MISSING";
 
 export type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 

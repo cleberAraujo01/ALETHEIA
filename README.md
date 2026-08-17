@@ -34,6 +34,44 @@ O shim (`shims/github-action/`) faz três coisas e nada mais: autentica, invoca
 `run`, publica (comentário no PR, step summary, artefato). Uso e exemplo com
 preview da Vercel em [`shims/github-action/README.md`](./shims/github-action/README.md).
 
+## Banco como oráculo — capabilities `READ`
+
+O banco é a sexta fonte de oráculo (O6, §14): a única que mostra o que de fato
+aconteceu. O acesso é indireto por construção (PA-04): a jornada nomeia uma
+**capability** aprovada — YAML em Git, SQL parametrizado, allowlist de tabelas e
+colunas, sensibilidade, limite de linhas — e o executor recebe nome e
+parâmetros. Ninguém, humano ou modelo, emite SQL em runtime.
+
+```yaml
+# capabilities/order-discount.yaml
+name: order.getDiscount
+operation: READ
+engine: sqlite
+sql: |
+  SELECT o.id, o.discount_pct, o.customer_email FROM orders o WHERE o.id = :orderId
+parameters: { orderId: { type: integer, required: true } }
+allowlist: { tables: [orders], columns: [orders.id, orders.discount_pct, orders.customer_email] }
+sensitivity: { orders.customer_email: PII }     # mascarada por hash na borda
+keyColumns: [id]                                # alinhamento do diff por identidade
+approval: { status: APPROVED, approvedBy: quem }
+```
+
+```json
+{ "id": "st_2", "action": "observe", "observationId": "painel",
+  "database": [{ "capability": "order.getDiscount", "params": { "orderId": 42 } }] }
+```
+
+```powershell
+pnpm capabilities:validate capabilities/          # validação estática (léxica, estrita)
+node shims/cli/dist/main.js run --base-url … --head-url … --journey j.json --capabilities capabilities/ --base-db sqlite:base.db --head-db sqlite:head.db
+pnpm demo:banco                                    # a tela é igual; o desconto no banco não — e o gate reprova
+```
+
+Só `READ` e só `APPROVED` executam; PII e SECRET saem como `<masked:hash>` (comparáveis,
+nunca legíveis); `LIMIT` compulsório; a URL de conexão nunca aparece em log, erro
+ou artefato. Engine desta fase: sqlite (`node:sqlite`, somente leitura); PostgreSQL
+e `EXPLAIN` entram com o primeiro piloto.
+
 ## Observar uma build
 
 ```bash

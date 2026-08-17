@@ -23,7 +23,10 @@
     "protect": "node scripts/branch-protection.mjs",
     "corpus:gate": "node scripts/corpus-gate.mjs",
     "corpus:baseline": "node scripts/corpus-gate.mjs --write-baseline",
-    "corpora:medir": "node scripts/medir-corpora.mjs"
+    "corpora:medir": "node scripts/medir-corpora.mjs",
+    "capabilities:validate": "pnpm --filter @aletheia/capabilities run capabilities:validate",
+    "capabilities:validate:fixtures": "pnpm --filter @aletheia/capabilities run capabilities:validate ../../apps/runner/__fixtures__/capabilities",
+    "demo:banco": "node scripts/demo-banco.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

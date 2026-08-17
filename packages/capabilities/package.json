@@ -1,0 +1,28 @@
+{
+  "name": "@aletheia/capabilities",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit false --emitDeclarationOnly",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "capabilities:validate": "tsx src/validate-cli.ts"
+  },
+  "dependencies": {
+    "@aletheia/shared": "workspace:*",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "vitest": "3.2.7"
+  }
+}
