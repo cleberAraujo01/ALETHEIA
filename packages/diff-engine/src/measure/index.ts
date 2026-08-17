@@ -1,3 +1,4 @@
+import type { DeltaGroup } from "../group/index.js";
 import type { Classification, Delta } from "../types/delta.js";
 
 /**
@@ -292,5 +293,82 @@ export function scaffoldLabels(deltas: readonly Delta[]): Record<string, unknown
       "usam o MESMO identificador, senão um defeito espalhado por sete páginas vira sete " +
       "regressões na contagem. Campos com _ são contexto e são ignorados.",
     labels: entries,
+  };
+}
+
+/**
+ * Quanto o agrupamento por assinatura (`group/`) se aproxima da unidade que
+ * importa — o defeito. Um grupo AFIRMA "mesma causa provável"; a rotulagem
+ * humana tem a causa de verdade. A distância entre as duas é medida aqui e
+ * declarada, nunca escondida atrás de um número de grupos que parece pequeno.
+ *
+ * Dois erros, de gravidade diferente:
+ *  - `mixedDefects`: grupo com deltas rotulados em ≥ 2 defeitos distintos.
+ *    Triagem trata como um problema o que são dois.
+ *  - `mixedWithNonRegression`: grupo com delta rotulado REGRESSION e outro
+ *    rotulado NOISE/INTENDED_CHANGE. É o erro pior — rotular o grupo como
+ *    ruído apagaria uma regressão, e a supressão aprendida usa a mesma chave.
+ */
+export interface GroupingAssessment {
+  readonly groups: number;
+  readonly regressionGroups: number;
+  /** Só grupos com ao menos um delta rotulado entram nas contas abaixo. */
+  readonly labeledGroups: number;
+  readonly mixedDefects: readonly string[];
+  readonly mixedWithNonRegression: readonly string[];
+  /** Em quantos grupos cada defeito rotulado aparece. 1 é o ideal. */
+  readonly groupsPerDefect: Readonly<Record<string, number>>;
+  /**
+   * O mesmo, só entre grupos classificados REGRESSION — o que de fato chega
+   * como bloqueante à triagem. Visual e indeterminado espalham por natureza
+   * (cada região de pixel é um grupo) e não são o que se lê primeiro.
+   */
+  readonly regressionGroupsPerDefect: Readonly<Record<string, number>>;
+}
+
+export function assessGrouping(
+  groups: readonly DeltaGroup[],
+  labels: LabelSet,
+): GroupingAssessment {
+  const mixedDefects: string[] = [];
+  const mixedWithNonRegression: string[] = [];
+  const groupsPerDefect: Record<string, number> = {};
+  const regressionGroupsPerDefect: Record<string, number> = {};
+  let labeledGroups = 0;
+
+  for (const group of groups) {
+    const defects = new Set<string>();
+    let regressionLabeled = 0;
+    let otherLabeled = 0;
+    for (const deltaId of group.deltaIds) {
+      const entry = labels[deltaId];
+      if (entry === undefined) continue;
+      if (entry.label === "REGRESSION") {
+        regressionLabeled += 1;
+        if (entry.defect !== undefined && entry.defect.length > 0) defects.add(entry.defect);
+      } else {
+        otherLabeled += 1;
+      }
+    }
+    if (regressionLabeled + otherLabeled === 0) continue;
+    labeledGroups += 1;
+    if (defects.size >= 2) mixedDefects.push(group.groupId);
+    if (regressionLabeled > 0 && otherLabeled > 0) mixedWithNonRegression.push(group.groupId);
+    for (const defect of defects) {
+      groupsPerDefect[defect] = (groupsPerDefect[defect] ?? 0) + 1;
+      if (group.classification === "REGRESSION") {
+        regressionGroupsPerDefect[defect] = (regressionGroupsPerDefect[defect] ?? 0) + 1;
+      }
+    }
+  }
+
+  return {
+    groups: groups.length,
+    regressionGroups: groups.filter((group) => group.classification === "REGRESSION").length,
+    labeledGroups,
+    mixedDefects,
+    mixedWithNonRegression,
+    groupsPerDefect,
+    regressionGroupsPerDefect,
   };
 }

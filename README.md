@@ -39,6 +39,11 @@ node shims/cli/dist/main.js diff \
   --out .aletheia/report --env pr-4471
 ```
 
+O relatório lista os deltas **por grupo** — mesma camada, tipo e lugar
+estrutural, em qualquer página. Um grupo é uma causa provável (o `alt` que sumiu
+de 68 miniaturas é uma linha, não 68), não um commit provado; o veredito diz
+"N delta(s) em M grupo(s)". Grupo não muda severidade nem classificação de nada.
+
 Códigos de saída — o contrato com os shims de CI (RN-CI-005):
 
 | Código | Significado | O shim deve |

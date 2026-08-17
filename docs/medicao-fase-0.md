@@ -1061,6 +1061,77 @@ que é **decisão pontual**.
   continua sendo `pnpm corpora:medir`, na máquina de quem calibra, porque o CI
   não tem as capturas.
 
+## 10.13 Agrupamento por assinatura — 135 bloqueantes viram 10 grupos, e o número é conferido
+
+A §10.11 deixou um custo declarado: `O7` afeta toda miniatura de toda listagem
+e o relatório do oscar saltou para 135 bloqueantes sem que a contagem por
+defeito mudasse. Quem abre o relatório vê o volume, e "agrupar deltas do mesmo
+defeito é trabalho que ainda não existe". Agora existe, e esta seção registra o
+que ele faz, o que ele **não** afirma, e como isso foi medido.
+
+### O que é um grupo
+
+Deltas com a mesma **assinatura**: camada, tipo e esqueleto de caminho — a mesma
+noção que a supressão aprendida usa (§10.12), de propósito. Se um grupo do
+relatório e uma regra de supressão usassem chaves diferentes, o humano rotularia
+um grupo e a regra cobriria outro. Um grupo junta o `alt` removido de 68
+miniaturas em 5 páginas numa linha só; não junta remoção com mudança de `href`
+no mesmo lugar, porque tipo é parte da chave.
+
+Uma exceção declarada: **a camada visual não agrupa entre observações.**
+`screenshot @ 0,0 144×32` na home e no contato são a mesma coordenada, não o
+mesmo elemento — e medido contra os rótulos, era o único grupo que misturava
+defeitos distintos (`F5`, `F9`, `F3` em sete páginas). Pixel não tem identidade
+estrutural.
+
+**O grupo não muda nada que já valia.** Veredito, severidade e classificação de
+cada delta são os mesmos; a bancada prova, coluna a coluna. O grupo é
+apresentação (o HTML lista por grupo, expansível) e chave de triagem
+(`groupId` em cada delta, `groups` no relatório, contagem no resumo e no
+veredito: "135 delta(s) em 10 grupo(s)").
+
+### O que um grupo afirma, e como isso é conferido
+
+Um grupo afirma "mesma causa provável". A rotulagem humana tem a causa de
+verdade — o `defect`. A distância entre os dois é medida por `assessGrouping`
+(no `measure` e na bancada) e declarada, nunca escondida atrás de um número de
+grupos que parece pequeno:
+
+| Par | Bloqueantes | Grupos de regressão | Misturam defeitos | Misturam regressão com ruído | Defeitos em >1 grupo de regressão |
+|---|---|---|---|---|---|
+| Oscar — 7 defeitos | 135 | **10** | 0 | 0 | 1 (`O7`: 5 — uma listagem por contêiner) |
+| Juventude — 9 defeitos | 56 | **27** | 0 | 0 | 3 (`F8`: 10, `F6`: 9, `F5`: 5) |
+| Juventude — PR real #2 | 11 | 5 | — | — | — |
+| Oscar — mudança intencional | 20 | **1** | — | — | — |
+
+Três leituras:
+
+- **Nenhum grupo mistura defeitos, e nenhum mistura regressão com ruído.** É o
+  que permite que um humano rotule um grupo inteiro de uma vez sem apagar uma
+  regressão escondida no meio dele — e é o que a supressão aprendida precisa,
+  porque usa a mesma chave.
+- **Defeito espalhado por vários grupos é o erro tolerável, e é honesto.** `F8`
+  (dígito errado no WhatsApp) aparece em 10 links diferentes da aplicação: são
+  10 lugares estruturais distintos, e o motor não tem como saber que compartilham
+  a causa sem ver o diff de código. `O7` em 5: uma listagem por contêiner
+  (`ol` do catálogo, três `ul` de ofertas, uma de relacionados). Juntar isso
+  exigiria alargar a assinatura, e alargar sem tipo é o que teria apagado `O4`
+  na §10.12.
+- **O par intencional do oscar vira um grupo.** Os 20 falso positivo de `M1`
+  são, para quem triage, uma linha: "links removidos do menu, 10 páginas". A
+  regra `SUP-oscar-001` é exatamente esse grupo.
+
+### O que fica declarado
+
+- Grupo é **causa provável**, não commit provado. A unidade do critério de
+  saída continua sendo o defeito rotulado (§3), e a bancada continua contando
+  por defeito.
+- Rede agrupa mal onde a normalização falha: os 6 `REQUEST_REMOVED` de `F6` são
+  o mesmo `/quem-somos?_rsc=<token>` com token diferente por página. É o mesmo
+  achado de sempre (§8, §9, §10.2) — identidade de sessão — e o lugar de
+  consertar é a normalização, não o agrupamento.
+- O baseline do gate de corpus não muda: nenhum número que ele compara mudou.
+
 ## 11. Reproduzir
 
 > **Se as capturas já estiverem em disco, pule para o fim: `pnpm corpora:medir`**

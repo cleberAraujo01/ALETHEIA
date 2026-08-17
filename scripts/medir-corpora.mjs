@@ -35,7 +35,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = join(ROOT, "shims/cli/dist/main.js");
 
-const { measure, parseSuppressionSet, simulateSuppression } = await import(
+const { assessGrouping, measure, parseSuppressionSet, simulateSuppression } = await import(
   pathToFileURL(join(ROOT, "packages/diff-engine/dist/index.js")).href
 );
 
@@ -178,6 +178,11 @@ for (const par of PARES) {
     deltas: report.deltas.length,
     regressoes: report.deltas.filter((d) => d.classification === "REGRESSION").length,
     bloqueantes: report.deltas.filter((d) => BLOQUEANTE.has(d.severity)).length,
+    // Grupos por assinatura: o número que cabe na cabeça de quem triage. É
+    // afirmação de "mesma causa provável", medida contra o defeito rotulado
+    // logo abaixo (impuros / espalhados) — nunca cifra solta.
+    grupos: report.summary.groups.total,
+    gruposRegressao: report.summary.groups.REGRESSION,
   };
 
   if (par.rotulador !== undefined) {
@@ -197,6 +202,10 @@ for (const par of PARES) {
     linha.precisao = m.blocking.precision;
     linha.falsoPositivo = m.blocking.falsePositiveRate;
     linha.naoRotulados = m.unlabeled;
+    const g = assessGrouping(report.groups, arquivo.labels ?? arquivo);
+    linha.gruposImpuros = g.mixedDefects.length;
+    linha.gruposMistos = g.mixedWithNonRegression.length;
+    linha.gruposPorDefeito = g.regressionGroupsPerDefect;
   }
   resultados.push(linha);
 }
@@ -219,6 +228,7 @@ function lerResumo(caminho) {
 /** Resumo de um par numa linha, no formato que a tabela do PR usa. */
 function descrever(linha) {
   const partes = [`${linha.deltas} deltas`, `${linha.bloqueantes} bloq`];
+  if (linha.gruposRegressao !== undefined) partes.push(`${linha.gruposRegressao} grupos`);
   if (linha.defeitos !== undefined) {
     partes.push(`**${linha.bloqueados} de ${linha.defeitos}**`);
     partes.push(`triagem ${linha.triagem}/${linha.defeitos}`);
@@ -255,6 +265,24 @@ if (perdidos.length > 0) {
   process.stdout.write("  defeitos que passaram inteiros:\n");
   for (const linha of perdidos) {
     process.stdout.write(`    ${linha.id.padEnd(22)} ${linha.perdidos.join(", ")}\n`);
+  }
+  process.stdout.write("\n");
+}
+
+// Agrupamento contra rótulo: grupo que mistura defeitos ou mistura regressão
+// com ruído é o número que diz se "N grupos" descreve N causas ou não.
+const comGrupos = resultados.filter((l) => l.gruposPorDefeito !== undefined);
+if (comGrupos.length > 0) {
+  process.stdout.write("  agrupamento por assinatura, contra o defeito rotulado:\n");
+  for (const linha of comGrupos) {
+    const espalhados = Object.entries(linha.gruposPorDefeito).filter(([, n]) => n > 1);
+    process.stdout.write(
+      `    ${linha.id.padEnd(22)} ${linha.gruposRegressao} grupos de regressão · ` +
+        `misturam defeitos: ${linha.gruposImpuros} · misturam regressão com ruído: ${linha.gruposMistos} · ` +
+        `defeitos em >1 grupo de regressão: ${espalhados.length}` +
+        (espalhados.length > 0 ? ` (${espalhados.map(([d, n]) => `${d}: ${n}`).join(", ")})` : "") +
+        "\n",
+    );
   }
   process.stdout.write("\n");
 }

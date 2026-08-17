@@ -75,6 +75,12 @@ export interface Delta {
   readonly classification: Classification;
   /** Id da regra de supressão que classificou como NOISE, quando houver. */
   readonly suppressedBy: string | null;
+  /**
+   * Grupo a que o delta pertence — mesma camada, tipo e esqueleto de caminho
+   * (ver `group/`). Não altera severidade nem classificação; é chave de
+   * triagem, e a mesma chave que a supressão aprendida usa.
+   */
+  readonly groupId: string;
   /** Fatos adicionais para triagem. Escalares apenas. */
   readonly facts: Readonly<Record<string, string | number | boolean>>;
 }

@@ -55,6 +55,7 @@ function delta(overrides: Partial<Delta> & Pick<Delta, "deltaId" | "path">): Del
     score: 80,
     classification: "REGRESSION",
     suppressedBy: null,
+    groupId: "g",
     facts: {},
     ...overrides,
   };
