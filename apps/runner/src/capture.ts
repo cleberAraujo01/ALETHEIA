@@ -10,9 +10,30 @@ import {
   type NetworkExchange,
   type Observation,
 } from "@aletheia/diff-engine";
-import type { IrJourney, IrStep, IrValue, Rect, Target } from "@aletheia/ir";
+import {
+  isTargetRef,
+  type IrJourney,
+  type IrStep,
+  type IrValue,
+  type Rect,
+  type Target,
+  type TargetSpec,
+} from "@aletheia/ir";
+import {
+  findElement,
+  proposeHeal,
+  type ElementRepository,
+  type HealRecord,
+} from "@aletheia/selector-engine";
 import { PlatformError, type Clock, type Logger } from "@aletheia/shared";
-import { chromium, type Browser, type BrowserContext, type Page, type Response } from "playwright";
+import {
+  chromium,
+  type Browser,
+  type BrowserContext,
+  type Locator,
+  type Page,
+  type Response,
+} from "playwright";
 
 import {
   DEFAULT_QUIESCENCE,
@@ -22,7 +43,7 @@ import {
   type QuiescenceOptions,
 } from "./quiescence.js";
 import { redactDeep, redactString } from "./redact.js";
-import { isFailure, resolveTarget } from "./resolve.js";
+import { isFailure, observeFingerprint, resolveTarget } from "./resolve.js";
 import { serializeDomInPage } from "./serialize-dom.js";
 
 /**
@@ -62,6 +83,8 @@ export interface CaptureOptions {
   readonly quiescence?: QuiescenceOptions;
   /** De onde `{ secretRef }` lê. Default: variáveis de ambiente do processo. */
   readonly secrets?: (name: string) => string | undefined;
+  /** Repositório de elementos (§12.3) para alvos `{ ref }`. Sem ele, `ref` é erro de IR. */
+  readonly elements?: ElementRepository | null;
   readonly logger: Logger;
   readonly clock: Clock;
 }
@@ -74,8 +97,17 @@ export interface StepTrace {
   /** Só em ações que convergem (todas menos `observe`). RN-EXE-012. */
   readonly convergenceMs: number | null;
   readonly rounds: number | null;
-  /** Qual sinal do fingerprint resolveu o alvo. Calibração futura do E-05. */
+  /**
+   * Sinais do fingerprint que casaram o elemento escolhido pelo consenso
+   * (§12.2), unidos por `+`. É a série que calibra os pesos.
+   */
   readonly resolvedBy: string | null;
+  /** Pontuação do vencedor sobre a soma dos pesos declarados; 1.0 é unanimidade. */
+  readonly confidence: number | null;
+  /** Um sinal forte declarado falhou e o consenso resolveu mesmo assim: cura proposta. */
+  readonly healed: boolean;
+  /** `el_…` quando o alvo veio do repositório. */
+  readonly elementRef: string | null;
   readonly url: string | null;
   readonly reason: string | null;
 }
@@ -85,6 +117,8 @@ export interface CaptureTrace {
   readonly journeyId: string;
   readonly steps: readonly StepTrace[];
   readonly interruption: CaptureInterruption | null;
+  /** Curas PROPOSTAS nesta execução (RN-EXE-011). Nenhuma foi aplicada à IR. */
+  readonly healings: readonly HealRecord[];
 }
 
 export interface CaptureResult {
@@ -188,6 +222,7 @@ class JourneySession {
   readonly #responses: Response[] = [];
   readonly #console: ConsoleEntry[] = [];
   readonly #secrets: string[] = [];
+  readonly #healings: HealRecord[] = [];
   #responsesTaken = 0;
   #consoleTaken = 0;
   #currentRoute = "";
@@ -238,7 +273,10 @@ class JourneySession {
             elapsedMs: Math.round(performance.now() - startedAt),
             convergenceMs: outcome.convergenceMs,
             rounds: outcome.rounds,
-            resolvedBy: outcome.resolvedBy,
+            resolvedBy: outcome.resolution?.resolvedBy ?? null,
+            confidence: outcome.resolution?.confidence ?? null,
+            healed: outcome.resolution?.healed ?? false,
+            elementRef: outcome.resolution?.elementRef ?? null,
             url: page.url(),
             reason: null,
           });
@@ -253,6 +291,9 @@ class JourneySession {
             convergenceMs: null,
             rounds: null,
             resolvedBy: null,
+            confidence: null,
+            healed: false,
+            elementRef: null,
             url: page.url(),
             reason,
           });
@@ -284,6 +325,7 @@ class JourneySession {
         journeyId: this.#options.journey.id,
         steps,
         interruption,
+        healings: this.#healings,
       },
     };
   }
@@ -295,7 +337,7 @@ class JourneySession {
     observation: Observation | null;
     convergenceMs: number | null;
     rounds: number | null;
-    resolvedBy: string | null;
+    resolution: ResolutionInfo | null;
   }> {
     const options = this.#options;
     switch (step.action) {
@@ -311,63 +353,141 @@ class JourneySession {
           });
         }
         const converged = await this.#converge(page, step.id);
-        return { observation: null, ...converged, resolvedBy: null };
+        return { observation: null, ...converged, resolution: null };
       }
       case "click": {
-        const { locator, resolvedBy } = await this.#locate(page, step.id, step.target);
+        const { locator, info } = await this.#locate(page, step.id, step.target);
         await this.#act(step.id, () => locator.click());
         const converged = await this.#converge(page, step.id);
-        return { observation: null, ...converged, resolvedBy };
+        return { observation: null, ...converged, resolution: info };
       }
       case "fill": {
-        const { locator, resolvedBy } = await this.#locate(page, step.id, step.target);
+        const { locator, info } = await this.#locate(page, step.id, step.target);
         const value = this.#valueOf(step.id, step.value);
         await this.#act(step.id, () => locator.fill(value));
         const converged = await this.#converge(page, step.id);
-        return { observation: null, ...converged, resolvedBy };
+        return { observation: null, ...converged, resolution: info };
       }
       case "select": {
-        const { locator, resolvedBy } = await this.#locate(page, step.id, step.target);
+        const { locator, info } = await this.#locate(page, step.id, step.target);
         await this.#act(step.id, async () => {
           await locator.selectOption(step.value);
         });
         const converged = await this.#converge(page, step.id);
-        return { observation: null, ...converged, resolvedBy };
+        return { observation: null, ...converged, resolution: info };
       }
       case "press": {
-        let resolvedBy: string | null = null;
+        let info: ResolutionInfo | null = null;
         if (step.target !== undefined) {
           const resolution = await this.#locate(page, step.id, step.target);
-          resolvedBy = resolution.resolvedBy;
+          info = resolution.info;
           await this.#act(step.id, () => resolution.locator.press(step.key));
         } else {
           await this.#act(step.id, () => page.keyboard.press(step.key));
         }
         const converged = await this.#converge(page, step.id);
-        return { observation: null, ...converged, resolvedBy };
+        return { observation: null, ...converged, resolution: info };
       }
       case "observe": {
         // A convergência já aconteceu no passo anterior; observar é fotografar.
         const observation = await this.#observe(page, step.observationId, step.masks);
-        return { observation, convergenceMs: null, rounds: null, resolvedBy: null };
+        return { observation, convergenceMs: null, rounds: null, resolution: null };
       }
     }
   }
 
-  async #locate(page: Page, stepId: string, target: Target) {
+  /**
+   * Alvo → fingerprint (inline ou do repositório) → consenso → `Locator`.
+   * Falha de resolução é falha do PASSO (interrompe a jornada), nunca de
+   * plataforma; `ref` sem repositório ou fora dele é erro de IR (plataforma).
+   */
+  async #locate(
+    page: Page,
+    stepId: string,
+    spec: TargetSpec,
+  ): Promise<{ locator: Locator; info: ResolutionInfo }> {
+    let target: Target;
+    let elementRef: string | null = null;
+    if (isTargetRef(spec)) {
+      const repository = this.#options.elements ?? null;
+      const entry = repository === null ? null : findElement(repository, spec.ref);
+      if (entry === null) {
+        throw new PlatformError("IR_INVALID", {
+          stepId,
+          path: spec.ref,
+          reason:
+            repository === null
+              ? "alvo por `ref` exige repositório de elementos (--elements)"
+              : `elemento ${spec.ref} não está no repositório ${repository.projectId}`,
+        });
+      }
+      target = entry.fingerprint;
+      elementRef = entry.id;
+    } else {
+      target = spec;
+    }
+
     const resolution = await resolveTarget(page, target);
     if (isFailure(resolution)) {
       throw new PlatformError("STEP_FAILED", {
         stepId,
         reason:
-          resolution.kind === "not-found"
-            ? `alvo não encontrado (sinais tentados: ${resolution.tried.join(", ")})`
-            : `alvo ambíguo (${Object.entries(resolution.counts)
-                .map(([signal, count]) => `${signal}=${count}`)
-                .join(", ")}); use nth`,
+          resolution.kind === "NOT_FOUND"
+            ? `alvo não encontrado (sinais tentados: ${resolution.triedSignals.join(", ")})`
+            : `alvo ambíguo: ${resolution.reason} — ${resolution.candidates.length} candidato(s): ${resolution.candidates
+                .slice(0, 3)
+                .map((candidate) => `${candidate.key} (${candidate.score})`)
+                .join("; ")}`,
       });
     }
-    return resolution;
+
+    const { consensus, locator } = resolution;
+    const info: ResolutionInfo = {
+      resolvedBy: consensus.matchedSignals.join("+"),
+      confidence: consensus.confidence,
+      healed: consensus.healed,
+      elementRef,
+    };
+
+    if (consensus.healed) {
+      // RN-EXE-011: cura registrada com evidência, nunca aplicada. A execução
+      // segue com o elemento que o consenso escolheu; a IR não muda.
+      const observed = await observeFingerprint(locator);
+      const screenshotPath = await this.#healScreenshot(locator, stepId);
+      const heal = proposeHeal({
+        stepId,
+        elementRef,
+        declared: target,
+        observed,
+        consensus,
+        screenshotPath,
+        nowUtc: this.#options.clock.nowUtcIso(),
+      });
+      this.#healings.push(heal);
+      this.#options.logger.warn("cura de seletor proposta", {
+        stepId,
+        elementRef,
+        staleSignals: heal.staleSignals.join(","),
+        matchedSignals: heal.matchedSignals.join(","),
+        confidence: heal.confidence,
+      });
+    }
+
+    return { locator, info };
+  }
+
+  async #healScreenshot(locator: Locator, stepId: string): Promise<string | null> {
+    try {
+      const directory = join(this.#options.outDir, "healing");
+      await mkdir(directory, { recursive: true });
+      const file = join(directory, `${sanitize(stepId)}.png`);
+      await writeFile(file, await locator.screenshot({ animations: "disabled" }));
+      return relative(dirname(this.#options.captureFilePath), file).split("\\").join("/");
+    } catch {
+      // Sem screenshot a proposta continua válida — só com menos evidência, e
+      // o campo diz isso (null), em vez de a captura morrer por causa dela.
+      return null;
+    }
   }
 
   /** Erro do Playwright ao agir (não acionável, destacado, timeout) vira falha do passo. */
@@ -447,6 +567,13 @@ class JourneySession {
       screenshot,
     };
   }
+}
+
+interface ResolutionInfo {
+  readonly resolvedBy: string;
+  readonly confidence: number;
+  readonly healed: boolean;
+  readonly elementRef: string | null;
 }
 
 function firstLine(error: unknown): string {

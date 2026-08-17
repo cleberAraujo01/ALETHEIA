@@ -12,6 +12,7 @@
   "references": [
     { "path": "../../packages/shared" },
     { "path": "../../packages/diff-engine" },
-    { "path": "../../packages/ir" }
+    { "path": "../../packages/ir" },
+    { "path": "../../packages/selector-engine" }
   ]
 }

@@ -142,3 +142,80 @@ sinais numa aplicação que ninguém instrumentou.
 - **O piso do ParaBank com login tem 26 deltas visuais**, todos abaixo do teto
   visual. Conta demo compartilhada muda de saldo entre capturas — é ruído de
   ambiente `SHARED_DEGRADED` (RN-EXE-007), e o comentário do PR diz isso.
+
+## 3. E-05 — seletores multi-sinal, cura proposta, repositório de elementos
+
+### 3.1 O que foi construído
+
+`packages/selector-engine`, puro e determinístico (sem browser; PA-01):
+**pesos por sinal** (hipótese declarada: `testId` 1,0 · `role+name` 0,9 · `label`
+0,8 · `text` 0,7 · `placeholder` 0,6 · `field` 0,5 · `css` 0,15), **detector de
+identificador gerado** (`mui-4821`, `:r1a:`, `css-…`, UUID, hash, sufixo
+numérico longo → peso 0,1: vota, mas não decide), **consenso ponderado** — cada
+sinal vota nos elementos que casa, o vencedor precisa de pontuação mínima e
+margem sobre o segundo — e **proposta de cura** quando um sinal forte declarado
+falhou e o consenso resolveu mesmo assim. O runner coleta candidatos com os
+`Locator`s do Playwright (semântica de papel, nome, rótulo é a dele), identifica
+cada um por XPath calculado na página sem tocar no DOM, e devolve a decisão ao
+motor.
+
+**Cura nunca é aplicada** (RN-EXE-011, PA-08). A execução segue com o elemento
+que o consenso escolheu; sai `healing.json` com fingerprint declarado, valores
+observados no elemento resolvido, proposta, confiança e screenshot do elemento.
+Aprovar é uma pessoa copiar `proposal` depois de olhar o screenshot.
+
+**Repositório de elementos** (§12.3): `elements.json` por projeto, `{ "ref":
+"el_…" }` na IR, `--elements` na CLI. `stability` (resolvedRuns, healedRuns) é
+lido; quem atualiza é quem tem o trace, e isso ainda não existe — declarado.
+
+### 3.2 O que foi medido — corpus de mutações do fixture
+
+O mesmo fingerprint do botão de login (`testId` + `role`+`name` + `text`) contra
+a página original e contra mutações que quebrariam qualquer seletor único
+(`apps/runner/__fixtures__/site/mut-*.html`, no CI, browser real):
+
+| Página | O que mudou | Desfecho | `resolvedBy` | Cura |
+|---|---|---|---|---|
+| `index.html` | nada | resolvido, confiança 1,0 | testId+role+name+text | — |
+| `mut-reestruturado` | botão envolto em dois `div` | resolvido, 1,0 | testId+role+name+text | — (estrutura não é sinal) |
+| `mut-testid-renomeado` | `btn-entrar` → `btn-acessar` | resolvido | role+name+text | **proposta**: `testId: btn-acessar` |
+| `mut-texto-mudou` | "Entrar" → "Acessar" | resolvido | testId | **proposta**: `name`/`text: Acessar` |
+| `mut-testid-gerado` | testId vira `mui-4821` | resolvido | role+name+text | proposta |
+| `mut-tudo-mudou` | testId **e** texto mudaram | **não resolve** — só `text` casaria o `<h1>` | — | — |
+| `mut-botao-sumiu` | botão removido | **não resolve** | — | — |
+
+**O corpus mudou o motor antes de o PR fechar.** Na primeira versão,
+`mut-botao-sumiu` "resolvia": o botão não existia, mas `text: "Entrar"` casou o
+`<h1>Entrar</h1>` da página, e o consenso curou para um cabeçalho — clicou no
+nada e seguiu. É o "parecido" que cura silenciosa transforma em falso negativo.
+Entrou a regra **cura sem corroboração não resolve**: quando os sinais fortes
+falharam, o vencedor precisa de ≥ 2 sinais concordando ou do sinal mais forte
+declarado; um secundário sozinho é ambiguidade para um humano olhar.
+
+**Aplicação real** — ParaBank, login/logout via `aletheia run` com o fixture
+`parabank-login.json`: 8/8 passos, `resolvedBy` = `field, field, role+name,
+role+name`, confiança 1,0 em todos, 0 curas, 3 observações, 2 deltas, 0
+bloqueantes. E um segundo achado do real: os campos do ParaBank não têm rótulo
+nem placeholder — o único sinal semântico é o `name` do formulário. Entrou o
+sinal `field` (0,5), e com ele a regra de que **um único sinal declarado casando
+um único elemento resolve** mesmo abaixo do mínimo: o mínimo protege contra
+sinal fraco perdido no meio de vários, e ali não há vários.
+
+Taxas no corpus (7 páginas, 1 fingerprint): **resolução 5/5 onde o elemento
+existe e é identificável; cura 3/5 dessas, todas com proposta correta; 0
+resoluções erradas** — as duas páginas onde o botão não é identificável não
+resolvem, que é o desfecho certo. Corpus pequeno e nosso; é o que §7 pede como
+rede de baixo, não a medição de campo.
+
+### 3.3 O que ficou declarado
+
+- **Pesos, mínimo (0,6), margem (0,2) e limiar de sinal forte (0,7) são
+  hipóteses.** A série que os calibra é `resolvedBy` + `confidence` no trace de
+  execuções reais; nenhuma foi ajustada contra dado ainda.
+- **Sem cura de verdade aplicada, sem fila de aprovação com UI, sem
+  atualização de `stability`.** Tudo isso é dado no trace e no `healing.json`
+  esperando consumidor.
+- **XPath é identidade de resolução, não seletor gravado**: vive só o tempo da
+  decisão e não aparece em lugar nenhum além do motivo de ambiguidade.
+- **`text` casa qualquer elemento com aquele texto, cabeçalho inclusive.** É
+  correto (é o que o autor declarou) e é por isso que a corroboração existe.

@@ -9,13 +9,13 @@
     {
       "id": "st_3",
       "action": "fill",
-      "target": { "css": "input[name=username]", "placeholder": "Username" },
+      "target": { "field": "username" },
       "value": "john"
     },
     {
       "id": "st_4",
       "action": "fill",
-      "target": { "css": "input[name=password]", "placeholder": "Password" },
+      "target": { "field": "password" },
       "value": "demo"
     },
     { "id": "st_5", "action": "click", "target": { "role": "button", "name": "Log In" } },

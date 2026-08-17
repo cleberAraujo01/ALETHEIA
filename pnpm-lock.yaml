@@ -74,6 +74,9 @@ importers:
       '@aletheia/ir':
         specifier: workspace:*
         version: link:../../packages/ir
+      '@aletheia/selector-engine':
+        specifier: workspace:*
+        version: link:../../packages/selector-engine
       '@aletheia/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -108,6 +111,19 @@ importers:
         specifier: 3.2.7
         version: 3.2.7(@types/node@24.13.3)(jiti@2.6.1)(tsx@4.23.12)
 
+  packages/selector-engine:
+    dependencies:
+      '@aletheia/ir':
+        specifier: workspace:*
+        version: link:../ir
+      '@aletheia/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.6.1)(tsx@4.23.12)
+
   packages/shared: {}
 
   shims/cli:
@@ -121,6 +137,9 @@ importers:
       '@aletheia/runner':
         specifier: workspace:*
         version: link:../../apps/runner
+      '@aletheia/selector-engine':
+        specifier: workspace:*
+        version: link:../../packages/selector-engine
       '@aletheia/shared':
         specifier: workspace:*
         version: link:../../packages/shared

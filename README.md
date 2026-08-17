@@ -63,9 +63,16 @@ observação; o estado da aplicação atravessa os passos:
 ```
 
 - **Alvo é fingerprint, não seletor** (§3.5): `testId`, `role`+`name`, `label`,
-  `placeholder`, `text` — ao menos um sinal semântico; `css` só como complemento.
-  O runner tenta do sinal mais estável ao mais frágil e registra em `trace.json`
-  qual resolveu (`resolvedBy`).
+  `placeholder`, `text`, `field` — ao menos um sinal semântico; `css` só como
+  complemento. O runner resolve por **consenso ponderado** (`packages/selector-engine`,
+  §12.2): cada sinal vota nos elementos que casa, o peso decide, e `trace.json`
+  registra quais sinais concordaram (`resolvedBy`) e a `confidence`. Id com cara
+  de gerado (`mui-4821`, `:r1a:`, hash) é rebaixado. Quando um sinal forte falhou
+  e o consenso ainda resolveu, é **cura** — registrada em `healing.json` com
+  screenshot e proposta de fingerprint, **nunca aplicada** à jornada (RN-EXE-011).
+  Cura sem corroboração (só um sinal fraco casou) é ambiguidade, não resolução.
+- **Alvo pode ser `{ "ref": "el_btn_entrar" }`**: o fingerprint mora no repositório
+  de elementos (`--elements elements.json`, §12.3) e corrigir lá propaga.
 - **Segredo é referência** (`{ "secretRef": "VARIAVEL" }`): lido do ambiente na
   hora, mascarado como `<secret>` em DOM, rede, console e URL da captura (PA-09).
 - **Passo que falha interrompe a jornada** e a interrupção vai para dentro da

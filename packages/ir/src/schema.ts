@@ -36,7 +36,7 @@ export interface Viewport {
 
 /**
  * Fingerprint multi-sinal de um elemento. Pelo menos um sinal SEMÂNTICO
- * (`testId`, `role`+`name`, `label`, `placeholder`, `text`) é obrigatório;
+ * (`testId`, `role`+`name`, `label`, `placeholder`, `text`, `field`) é obrigatório;
  * `css` é complemento declarado, nunca o único sinal.
  */
 export interface Target {
@@ -47,33 +47,51 @@ export interface Target {
   readonly label?: string;
   readonly placeholder?: string;
   readonly text?: string;
+  /** Atributo `name` de campo de formulário — o contrato do POST, estável por natureza. */
+  readonly field?: string;
   readonly css?: string;
   /** Desempate explícito quando o fingerprint casa mais de um elemento. */
   readonly nth?: number;
+}
+
+/**
+ * Referência ao repositório de elementos (§12.3): o fingerprint mora lá, a
+ * jornada só aponta. Corrigir num lugar propaga para toda jornada que usa o
+ * ref. `el_<slug>`.
+ */
+export interface TargetRef {
+  readonly ref: string;
+}
+
+/** Alvo de um passo: fingerprint inline, ou referência ao repositório. */
+export type TargetSpec = Target | TargetRef;
+
+export function isTargetRef(target: TargetSpec): target is TargetRef {
+  return "ref" in target;
 }
 
 export type IrValue = string | { readonly secretRef: string };
 
 export type IrStep =
   | { readonly id: string; readonly action: "navigate"; readonly path: string }
-  | { readonly id: string; readonly action: "click"; readonly target: Target }
+  | { readonly id: string; readonly action: "click"; readonly target: TargetSpec }
   | {
       readonly id: string;
       readonly action: "fill";
-      readonly target: Target;
+      readonly target: TargetSpec;
       readonly value: IrValue;
     }
   | {
       readonly id: string;
       readonly action: "select";
-      readonly target: Target;
+      readonly target: TargetSpec;
       readonly value: string;
     }
   | {
       readonly id: string;
       readonly action: "press";
       readonly key: string;
-      readonly target?: Target;
+      readonly target?: TargetSpec;
     }
   | {
       readonly id: string;

@@ -9,6 +9,7 @@ import {
   type IrValue,
   type Rect,
   type Target,
+  type TargetSpec,
 } from "./schema.js";
 
 /**
@@ -142,16 +143,47 @@ export function parseIr(raw: unknown, source: string): IrJourney {
   return { irVersion: IR_VERSION, id, name, viewport, steps };
 }
 
-const SEMANTIC_SIGNALS = ["testId", "role", "label", "placeholder", "text"] as const;
+const SEMANTIC_SIGNALS = ["testId", "role", "label", "placeholder", "text", "field"] as const;
+
+const ELEMENT_REF = /^el_[A-Za-z0-9_-]+$/;
 
 function parseTarget(
   raw: unknown,
   where: string,
   fail: (path: string, reason: string) => never,
-): Target {
+): TargetSpec {
   if (!isRecord(raw)) return fail(where, "objeto esperado");
+  if (raw["ref"] !== undefined) {
+    if (typeof raw["ref"] !== "string" || !ELEMENT_REF.test(raw["ref"])) {
+      return fail(`${where}.ref`, "esperado `el_<slug>` do repositório de elementos");
+    }
+    if (Object.keys(raw).length > 1) {
+      return fail(
+        where,
+        "`ref` não se mistura com sinais inline: ou o fingerprint mora no repositório, ou aqui",
+      );
+    }
+    return { ref: raw["ref"] };
+  }
+  return parseFingerprint(raw, where, fail);
+}
+
+export function parseFingerprint(
+  raw: Record<string, unknown>,
+  where: string,
+  fail: (path: string, reason: string) => never,
+): Target {
   const target: Record<string, string | number> = {};
-  for (const key of ["testId", "role", "name", "label", "placeholder", "text", "css"] as const) {
+  for (const key of [
+    "testId",
+    "role",
+    "name",
+    "label",
+    "placeholder",
+    "text",
+    "field",
+    "css",
+  ] as const) {
     const value = raw[key];
     if (value === undefined) continue;
     if (typeof value !== "string" || value.length === 0)
@@ -173,7 +205,7 @@ function parseTarget(
   if (!SEMANTIC_SIGNALS.some((key) => target[key] !== undefined)) {
     return fail(
       where,
-      "alvo precisa de ao menos um sinal semântico (testId, role+name, label, placeholder, text); " +
+      "alvo precisa de ao menos um sinal semântico (testId, role+name, label, placeholder, text, field); " +
         "`css` sozinho é seletor único (CLAUDE.md §3.5)",
     );
   }

@@ -12,6 +12,7 @@ import {
 } from "@aletheia/diff-engine";
 import { IR_VERSION, loadJourney } from "@aletheia/ir";
 import { capture as runCapture, type CaptureTrace } from "@aletheia/runner";
+import { parseElementRepository, type ElementRepository } from "@aletheia/selector-engine";
 import { PlatformError, systemClock, type Logger, type RunMetadata } from "@aletheia/shared";
 
 import type { CaptureCommandArgs, DiffCommandArgs } from "./args.js";
@@ -46,6 +47,10 @@ export async function performCapture(
   const { ir: journey, migrated } = loadJourney(await readJson(journeySource), journeySource);
   const captureFilePath = resolve(args.out, "capture.json");
   const traceFilePath = resolve(args.out, "trace.json");
+  const elements: ElementRepository | null =
+    args.elements === null
+      ? null
+      : parseElementRepository(await readJson(args.elements, "IR_INVALID"), args.elements);
 
   logger.info("captura iniciada", {
     baseUrl: args.url,
@@ -70,18 +75,30 @@ export async function performCapture(
     screenshots: args.screenshots,
     headed: args.headed,
     quiescence: { deadlineMs: args.deadlineMs, quietWindowMs: 250 },
+    elements,
     logger,
     clock: systemClock,
   });
 
   await writeJson(captureFilePath, result.capture);
   await writeJson(traceFilePath, result.trace);
+  // Fila de aprovação de cura (RN-EXE-011): arquivo próprio, só quando há o
+  // que aprovar. Ninguém precisa abrir o trace para saber que houve cura.
+  if (result.trace.healings.length > 0) {
+    await writeJson(resolve(args.out, "healing.json"), {
+      _leia:
+        "Curas PROPOSTAS pelo consenso multi-sinal. Nenhuma foi aplicada à jornada. " +
+        "Aprovar é copiar `proposal` para o fingerprint (inline ou no repositório) depois de conferir o screenshot.",
+      healings: result.trace.healings,
+    });
+  }
 
   logger.info("captura concluída", {
     captureId: result.capture.captureId,
     browserVersion: result.browserVersion,
     observations: result.capture.observations.length,
     interrupted: result.capture.interruption !== null,
+    healingsProposed: result.trace.healings.length,
   });
 
   return {

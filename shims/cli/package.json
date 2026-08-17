@@ -17,6 +17,7 @@
     "@aletheia/diff-engine": "workspace:*",
     "@aletheia/ir": "workspace:*",
     "@aletheia/runner": "workspace:*",
+    "@aletheia/selector-engine": "workspace:*",
     "@aletheia/shared": "workspace:*",
     "pngjs": "7.0.0"
   },
