@@ -12,6 +12,8 @@ Resultado e leitura completa: [`docs/medicao-fase-0.md`](../../../../docs/medica
 | `faults.mjs` | Os 9 defeitos, com proveniência (`HISTORICO` × `INJETADO`), sintoma e o commit que corrigiu cada um dos históricos |
 | `apply-faults.mjs` | Aplica os defeitos ao código-fonte de uma cópia da aplicação |
 | `label.mjs` | Atribui cada delta do relatório a um defeito, ou a ruído |
+| `label-pr2.mjs` | Rotula o segundo PR real (`910181f`, §10.9): tudo `INTENDED_CHANGE` ou ruído de motor fora do DOM — **nenhum `NOISE` de DOM**, logo nenhuma regra de supressão (§10.12) |
+| `suppressions.json` | Vazio de regras, e é resultado: o rodapé do juventude é escrito à mão e `F6` mora nele; suprimir remoção ali seria ensinar o motor a não olhar para um defeito real |
 
 O que **não** tem: capturas, relatórios e screenshots. Pesam, e são
 reconstituíveis — ver §9 do documento de medição.

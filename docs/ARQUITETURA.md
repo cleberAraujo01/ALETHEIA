@@ -398,6 +398,7 @@ Perguntas sobre o sistema, respondidas pelo grafo. É o modo que faz gerente e P
 | RN-ORC-008 | Relações metamórficas devem ser executáveis de forma determinística e sem dependência de LLM em runtime. | 🔒 |
 | RN-ORC-009 | Todo delta detectado por teste diferencial recebe uma das classificações: `REGRESSION`, `INTENDED_CHANGE`, `NOISE`, `UNDETERMINED`. `UNDETERMINED` nunca bloqueia. | Alta |
 | RN-ORC-010 | Delta classificado como `NOISE` alimenta automaticamente as regras de supressão do Diff Engine, com revisão humana. | Alta |
+| RN-ORC-011 | Regra de supressão aprendida nasce `PROPOSED` e só suprime em `ACTIVE`. A promoção é humana e identificada (`reviewedBy`), exige evidência `NOISE` de ≥ 3 execuções distintas, e nenhuma regra pode casar delta rotulado `REGRESSION` no corpus do projeto. Só `NOISE` alimenta regra; `INTENDED_CHANGE` não. | 🔒 |
 
 ### 7.4 Domínio: Execução e Evidências (`RN-EXE`)
 

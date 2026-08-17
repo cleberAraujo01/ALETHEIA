@@ -74,7 +74,9 @@ Depois, à mão — porque nenhuma ferramenta faz por você:
 - Viola um dos 12 princípios sem ADR que declare **consequências negativas**
 - Mexe no `diff-engine` sem número de precisão e recall
 - Cria regra de severidade sem piso de ruído em aplicação estranha
-- Adiciona supressão sem os 3 casos reais rotulados como `NOISE` que §6.4 exige
+- Adiciona supressão sem os 3 casos reais rotulados como `NOISE`, em execuções
+  distintas, que §6.4 exige — ou ativa regra aprendida sem `suppress simulate`
+  mostrando detecção perdida zero nos pares de defeito do projeto
 - Aumenta o orçamento de tempo do CI em vez de paralelizar ou mover para o
   workflow noturno
 

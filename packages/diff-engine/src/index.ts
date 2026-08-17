@@ -48,6 +48,31 @@ export { DEFAULT_DELTA_BUDGET_PER_OBSERVATION } from "./diff/types.js";
 export { SUPPRESSION_CATALOG } from "./suppress/catalog.js";
 export { MIN_EVIDENCE, validateSuppressionRules } from "./suppress/rule.js";
 export type { EvidenceRef, SuppressionRule } from "./suppress/rule.js";
+export {
+  SUPPRESSION_SET_VERSION,
+  compileLearnedRules,
+  emptySuppressionSet,
+  matchesSignature,
+  parseSuppressionSet,
+  pathSkeleton,
+  signatureOf,
+  validateSuppressionSet,
+} from "./suppress/learned.js";
+export type {
+  DeltaSignature,
+  LearnedSuppressionRule,
+  SuppressionSet,
+  SuppressionSetIssue,
+  SuppressionStatus,
+} from "./suppress/learned.js";
+export { proposeSuppressions, simulateSuppression } from "./suppress/learn.js";
+export type {
+  ProposalInput,
+  ProposalOutcome,
+  RuleSimulation,
+  SignatureConflict,
+  SuppressionSimulation,
+} from "./suppress/learn.js";
 
 export { NORMALIZATION_RULES } from "./normalize/volatile.js";
 

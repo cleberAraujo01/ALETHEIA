@@ -204,7 +204,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
     verdict: verdictOf(deltas),
     summary: summarize(deltas),
     normalization: { total: ledger.total(), byRule: ledger.counts() },
-    suppression: summarizeSuppression(deltas, rules.length),
+    suppression: summarizeSuppression(deltas, rules),
     coverage: coverageOf({
       compared: commonIds.length,
       onlyInBase,
@@ -316,7 +316,7 @@ function summarize(deltas: readonly Delta[]): DiffReport["summary"] {
 
 function summarizeSuppression(
   deltas: readonly Delta[],
-  catalogSize: number,
+  rules: readonly SuppressionRule[],
 ): DiffReport["suppression"] {
   const byRule: Record<string, number> = {};
   let deltasSuppressed = 0;
@@ -325,7 +325,12 @@ function summarizeSuppression(
     deltasSuppressed += 1;
     byRule[delta.suppressedBy] = (byRule[delta.suppressedBy] ?? 0) + 1;
   }
-  return { catalogSize, deltasSuppressed, byRule };
+  return {
+    catalogSize: rules.length,
+    activeRuleIds: rules.map((rule) => rule.id),
+    deltasSuppressed,
+    byRule,
+  };
 }
 
 interface CoverageInput {

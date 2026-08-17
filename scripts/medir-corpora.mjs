@@ -35,22 +35,29 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CLI = join(ROOT, "shims/cli/dist/main.js");
 
-const { measure } = await import(
+const { measure, parseSuppressionSet, simulateSuppression } = await import(
   pathToFileURL(join(ROOT, "packages/diff-engine/dist/index.js")).href
 );
 
 /**
  * Os pares, na ordem em que o `PULL_REQUEST_TEMPLATE` os cobra.
  *
- * `rotulador` só existe onde HÁ defeito aplicado. Nos pares de mudança
- * intencional e nos pisos de ruído não há o que rotular — e é de propósito: o
- * número lá é um só, quantos deltas o motor classificou como `REGRESSION`, e
- * todo ele é falso positivo por construção.
+ * `rotulador` de DEFEITO só existe onde há defeito aplicado; a coluna de
+ * "x de y" vem dele. Os pares de mudança intencional têm rotulador também, mas
+ * de outra natureza: neles nenhum delta é regressão por construção, e o rótulo
+ * decide só INTENDED_CHANGE versus NOISE — o que alimenta a supressão
+ * aprendida. Por isso `semDefeito: true`: a tabela principal não muda por causa
+ * dele; ele existe para a simulação de supressão logo abaixo dela.
+ *
+ * `projeto` liga o par ao arquivo de regras aprendidas do corpus
+ * (`__corpus__/<projeto>/suppressions.json`), quando existir. Pisos de
+ * aplicação desconhecida não têm projeto: não há corpus deles.
  */
 const PARES = [
   {
     id: "juventude-defeitos",
     titulo: "Juventude — 9 defeitos",
+    projeto: "juventude",
     base: ".aletheia/fase0/base",
     head: ".aletheia/fase0/head",
     rotulador: "packages/diff-engine/__corpus__/juventude/label.mjs",
@@ -58,12 +65,16 @@ const PARES = [
   {
     id: "juventude-pr2",
     titulo: "Juventude — PR real #2 (910181f)",
+    projeto: "juventude",
     base: ".aletheia/fase0/pr2-antes",
     head: ".aletheia/fase0/pr2-depois",
+    rotulador: "packages/diff-engine/__corpus__/juventude/label-pr2.mjs",
+    semDefeito: true,
   },
   {
     id: "oscar-defeitos",
     titulo: "Oscar — 7 defeitos",
+    projeto: "oscar",
     base: ".aletheia/oscar/base",
     head: ".aletheia/oscar/head",
     rotulador: "packages/diff-engine/__corpus__/oscar/label.mjs",
@@ -71,12 +82,16 @@ const PARES = [
   {
     id: "oscar-intencional",
     titulo: "Oscar — mudança intencional",
+    projeto: "oscar",
     base: ".aletheia/oscar/pr-antes",
     head: ".aletheia/oscar/pr-depois",
+    rotulador: "packages/diff-engine/__corpus__/oscar/label-intentional.mjs",
+    semDefeito: true,
   },
   {
     id: "juventude-piso",
     titulo: "Piso — juventude, mesma build",
+    projeto: "juventude",
     base: ".aletheia/fase0/base",
     head: ".aletheia/fase0/base-rerun",
     piso: true,
@@ -84,6 +99,7 @@ const PARES = [
   {
     id: "oscar-piso",
     titulo: "Piso — oscar, mesma build",
+    projeto: "oscar",
     base: ".aletheia/oscar/base",
     head: ".aletheia/oscar/base-rerun",
     piso: true,
@@ -170,6 +186,8 @@ for (const par of PARES) {
       [join(ROOT, par.rotulador), join(dir, "report.json"), join(dir, "labels.json")],
       { cwd: ROOT, stdio: "pipe", maxBuffer: 64 * 1024 * 1024 },
     );
+  }
+  if (par.rotulador !== undefined && par.semDefeito !== true) {
     const arquivo = JSON.parse(readFileSync(join(dir, "labels.json"), "utf8"));
     const m = measure(report.deltas, arquivo.labels ?? arquivo);
     linha.bloqueados = m.blockingDefects.detected;
@@ -261,9 +279,80 @@ if (pisoSujo.length > 0) {
   process.stdout.write("\n");
 }
 
+// ---------------------------------------------------------------------------
+// Supressão aprendida — simulação das regras do corpus, par a par
+//
+// As regras em `__corpus__/<projeto>/suppressions.json` nascem PROPOSED e não
+// alteram veredito nenhum; a tabela acima já é a medição real. Esta segunda
+// tabela responde à pergunta do §6.4 ANTES de alguém ativar uma regra: se as
+// PROPOSED/ACTIVE valessem, o que cada par perderia? "Detecção perdida" é
+// delta que o motor bloqueou E o rotulador de defeito diz que é regressão —
+// qualquer número acima de zero aqui é regra que não pode ser ativada.
+// ---------------------------------------------------------------------------
+
+const simulacoes = [];
+for (const par of PARES) {
+  const linha = resultados.find((l) => l.id === par.id);
+  if (linha === undefined || par.projeto === undefined) continue;
+  const arquivoRegras = join(
+    ROOT,
+    `packages/diff-engine/__corpus__/${par.projeto}/suppressions.json`,
+  );
+  if (!existsSync(arquivoRegras)) continue;
+
+  const dir = join(SAIDA, par.id);
+  const set = parseSuppressionSet(JSON.parse(readFileSync(arquivoRegras, "utf8")), arquivoRegras);
+  const report = JSON.parse(readFileSync(join(dir, "report.json"), "utf8"));
+  const rotulos = existsSync(join(dir, "labels.json"))
+    ? (JSON.parse(readFileSync(join(dir, "labels.json"), "utf8")).labels ?? null)
+    : null;
+  const sim = simulateSuppression(set, report, rotulos);
+  const pendentes = set.rules.filter((r) => r.status === "PROPOSED" || r.status === "ACTIVE");
+  simulacoes.push({
+    id: par.id,
+    titulo: par.titulo,
+    projeto: par.projeto,
+    regras: pendentes.map((r) => r.id),
+    ativas: set.rules.filter((r) => r.status === "ACTIVE").length,
+    suprimiria: sim.wouldSuppress.length,
+    bloqueantesHoje: linha.regressoes,
+    bloqueantesDepois: sim.regressionsRemaining,
+    detecaoPerdida: sim.trueRegressionsLost.length,
+    rotulado: rotulos !== null,
+  });
+}
+
+if (simulacoes.length > 0) {
+  process.stdout.write(
+    "  supressão aprendida — SIMULAÇÃO das regras PROPOSED/ACTIVE do corpus (não altera a tabela acima)\n\n",
+  );
+  process.stdout.write(
+    "| Par | Regras | Suprimiria | Bloqueantes hoje → se valessem | Detecção perdida |\n",
+  );
+  process.stdout.write("|---|---|---|---|---|\n");
+  for (const s of simulacoes) {
+    let perdida = "sem rótulo — desconhecida";
+    if (s.rotulado) perdida = s.detecaoPerdida > 0 ? `**${s.detecaoPerdida} — NÃO ATIVAR**` : "0";
+    process.stdout.write(
+      `| ${s.titulo} | ${s.regras.length} (${s.ativas} ativa(s)) | ${s.suprimiria} | ${s.bloqueantesHoje} → ${s.bloqueantesDepois} | ${perdida} |\n`,
+    );
+  }
+  process.stdout.write("\n");
+  if (simulacoes.some((s) => s.detecaoPerdida > 0)) {
+    process.stdout.write(
+      "  DETECÇÃO PERDIDA EM SIMULAÇÃO — alguma regra proposta apagaria regressão real rotulada.\n" +
+        "  Ela não pode ser ativada (CLAUDE.md §6.4). Veja `aletheia suppress simulate` no par.\n\n",
+    );
+  }
+}
+
 writeFileSync(
   join(SAIDA, "resumo.json"),
-  `${JSON.stringify({ completo: ausentes.length === 0, ausentes, pares: resultados }, null, 2)}\n`,
+  `${JSON.stringify(
+    { completo: ausentes.length === 0, ausentes, pares: resultados, supressaoSimulada: simulacoes },
+    null,
+    2,
+  )}\n`,
   "utf8",
 );
 

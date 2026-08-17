@@ -72,6 +72,27 @@ Um delta `UNDETERMINED` que era regressão de verdade é falso negativo no
 primeiro recorte e acerto no segundo — a distância entre os dois números é a
 medida de quanto o motor ainda depende de humano.
 
+## Supressão aprendida — por aplicação, com revisão humana
+
+Rótulo `NOISE` é o único que ensina algo ao motor (RN-ORC-010): "isto vai se
+repetir e ninguém quer ver de novo". `INTENDED_CHANGE` é "aconteceu uma vez,
+de propósito" e não gera regra, de propósito.
+
+```powershell
+# rótulos NOISE de DOM ⇒ regras PROPOSED no arquivo do projeto, com evidência anexada
+node shims/cli/dist/main.js suppress propose --report .aletheia/relatorio/report.json --labels .aletheia/relatorio/labels.json --rules .aletheia/suppressions.json --project minha-app --labeled-by qa@exemplo
+# o que cada regra suprimiria neste relatório, e a que custo — antes de ativar
+node shims/cli/dist/main.js suppress simulate --report .aletheia/relatorio/report.json --rules .aletheia/suppressions.json --labels .aletheia/relatorio/labels.json
+# só regras ACTIVE valem, e o motor recusa ACTIVE sem evidência de 3 execuções distintas
+node shims/cli/dist/main.js diff --base … --head … --suppressions .aletheia/suppressions.json
+```
+
+A regra casa por **esqueleto de caminho** (estrutura sem os nomes) mais camada
+e tipo. Nasce `PROPOSED`; para valer, uma pessoa identificada muda o status para
+`ACTIVE` no arquivo e preenche `reviewedBy`. Assinatura que também casa com delta
+rotulado `REGRESSION` não vira regra. Detalhes e a medição em
+[`docs/medicao-fase-0.md`](./docs/medicao-fase-0.md) §10.12.
+
 ## Medição de saída da Fase 0
 
 **Critério atingido em 2026-08-11.** Relatório completo, com limites e o que

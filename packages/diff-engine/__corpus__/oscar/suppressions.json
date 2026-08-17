@@ -1,0 +1,249 @@
+{
+  "version": "0.1.0",
+  "projectId": "oscar",
+  "note": "Aprendido por `aletheia suppress propose` a partir do par de mudança intencional (label-intentional.mjs), bancada de 2026-08-17. Todas PROPOSED: ativar exige evidência de 3 execuções distintas e há um PR. Ver docs/medicao-fase-0.md §10.12.",
+  "rules": [
+    {
+      "id": "SUP-oscar-001",
+      "projectId": "oscar",
+      "status": "PROPOSED",
+      "description": "DOM_NODE_REMOVED em body#default > header > nav > div#navbarSupportedContent > ul > li[role=listitem] > div[*] > a[role=link] — rotulado NOISE em 20 delta(s) de 10 observação(ões), 20 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_NODE_REMOVED",
+        "pathSkeleton": "body#default > header > nav > div#navbarSupportedContent > ul > li[role=listitem] > div[*] > a[role=link]"
+      },
+      "evidence": [
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "4ba76d2c38607b25",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "838fceb2884c6221",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "963505310e663cec",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "a224a0984640cda4",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "b6ead4674df3d452",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "46384ff8d076d091",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "78a7cf4c5e414bfb",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "d7c14b10c2f95fa2",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "c40ad928d25a6c7d",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "38f26fce02a5cfb7",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "0b0a1db4eef1e3d1",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "3f7424de7ffbbe38",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "a6f6460cffe20a75",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "5500d0df1d07e26a",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "676ff0c74c5d7261",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "f50f727ed74df36f",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "9439918fc001953d",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "a469b5f04b7fb044",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "a72367cc6ab64119",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "48108013cb2b0b6d",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        }
+      ],
+      "proposedAtUtc": "2026-08-17T18:29:20.015Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-oscar-002",
+      "projectId": "oscar",
+      "status": "PROPOSED",
+      "description": "DOM_ACCESSIBLE_NAME_CHANGED em body#default > header > nav > div#navbarSupportedContent > ul > li[role=listitem] — rotulado NOISE em 10 delta(s) de 10 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ACCESSIBLE_NAME_CHANGED",
+        "pathSkeleton": "body#default > header > nav > div#navbarSupportedContent > ul > li[role=listitem]"
+      },
+      "evidence": [
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "8e64a79cd1926b00",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "dc6cf9609a7a2bbb",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "59fb68dfb38927b3",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "44826f10580942f2",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "feb7f11b52a41fff",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "f78b61bff663c7b0",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "3a7d45eb30518325",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "5d47fe5223009184",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "43219feb065cb4c9",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        },
+        {
+          "runId": "run_7dbb8306-17a4-48a5-a00b-749843a13556",
+          "deltaId": "d8849f2fb38ff407",
+          "labeledBy": "cleber.araujo via __corpus__/oscar/label-intentional.mjs",
+          "labeledAtUtc": "2026-08-17T18:29:20.015Z",
+          "note": "M1-menu-so-nivel-1: menu 'Browse store' é gerado da árvore de categorias; itens entram e saem com o catálogo — rotina nesta aplicação. AO SUPRIMIR, um bug que apague um nível do menu passa despercebido."
+        }
+      ],
+      "proposedAtUtc": "2026-08-17T18:29:20.015Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    }
+  ]
+}
