@@ -66,7 +66,7 @@ runs:
         path: .aletheia-runner
     - uses: pnpm/action-setup@v4
       with:
-        version: 10
+        # A versão vem do `packageManager` do package.json do runner.
         package_json_file: .aletheia-runner/package.json
     - uses: actions/setup-node@v4
       with:
