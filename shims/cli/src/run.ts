@@ -68,6 +68,7 @@ export async function runCommand(
     db,
     capabilities: args.capabilities,
     dbEnvironment: args.dbEnvironment,
+    dataStrategy: db === null ? null : args.dataStrategy,
   });
 
   // Base primeiro, sempre: se a base não capturar, o head nem é visitado — e o
@@ -75,10 +76,12 @@ export async function runCommand(
   const base = await performCapture(
     captureArgs("base", args.baseUrl, args.baseRef, args.baseDb),
     logger,
+    `${runId}_base`,
   );
   const head = await performCapture(
     captureArgs("head", args.headUrl, args.commit, args.headDb),
     logger,
+    `${runId}_head`,
   );
 
   const { report, reportPaths } = await performDiff(
@@ -95,6 +98,7 @@ export async function runCommand(
       failOnRegression: args.failOnRegression,
       visual: args.screenshots,
       suppressions: args.suppressions,
+      dataStrategy: args.dataStrategy,
     },
     runId,
     logger,

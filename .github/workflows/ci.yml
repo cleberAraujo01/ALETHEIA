@@ -32,6 +32,24 @@ jobs:
   verificacao:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # PostgreSQL de serviço para o adaptador e o template-clone de
+    # `packages/capabilities` (E-07). Sem ele os testes de Postgres são PULADOS
+    # com o motivo na saída — aqui eles rodam de verdade.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: aletheia
+          POSTGRES_PASSWORD: aletheia
+          POSTGRES_DB: aletheia
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aletheia"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ALETHEIA_PG_URL: postgres://aletheia:aletheia@127.0.0.1:5432/aletheia
     steps:
       - uses: actions/checkout@v4
 

@@ -10,7 +10,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "env": ["ALETHEIA_PG_URL"]
     },
     "coverage": {
       "dependsOn": ["^build"],

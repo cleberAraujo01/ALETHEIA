@@ -221,7 +221,7 @@ describe("executor sqlite", () => {
 
   it("URL de engine desconhecido é falha de plataforma sem a URL no contexto", () => {
     try {
-      openExecutor("postgres://user:senha@host/db", {
+      openExecutor("mysql://user:senha@host/db", {
         catalog: { specs: [] },
         environment: "staging",
         logger,

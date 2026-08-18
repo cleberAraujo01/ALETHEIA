@@ -24,6 +24,7 @@ const METADATA: RunMetadata = {
   baseRef: "main",
   environment: "test",
   confidenceMode: "ISOLATED",
+  dataStrategy: null,
   autonomyLevel: 1,
   startedAtUtc: "2026-01-10T12:10:00.000Z",
 };

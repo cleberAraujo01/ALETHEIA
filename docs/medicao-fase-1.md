@@ -296,3 +296,66 @@ as lê como `database: null`.
 - **A cobertura de coluna sem qualificador não é conferida** (`SELECT id FROM
   orders` — o validador não sabe de que tabela é `id`); a allowlist continua o
   teto, e o executor mascara pelo nome da coluna devolvida.
+
+## 5. E-07 — ambiente efêmero via template clone (a metade que é nossa)
+
+### 5.1 O que foi construído
+
+`provisionEphemeralDatabase(template, { strategy, runId })` em
+`packages/capabilities/src/executor/` (o único lugar com driver): `template-clone`
+em sqlite (cópia do arquivo para um caminho com o `runId` no nome) e em
+**PostgreSQL** (`CREATE DATABASE "aletheia_<runId>" TEMPLATE "<origem>"` no
+mesmo servidor, §14.6 nível 3), `dispose()` apaga / `DROP DATABASE … WITH
+(FORCE)`. `shared-degraded` devolve o banco como está e o relatório diz. PA-06:
+não há `afterEach`, não há `DELETE` de rastro — se a execução morrer no meio, o
+clone fica órfão com o `runId` no nome para a faxina de ambiente, nunca para
+rotina de cleanup do teste.
+
+Adaptador PostgreSQL para o executor: `:nome` → `$n` na borda (o driver é
+posicional; o validador já garantiu que não há `$` no SQL, então a conversão é
+injetiva), cada consulta numa transação `READ ONLY` com `statement_timeout` da
+própria capability via `set_config` parametrizado — escrever falha no engine
+mesmo que o validador falhasse (testado). `RunMetadata.dataStrategy` (§15.2,
+PA-12) e o comentário de PR declaram a estratégia; `--data-strategy` em
+`capture` e `run`. Postgres de serviço no CI: os testes de Postgres **rodam** lá;
+sem `ALETHEIA_PG_URL` eles são pulados com o motivo na saída.
+
+### 5.2 O que foi medido
+
+| Caso | Resultado |
+|---|---|
+| sqlite: clone → executor lê o clone → dispose | clone some, template intacto |
+| PostgreSQL (CI e local): template com 1 linha → `CREATE DATABASE … TEMPLATE` → executor lê 42/15 no clone → `UPDATE` pelo adaptador é recusado (`read-only`) → dispose | `pg_database` não tem mais o clone |
+| `pnpm demo:banco` (sqlite, `--data-strategy template-clone`) | `DB_FIELD_CHANGED` HIGH, código 1; diretório de clones vazio no fim |
+| `pnpm demo:banco --postgres` (`ALETHEIA_PG_URL`) | idem; no servidor sobram só `aletheia_demo_base` e `aletheia_demo_head` (templates) — nenhum `aletheia_run_*` |
+| `--data-strategy partition`, engine desconhecido | falha de plataforma com o motivo |
+
+### 5.3 O que ficou declarado — e por que a fatia é "metade"
+
+- **A aplicação por PR não é provisionada por aqui.** §15.4 pede "aplicação +
+  banco clonado + dependências virtualizadas" por PR. O banco está feito; a
+  aplicação continua vindo da plataforma do cliente (preview URL da Vercel,
+  etc.); virtualização de dependências é §12.6, Fase 2+. Por isso o
+  `confidenceMode` do demo continua `SHARED_DEGRADED` mesmo com
+  `dataStrategy: template-clone`: o relatório diz os dois, e só vira `ISOLATED`
+  quando app e dados forem por execução.
+- **Quem aponta a aplicação head para o clone é o cliente.** O clone tem URL
+  própria; a build do PR precisa recebê-la (`DATABASE_URL`) para que o que a UI
+  mostra e o que a capability lê sejam o mesmo banco. No demo a página é
+  estática e a sonda lê o clone; num piloto, isso é uma variável de ambiente no
+  deploy de preview.
+- **`CREATE DATABASE … TEMPLATE` exige template sem conexões e usuário com
+  `CREATEDB`.** O erro diz isso. É a restrição do engine, não nossa.
+- **`WITH (FORCE)` no `DROP`** derruba conexões penduradas do próprio clone —
+  é descarte de ambiente efêmero, não limpeza de dado do cliente.
+
+## 6. Onde a Fase 1 está
+
+As cinco fatias de engenharia do §8 estão feitas e demonstradas. O critério de
+saída (§21.3) é comercial — demo em aplicação de cliente, 3 pilotos, NPS ≥ 40 —
+e o primeiro piloto real está bloqueado por *Deployment Protection* na Vercel
+(§1.4). Código novo, daqui em diante, entra puxado por piloto: PostgreSQL com
+`EXPLAIN` e AST, cura aprovada com repositório atualizado, evidência para as
+regras de supressão. Tudo o que foi construído nesta fase tem número medido
+contra fixture ou contra aplicação pública; **nenhum contra aplicação de
+cliente**, e este documento diz isso na primeira linha.

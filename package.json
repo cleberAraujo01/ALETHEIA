@@ -26,7 +26,8 @@
     "corpora:medir": "node scripts/medir-corpora.mjs",
     "capabilities:validate": "pnpm --filter @aletheia/capabilities run capabilities:validate",
     "capabilities:validate:fixtures": "pnpm --filter @aletheia/capabilities run capabilities:validate ../../apps/runner/__fixtures__/capabilities",
-    "demo:banco": "node scripts/demo-banco.mjs"
+    "demo:banco": "node scripts/demo-banco.mjs",
+    "demo:banco:postgres": "node scripts/demo-banco.mjs --postgres"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

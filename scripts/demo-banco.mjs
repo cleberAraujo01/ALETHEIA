@@ -9,7 +9,9 @@
  *
  * O que ele faz: cria dois sqlite (base/head) com `make-dbs.mjs`, sobe um
  * servidor estático com o fixture do runner, roda `aletheia run` com
- * `--base-db`/`--head-db`/`--capabilities`, e imprime o comentário de PR. É
+ * `--base-db`/`--head-db`/`--capabilities` e `--data-strategy template-clone`
+ * (E-07: cada captura roda num clone descartado no fim), e imprime o
+ * comentário de PR. É
  * também o smoke local da fatia; a versão de teste (sem CLI) está em
  * `apps/runner/src/capture.test.ts` e `packages/capabilities`.
  */
@@ -24,7 +26,42 @@ const CLI = join(ROOT, "shims/cli/dist/main.js");
 const SITE = join(ROOT, "apps/runner/__fixtures__/site");
 const work = mkdtempSync(join(tmpdir(), "aletheia-demo-banco-"));
 
-execFileSync(process.execPath, [join(SITE, "make-dbs.mjs"), join(work, "dbs")], { stdio: "pipe" });
+// `--postgres`: mesmo demo contra o PostgreSQL de ALETHEIA_PG_URL — dois bancos
+// TEMPLATE, e cada captura roda num `CREATE DATABASE … TEMPLATE` próprio,
+// derrubado no fim. É a E-07 no engine que a §14.4 chama de padrão-ouro.
+const usePostgres = process.argv.includes("--postgres");
+let baseDb;
+let headDb;
+let capabilities;
+if (usePostgres) {
+  if (process.env["ALETHEIA_PG_URL"] === undefined) {
+    process.stderr.write(
+      "  --postgres exige ALETHEIA_PG_URL (ex.: postgres://aletheia:aletheia@127.0.0.1:5544/aletheia)\n",
+    );
+    process.exit(2);
+  }
+  const [b, h] = execFileSync(
+    process.execPath,
+    [join(ROOT, "packages/capabilities/src/executor/tools/make-pg-dbs.mjs")],
+    {
+      stdio: ["ignore", "pipe", "inherit"],
+      env: process.env,
+    },
+  )
+    .toString()
+    .trim()
+    .split("\n");
+  baseDb = b;
+  headDb = h;
+  capabilities = join(ROOT, "apps/runner/__fixtures__/capabilities-postgres");
+} else {
+  execFileSync(process.execPath, [join(SITE, "make-dbs.mjs"), join(work, "dbs")], {
+    stdio: "pipe",
+  });
+  baseDb = `sqlite:${join(work, "dbs/base.db")}`;
+  headDb = `sqlite:${join(work, "dbs/head.db")}`;
+  capabilities = join(ROOT, "apps/runner/__fixtures__/capabilities");
+}
 
 const server = spawn(process.execPath, [join(SITE, "serve.mjs")], {
   stdio: ["ignore", "pipe", "inherit"],
@@ -47,17 +84,21 @@ try {
       "--journey",
       join(ROOT, "apps/runner/__fixtures__/journeys/fixture-loja.json"),
       "--capabilities",
-      join(ROOT, "apps/runner/__fixtures__/capabilities"),
+      capabilities,
       "--base-db",
-      `sqlite:${join(work, "dbs/base.db")}`,
+      baseDb,
       "--head-db",
-      `sqlite:${join(work, "dbs/head.db")}`,
+      headDb,
       "--out",
       join(work, "run"),
       "--env",
       "demo",
       "--screenshots",
       "false",
+      // E-07: os dois bancos viram TEMPLATE; cada captura roda num clone
+      // descartado no fim. O relatório declara `template-clone`.
+      "--data-strategy",
+      "template-clone",
     ],
     { cwd: ROOT, stdio: ["ignore", "inherit", "ignore"] },
   );

@@ -22,3 +22,6 @@ export type {
   ExecutorOptions,
 } from "./executor/index.js";
 export type { EngineAdapter, QueryRows } from "./executor/adapter.js";
+export { provisionEphemeralDatabase } from "./executor/isolation.js";
+export type { EphemeralDatabase, ProvisionOptions } from "./executor/isolation.js";
+export { positional } from "./executor/postgres.js";
