@@ -1,0 +1,11 @@
+{
+  "pr": 23092,
+  "title": "docs: explain monorepo watch setup",
+  "headSha": "1d630b7d2e69dae486d87b3a37c3e332f634cb43",
+  "baseSha": "8a245726944ed29225920d49be77c33c6e03afc8",
+  "preview": "https://deploy-preview-23092--vite-docs-main.netlify.app",
+  "capturedProduction": "https://vite.dev",
+  "files": [
+    "docs/config/server-options.md"
+  ]
+}

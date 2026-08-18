@@ -1,0 +1,11 @@
+{
+  "pr": 23230,
+  "title": "docs: document server.preTransformRequests",
+  "headSha": "0b493aa157ef3d3a56470387fbc72416f8b58713",
+  "baseSha": "9c75eb1ff075455e91d43729827213a159216c4f",
+  "preview": "https://deploy-preview-23230--vite-docs-main.netlify.app",
+  "capturedProduction": "https://vite.dev",
+  "files": [
+    "docs/config/server-options.md"
+  ]
+}

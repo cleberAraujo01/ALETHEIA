@@ -99,6 +99,27 @@ const PARES = [
     head: `.aletheia/saucedemo/${user}`,
     rotulador: "packages/diff-engine/__corpus__/saucedemo/label.mjs",
   })),
+  // Quarto corpus: vite-docs (PRs reais do vitejs/vite, preview público
+  // contra produção). Três PRs legítimos + o #23201, cuja preview é uma build
+  // quebrada de verdade (prs.mjs). Capturas via
+  // `node packages/diff-engine/__corpus__/vite-docs/capture.mjs base base-rerun 23230 …`.
+  ...["23230", "23237", "23092"].map((pr) => ({
+    id: `vite-docs-${pr}`,
+    titulo: `Vite docs — PR real #${pr}`,
+    projeto: "vite-docs",
+    base: ".aletheia/vite-docs/base",
+    head: `.aletheia/vite-docs/${pr}`,
+    rotulador: "packages/diff-engine/__corpus__/vite-docs/label.mjs",
+    semDefeito: true,
+  })),
+  {
+    id: "vite-docs-23201",
+    titulo: "Vite docs — PR real #23201 (preview quebrada)",
+    projeto: "vite-docs",
+    base: ".aletheia/vite-docs/base",
+    head: ".aletheia/vite-docs/23201",
+    rotulador: "packages/diff-engine/__corpus__/vite-docs/label.mjs",
+  },
   {
     id: "juventude-piso",
     titulo: "Piso — juventude, mesma build",
@@ -121,6 +142,14 @@ const PARES = [
     projeto: "saucedemo",
     base: ".aletheia/saucedemo/standard_user",
     head: ".aletheia/saucedemo/standard_user-rerun",
+    piso: true,
+  },
+  {
+    id: "vite-docs-piso",
+    titulo: "Piso — Vite docs, mesma produção",
+    projeto: "vite-docs",
+    base: ".aletheia/vite-docs/base",
+    head: ".aletheia/vite-docs/base-rerun",
     piso: true,
   },
   {

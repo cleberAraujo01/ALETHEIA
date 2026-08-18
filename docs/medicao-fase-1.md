@@ -455,3 +455,140 @@ app não tem banco para consultar.
   convergência, não diff — entra quando RN-EXE-012 tiver medição própria).
 - Sem banco: `V2` não tem O6 para confrontar. É o argumento mais concreto que
   este projeto tem para a camada de banco num piloto real.
+
+## 8. Quarto corpus — PRs reais do Vite, preview contra produção (2026-08-17)
+
+### 8.1 Por quê, e o que é
+
+A §10.9 da Fase 0 fechou com o placar de falso positivo contra mudança
+legítima medido em **três** PRs reais de duas aplicações, e a supressão
+aprendida (§10.12) sem nenhuma regra ativável por falta de execuções
+distintas. Faltava fluxo de PR legítimo de verdade, e de outra aplicação. A
+documentação do Vite (VitePress) publica um deploy preview público por PR;
+base = produção (`vite.dev`, `main`), head = preview. Quatro PRs abertos em
+2026-08-17, oito páginas por URL, ~1 minuto por alvo, nenhuma instalação
+(`__corpus__/vite-docs/`, `capture.mjs`, `prs.mjs`, `label.mjs`).
+
+Antes de qualquer par, o piso: produção capturada duas vezes.
+
+### 8.2 O piso reprovou a si mesmo — e o achado é o de sempre
+
+| Piso vite.dev | Deltas | Bloqueantes |
+|---|---|---|
+| antes | 129 | **14** |
+| depois de `NORM-NET-010` | 115 | **0** |
+
+Os 14 eram `href` → HIGH, dois por página, todos no widget de anúncio
+(`#carbonads`): o anúncio roda a cada carga e o `href` de clique carrega um
+token por impressão de 112 caracteres
+(`srv.carbonads.net/ads/click/x/GTND427Y…`). A regra de `href` está certa — é
+ela que pega o WhatsApp errado do `juventude` (`F8`) — e não se mexe nela. O
+que faltava era reconhecer **segmento de caminho opaco** como identidade, não
+destino. Regra nova `NORM-NET-010`, estreita de propósito: ≥ 32 caracteres,
+só `[A-Za-z0-9]`, com dígito **e** letra fora do hexadecimal. Slug legível tem
+separador (`iphone-15-pro-max-256gb`), telefone é só dígito, hash é só hex —
+os três continuam comparados, e o teste unitário fixa os contraexemplos.
+Vale nos dois propósitos (`VALUE` e `ALIGNMENT`). **Custo: zero nos treze
+pares anteriores** (tabela em 8.4). É o quinto achado de piso em cinco
+aplicações estranhas; o quinto que é normalização de identidade, não
+severidade — a memória do projeto continua certa.
+
+### 8.3 Os quatro PRs — três legítimos e uma build quebrada de verdade
+
+O plano era só PR legítimo. Um dos quatro não era:
+
+| PR | Natureza | Deltas | Bloqueantes | O que são |
+|---|---|---|---|---|
+| #23230 documenta `server.preTransformRequests` | legítimo | 809 | **45** | 44 nós de conteúdo removidos em `config/server-options` + 1 `href` |
+| #23237 documenta `keepProcessEnv` | legítimo | 806 | **6** | 4 nós + 1 `href` de parágrafo deslocado (alinhamento por posição) + 1 `href` atualizado na `main` |
+| #23092 explica monorepo watch | legítimo | 1182 | **35** | 31 nós de conteúdo + 3 `href` e 1 link atualizados na `main` |
+| **#23201 fail docs build when SSR errors are detected** | **defeito** | 1063 | **56** | 8 páginas × (3 nós do cabeçalho + 3 erros de console + 1 requisição) |
+
+**#23201.** O PR existe porque o `vitepress` novo quebrava páginas sem falhar
+o build — e o preview dele é essa build. O motor viu, em cada uma das 8
+páginas: o componente de tradução do cabeçalho não renderiza (lista de
+idiomas e botão "Change language" removidos, HIGH), o console ganha
+`TypeError: Cannot read properties of undefined (reading 'value')` e
+"Hydration completed but contains mismatches" (HIGH), e a requisição de ícones
+ao iconify perde `languages`. Confirmado fora do motor: `VPNavBarTranslations`
+está no HTML da produção e dos outros três previews, e ausente só neste.
+Rotulado como `V1-menu-de-idiomas-nao-renderiza`, origem `HISTORICO`:
+**1 de 1 bloqueado, precisão 1,000, FP 0%, 8 grupos (um por página), zero
+grupo misto.** É uma regressão real, de projeto real, encontrada num PR aberto
+sem uma linha de teste escrita — a primeira do projeto que não foi injetada
+nem mantida de propósito por ninguém.
+
+**Os três legítimos: 86 bloqueantes, todos falso positivo.** A família é a
+sobredeterminada da §10.8 da Fase 0 — conteúdo que a base tem e o head não —,
+mas a causa dominante aqui é **do par, não do motor**: o preview é construído
+da base do PR, e a produção mostra a `main` de hoje. Um PR de documentação
+aberto há três semanas "perde", no diff, tudo o que a `main` ganhou nesse
+tempo (a seção "Watching files in node_modules" de `server-options`, links
+atualizados). A base certa seria a `main` no `baseSha` do PR, que não está
+publicada. Fica registrado como limitação do corpus. A parcela que é do motor
+é a de sempre e já está declarada na §7.4: **parágrafo inserido desloca os
+irmãos e o alinhamento por posição vê nós removidos e `href` trocado pelo do
+vizinho** (os 6 do #23237). Não se mexe em severidade por isso — a ablação da
+§10.8 continua valendo.
+
+### 8.4 A bancada, antes e depois
+
+Os treze pares anteriores **idênticos**; os cinco novos entram:
+
+| Corpus | Antes | Depois |
+|---|---|---|
+| Juventude — 9 defeitos | 232 · 56 bloq · 27 grupos · **6 de 9** · prec 1.000 · FP 0.0% | idêntico |
+| Juventude — PR real #2 | 278 · 11 bloq · 5 grupos | idêntico |
+| Oscar — 7 defeitos | 289 · 135 bloq · 10 grupos · **6 de 7** · prec 1.000 · FP 0.0% | idêntico |
+| Oscar — mudança intencional | 60 · 20 bloq · 1 grupo | idêntico |
+| Sauce Demo — 4 usuários | 67/310/321/122 · 11/9/11/0 bloq · **6 de 11** · FP 0.0% | idêntico |
+| **Vite docs — PR #23230** | — | 809 · 45 bloq · 41 grupos |
+| **Vite docs — PR #23237** | — | 806 · 6 bloq · 6 grupos |
+| **Vite docs — PR #23092** | — | 1182 · 35 bloq · 35 grupos |
+| **Vite docs — PR #23201 (preview quebrada)** | — | 1063 · 56 bloq · 8 grupos · **1 de 1** · prec 1.000 · FP 0.0% |
+| Pisos | juventude 0 · oscar 10 · Sauce Demo 0 · ParaBank 2 · ANBIMA 1 | idem + **Vite 0** (era 14) |
+
+**Placar de falso positivo contra mudança legítima: 117 bloqueantes em 6 PRs
+reais de três aplicações** (0 + 11 + 20 + 45 + 6 + 35). Não é para esconder:
+é o número que o produto tem hoje contra PR que não quebra nada, e o que
+mudou de natureza com este corpus é saber que a maior parcela nova é do par
+(preview atrasado da `main`), não da regra.
+
+### 8.5 A supressão aprendida ganhou evidência real — e parou onde deve
+
+O anúncio rotativo é `NOISE` por construção: muda no piso, vai se repetir em
+todo PR, e o rotulador diz na `note` o que se aceita deixar de ver (um bug que
+quebre o slot do anúncio). `aletheia suppress propose` sobre os quatro PRs e o
+piso rotulado:
+
+| Execução | Efeito |
+|---|---|
+| #23230 | 4 regras novas `PROPOSED` (`img@src`, nome acessível, texto, ordem dos filhos em `#carbonads`) |
+| #23237 | as 4 reforçadas — **2 execuções distintas** |
+| #23092, #23201, piso | nada: o anúncio calhou de ser o mesmo par (base e head) do #23230, e a evidência deduplica por `deltaId` |
+
+A dedup por `deltaId` é decisão da §10.12 — re-diffar o mesmo par não pode
+contar como execução nova — e aqui ela barra evidência que um humano aceitaria
+(execuções distintas, mesmo conteúdo). Fica declarado como o custo dessa
+escolha; não se afrouxa sem medir. As 4 regras ficam `PROPOSED` com 2
+execuções, em `__corpus__/vite-docs/suppressions.json`. É a primeira vez que a
+barreira de 3 execuções é testada por dado real, e ela segurou.
+
+### 8.6 O que ficou declarado
+
+- Previews de terceiro: podem sair do ar quando os PRs forem mesclados;
+  `prs/<n>.json` guarda `headSha` e `baseSha` para reconstituir a build.
+- A base correta de um preview seria a `main` no `baseSha` — não publicada.
+  Num piloto real isso não acontece: base e head são as duas builds do PR.
+- O piso do Vite é o único piso rotulado (tudo `NOISE` por construção),
+  para servir de evidência à supressão aprendida. Ele continua reprovando a
+  bancada se tiver bloqueante.
+- A ferramenta que o Netlify injeta no preview (`app.netlify.com`,
+  `cdn.segment.com`, `bugsnag`) aparece como ~150 requisições LOW por par —
+  ambiente, não aplicação. Rotulado, não normalizado: não há regra a
+  aprender com isso ainda.
+- `MAX_ROUNDS` da quiescência subiu de 8 para 24 (`apps/runner/src/quiescence.ts`):
+  o vite.dev faz prefetch em idle e oscilava até o limite de rodadas antes do
+  deadline, e a captura caía em `TIMEOUT_CONVERGENCE` por "oscilação" quando o
+  que havia era rede lenta. O deadline continua mandando; a mudança só evita
+  declarar oscilação cedo demais.

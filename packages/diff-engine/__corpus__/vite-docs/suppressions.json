@@ -1,0 +1,238 @@
+{
+  "version": "0.1.0",
+  "projectId": "vite-docs",
+  "rules": [
+    {
+      "id": "SUP-vite-docs-001",
+      "projectId": "vite-docs",
+      "status": "PROPOSED",
+      "description": "DOM_ATTRIBUTE_CHANGED em body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > span > a > img[role=img]@src — rotulado NOISE em 5 delta(s) de 5 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ATTRIBUTE_CHANGED",
+        "pathSkeleton": "body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > span > a > img[role=img]@src"
+      },
+      "evidence": [
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "da061034a8a3f9c8",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "79a0ae8828e53b08",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "e6b7a3f6d1ca5f2c",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "a6a6cebf1ce7daed",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "35b1a25ccec28250",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_a6c032df-477f-4d1b-ba82-aeca325de846",
+          "deltaId": "ba7dee1c7f00b0ea",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:59.206Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        }
+      ],
+      "proposedAtUtc": "2026-08-18T01:50:58.694Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-vite-docs-002",
+      "projectId": "vite-docs",
+      "status": "PROPOSED",
+      "description": "DOM_ACCESSIBLE_NAME_CHANGED em body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > span > a[role=link] — rotulado NOISE em 5 delta(s) de 5 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ACCESSIBLE_NAME_CHANGED",
+        "pathSkeleton": "body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > span > a[role=link]"
+      },
+      "evidence": [
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "c23b943a2505e56c",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "6c8796bf564d9109",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "261fa4da9f1a71d1",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "15ffee18e9f6316a",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "f98fe91ab87fba4d",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_a6c032df-477f-4d1b-ba82-aeca325de846",
+          "deltaId": "82355d28865001ab",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:59.206Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        }
+      ],
+      "proposedAtUtc": "2026-08-18T01:50:58.694Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-vite-docs-003",
+      "projectId": "vite-docs",
+      "status": "PROPOSED",
+      "description": "DOM_TEXT_CHANGED em body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > span > a[role=link] — rotulado NOISE em 5 delta(s) de 5 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_TEXT_CHANGED",
+        "pathSkeleton": "body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > span > a[role=link]"
+      },
+      "evidence": [
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "af1b86f5de92780a",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "9eadc45c919d2bf9",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "5c2cac54ac992ae7",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "c3286291b068f5b5",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "3d76c894153f4374",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_a6c032df-477f-4d1b-ba82-aeca325de846",
+          "deltaId": "04d4f4777354bf80",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:59.206Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        }
+      ],
+      "proposedAtUtc": "2026-08-18T01:50:58.694Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-vite-docs-004",
+      "projectId": "vite-docs",
+      "status": "PROPOSED",
+      "description": "DOM_CHILDREN_REORDERED em body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > div — rotulado NOISE em 5 delta(s) de 5 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_CHILDREN_REORDERED",
+        "pathSkeleton": "body > div#app > div > div > div[2] > div > div#VPContent > div > div > div[0] > div[1] > div > div > div[2] > div > div#carbonads > span > div"
+      },
+      "evidence": [
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "97e59ffb136273fe",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "063d3ccae52713f7",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "0ebdc4d025b1e143",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "625b0fad974b5a4d",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_6dd5f36b-0ff2-4aa5-b2f1-979bb3884f74",
+          "deltaId": "4ef0b60b4745ec68",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:58.694Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        },
+        {
+          "runId": "run_a6c032df-477f-4d1b-ba82-aeca325de846",
+          "deltaId": "a27ba61bc8e1e7ba",
+          "labeledBy": "cleber.araujo via __corpus__/vite-docs/label.mjs",
+          "labeledAtUtc": "2026-08-18T01:50:59.206Z",
+          "note": "anúncio rotativo de terceiro (#carbonads e seus pings): muda a cada carga da mesma build. AO SUPRIMIR, um bug que quebre o slot do anúncio passa despercebido — e é o que se aceita."
+        }
+      ],
+      "proposedAtUtc": "2026-08-18T01:50:58.694Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    }
+  ]
+}
