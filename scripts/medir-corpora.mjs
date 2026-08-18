@@ -88,6 +88,17 @@ const PARES = [
     rotulador: "packages/diff-engine/__corpus__/oscar/label-intentional.mjs",
     semDefeito: true,
   },
+  // Terceiro corpus: Sauce Demo (público, com ações). Base = standard_user;
+  // cada usuário é um head com defeitos documentados (faults.mjs). Capturas
+  // via `node packages/diff-engine/__corpus__/saucedemo/capture.mjs`.
+  ...["locked_out_user", "problem_user", "error_user", "visual_user"].map((user) => ({
+    id: `saucedemo-${user}`,
+    titulo: `Sauce Demo — ${user}`,
+    projeto: "saucedemo",
+    base: ".aletheia/saucedemo/standard_user",
+    head: `.aletheia/saucedemo/${user}`,
+    rotulador: "packages/diff-engine/__corpus__/saucedemo/label.mjs",
+  })),
   {
     id: "juventude-piso",
     titulo: "Piso — juventude, mesma build",
@@ -102,6 +113,14 @@ const PARES = [
     projeto: "oscar",
     base: ".aletheia/oscar/base",
     head: ".aletheia/oscar/base-rerun",
+    piso: true,
+  },
+  {
+    id: "saucedemo-piso",
+    titulo: "Piso — Sauce Demo, mesma build",
+    projeto: "saucedemo",
+    base: ".aletheia/saucedemo/standard_user",
+    head: ".aletheia/saucedemo/standard_user-rerun",
     piso: true,
   },
   {

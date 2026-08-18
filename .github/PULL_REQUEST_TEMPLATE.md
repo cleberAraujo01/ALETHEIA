@@ -56,9 +56,10 @@ defeito, subir servidor, capturar), os comandos estão na §11 de
 | Juventude — PR real #2 (`910181f`) | 278 deltas · **11 bloqueantes** (falso positivo conhecido, §10.9) | |
 | Oscar — 7 defeitos | 26 regr · 4 de 7 bloqueados · 96,5% triagem | |
 | Oscar — mudança intencional | 60 deltas · **20 bloqueantes** (falso positivo conhecido, §10.8) | |
+| Sauce Demo — 4 usuários (11 defeitos) | 6 de 11 bloqueados · 11 de 11 visíveis · FP 0% (medição F1 §7) | |
 
 - [ ] Nenhum dos quatro piorou
-- [ ] Piso de ruído inalterado: juventude 0 · oscar 10 · ParaBank 2 · ANBIMA 1, **nenhum bloqueante**
+- [ ] Piso de ruído inalterado: juventude 0 · oscar 10 · Sauce Demo 0 · ParaBank 2 · ANBIMA 1, **nenhum bloqueante**
 
 ## Se o PR cria ou altera regra de severidade, normalização ou supressão
 
