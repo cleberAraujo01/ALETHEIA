@@ -136,11 +136,19 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      # Só o binário, sem `--with-deps`: a imagem ubuntu-latest já traz as
+      # bibliotecas do Chromium, e o `apt-get` do `--with-deps` travou 12 min
+      # num mirror indisponível. Se um dia a imagem deixar de trazê-las, o
+      # passo seguinte falha alto e o fallback instala — nada fica implícito.
       - name: chromium
         if: steps.chromium-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter @aletheia/runner exec playwright install --with-deps chromium
-      - name: dependências de sistema do chromium (cache hit)
-        if: steps.chromium-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @aletheia/runner exec playwright install-deps chromium
+        run: pnpm --filter @aletheia/runner exec playwright install chromium
       - name: testes do runner
+        id: runner-tests
+        continue-on-error: true
         run: pnpm --filter @aletheia/runner test
+      - name: fallback — dependências de sistema e nova tentativa
+        if: steps.runner-tests.outcome == 'failure'
+        run: |
+          pnpm --filter @aletheia/runner exec playwright install-deps chromium
+          pnpm --filter @aletheia/runner test
