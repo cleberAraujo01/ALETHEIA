@@ -42,7 +42,7 @@ em que quem escreveu olha o próprio diff pelo ângulo de quem vai revisar.
 **Cole a tabela dos quatro pares.** Um número sozinho não diz nada: detectar mais
 é trivial se reprovar todo mundo for aceitável.
 
-Com as capturas já em disco, `pnpm corpora:medir` roda os oito pares e imprime a
+Com as capturas já em disco, `pnpm corpora:medir` roda os pares todos e imprime a
 tabela pronta; `--antes <dir de uma rodada anterior>` preenche as duas colunas de
 uma vez. Ele **avisa e sai com erro** se faltar captura de algum par — par que
 falta não é par que passou. Para reconstituir as capturas (clonar, aplicar
@@ -57,14 +57,16 @@ defeito, subir servidor, capturar), os comandos estão na §11 de
 | Oscar — 7 defeitos | 26 regr · 4 de 7 bloqueados · 96,5% triagem | |
 | Oscar — mudança intencional | 60 deltas · **20 bloqueantes** (falso positivo conhecido, §10.8) | |
 | Sauce Demo — 4 usuários (11 defeitos) | 6 de 11 bloqueados · 11 de 11 visíveis · FP 0% (medição F1 §7) | |
+| Vite docs — 3 PRs legítimos (#23230, #23237, #23092) | 45 · 6 · 35 bloqueantes (falso positivo conhecido, F1 §8.3) | |
+| Vite docs — PR #23201 (preview quebrada) | 1 de 1 bloqueado · FP 0% (F1 §8.3) | |
 
 - [ ] Nenhum dos quatro piorou
-- [ ] Piso de ruído inalterado: juventude 0 · oscar 10 · Sauce Demo 0 · ParaBank 2 · ANBIMA 1, **nenhum bloqueante**
+- [ ] Piso de ruído inalterado: juventude 0 · oscar 10 · Sauce Demo 0 · Vite 0 · ParaBank 2 · ANBIMA 1, **nenhum bloqueante**
 
 ## Se o PR cria ou altera regra de severidade, normalização ou supressão
 
-A §8, a §9 e a §10.2 da medição registram **três** aplicações desconhecidas que
-derrubaram regra recém-calibrada. O teste custa dois minutos: duas capturas da
+A §8, a §9 e a §10.2 da medição da Fase 0, e a §7.4 e a §8.2 da Fase 1,
+registram **cinco** aplicações desconhecidas que derrubaram regra recém-calibrada. O teste custa dois minutos: duas capturas da
 mesma build, sem build e sem login.
 
 - [ ] Piso de ruído rodado em aplicação **fora** do corpus calibrado

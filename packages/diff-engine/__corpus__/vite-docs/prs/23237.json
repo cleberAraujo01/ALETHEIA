@@ -1,0 +1,11 @@
+{
+  "pr": 23237,
+  "title": "docs: document keepProcessEnv in the environment options",
+  "headSha": "2902fc9fa6a39ce1216c6815b32f5b49c2b8ad79",
+  "baseSha": "dcf88bd2ad2b1a8845f9029587cc8c825e382d42",
+  "preview": "https://deploy-preview-23237--vite-docs-main.netlify.app",
+  "capturedProduction": "https://vite.dev",
+  "files": [
+    "docs/guide/api-environment.md"
+  ]
+}

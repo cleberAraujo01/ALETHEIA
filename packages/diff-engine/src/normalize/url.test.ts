@@ -167,3 +167,46 @@ describe("id de sessão como parâmetro de segmento de path", () => {
     expect(norm("/x;sessionid=7")).not.toBe(norm("/x;sessionid=9"));
   });
 });
+
+/**
+ * MEDIDO em vite.dev (piso da quinta aplicação estranha): duas capturas da
+ * mesma produção, 14 deltas bloqueantes — todos `href` → HIGH em cima do token
+ * por impressão do widget de anúncio (`/ads/click/x/GTND427Y…`, 112 chars).
+ */
+describe("segmento de caminho opaco", () => {
+  const A =
+    "GTND427YCAYD623ICV7LYKQUFTSIVK7UF67ILZ3JCAAD5K7JCKBDT53KF6YIK237FT7DCKJUC6YDTKQ7CY7IT23KC6SIE27EC6BDEK3EHJNCLSIZ";
+  const B =
+    "GTND427YCAYD623ICV7LYKQUFTSIVK7UF67ILZ3JCAAD5K7JCKBDT5QKC67DL53MFTAIVKQNCT7DE27MCWSDK53KC6SIE27EC6BDEK3EHJNCLSIZ";
+  const norm = (url: string, purpose?: "ALIGNMENT" | "VALUE"): string =>
+    normalizeUrl(url, purpose === undefined ? opts : { ...opts, purpose }, createLedger());
+
+  it("sai do href (VALUE) — foi lá que bloqueou", () => {
+    expect(norm(`https://srv.carbonads.net/ads/click/x/${A}`, "VALUE")).toBe(
+      norm(`https://srv.carbonads.net/ads/click/x/${B}`, "VALUE"),
+    );
+    expect(norm(`https://srv.carbonads.net/ads/click/x/${A}`, "VALUE")).toContain("<token>");
+  });
+
+  it("e do alinhamento de rede, onde nunca emparelharia", () => {
+    expect(norm(`/ads/click/x/${A}`)).toBe(norm(`/ads/click/x/${B}`));
+  });
+
+  it("o resto do caminho continua sendo comparado", () => {
+    expect(norm(`/ads/click/x/${A}`, "VALUE")).not.toBe(norm(`/ads/view/x/${A}`, "VALUE"));
+  });
+
+  it("slug legível, número e hash hexadecimal NÃO são token — a lição do WhatsApp fica de pé", () => {
+    const keep = [
+      "/produto/iphone-15-pro-max-256gb-titanium-blue-oficial", // slug: tem separador
+      "/5511941126939", // telefone: só dígito
+      "/avatar/76458ceb8d9373957d33a25a1c8ce751", // hex: continua com NORM-NET-001 e comparado como valor
+      "/guide/api-environment-instances", // sem dígito
+      "/ProdutosEmDestaqueDaSemana2026", // < 32 caracteres
+    ];
+    for (const url of keep) {
+      expect(norm(url, "VALUE")).toBe(url);
+      expect(norm(url, "VALUE")).not.toContain("<token>");
+    }
+  });
+});

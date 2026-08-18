@@ -1,0 +1,15 @@
+{
+  "journeyVersion": "0.1.0",
+  "name": "vite-docs",
+  "viewport": { "width": 1280, "height": 900 },
+  "observations": [
+    { "observationId": "home", "path": "/" },
+    { "observationId": "guide", "path": "/guide/" },
+    { "observationId": "guide-features", "path": "/guide/features" },
+    { "observationId": "guide-api-environment", "path": "/guide/api-environment" },
+    { "observationId": "config", "path": "/config/" },
+    { "observationId": "config-server-options", "path": "/config/server-options" },
+    { "observationId": "config-shared-options", "path": "/config/shared-options" },
+    { "observationId": "plugins", "path": "/plugins/" }
+  ]
+}

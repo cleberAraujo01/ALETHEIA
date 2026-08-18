@@ -155,8 +155,15 @@ export class NetworkTracker {
   }
 }
 
-/** Número máximo de alternâncias rede ⇄ DOM antes de desistir. */
-const MAX_ROUNDS = 8;
+/**
+ * Número máximo de alternâncias rede ⇄ DOM antes de desistir. HIPÓTESE, e a
+ * primeira calibração veio do vite.dev (VitePress): prefetch de rotas em idle
+ * produz 5–8 voltas legítimas por página, e o teto de 8 derrubava capturas
+ * inteiras por "oscilação" quando faltavam dois segundos para convergir. O
+ * limite que protege contra aplicação que nunca silencia é o DEADLINE; o teto
+ * de voltas só precisa ser alto o bastante para não ser ele o gargalo.
+ */
+const MAX_ROUNDS = 24;
 
 export async function waitForQuiescence(
   page: Page,

@@ -1,0 +1,15 @@
+{
+  "pr": 23201,
+  "title": "test(docs): fail docs build when SSR errors are detected",
+  "headSha": "c8ffad795ac21f8dd3d656a91c9409c4da793b9c",
+  "baseSha": "56f75f68d403b9c8d1860572c12c5f5c08332add",
+  "preview": "https://deploy-preview-23201--vite-docs-main.netlify.app",
+  "capturedProduction": "https://vite.dev",
+  "files": [
+    "docs/package.json",
+    "patches/vitepress.patch",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "scripts/test-docs.sh"
+  ]
+}
