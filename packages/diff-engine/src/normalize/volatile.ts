@@ -36,6 +36,7 @@ export const NORMALIZATION_RULES = {
   NET_BUILD_CONTENT_HASH: "NORM-NET-007",
   NET_SINGLE_USE_TOKEN: "NORM-NET-008",
   NET_SESSION_PATH_PARAM: "NORM-NET-009",
+  NET_OPAQUE_PATH_SEGMENT: "NORM-NET-010",
 } as const;
 
 /** Marcadores que substituem o valor volátil. Visíveis no relatório de propósito. */
@@ -190,6 +191,37 @@ export function isTokenFieldName(name: string): boolean {
  * é dívida, não cobertura.
  */
 const CONTAINER_SESSION_PATH_PARAMS = new Set(["jsessionid", "phpsessid", "sessionid"]);
+
+/**
+ * Segmento de caminho opaco: `/ads/click/x/GTND427YCAYD623ICV7LYKQUFTSIVK7UF6…`
+ * (112 caracteres), o token por impressão que um widget de anúncio põe no
+ * `href` do clique.
+ *
+ * MEDIDO em vite.dev (quinta aplicação de piso): duas capturas da mesma
+ * produção, 14 deltas bloqueantes — todos `href` → HIGH em cima deste token,
+ * dois por página. A regra de `href` está certa (é ela que pega o WhatsApp
+ * errado do `juventude`); o que falta é reconhecer que isto não é destino,
+ * é identidade de impressão.
+ *
+ * Aqui não há nome para fazer conjunção — é um segmento solto. Então a forma
+ * precisa ser inconfundível sozinha, e por isso ela é bem mais estreita que
+ * `isOpaqueToken`:
+ *
+ *  - ≥ 32 caracteres SEM separador (`-`, `_`, `.`): slug legível tem
+ *    separador (`iphone-15-pro-max-256gb`), e é slug que aparece no `href` de
+ *    produto, categoria e artigo — o conteúdo que a lição do WhatsApp manda
+ *    continuar comparando;
+ *  - só `[A-Za-z0-9]`, com dígito E letra fora do hexadecimal: número puro
+ *    (telefone, id) fica de fora; hash hexadecimal fica com as regras que já o
+ *    tratam (`NORM-NET-001` no alinhamento, comparado como valor), porque um
+ *    hash de conteúdo em `href` (avatar, artefato) ainda diz alguma coisa.
+ *
+ * Vale nos dois propósitos: no `href` (VALUE) porque foi lá que bloqueou; no
+ * alinhamento porque uma requisição com este segmento nunca emparelharia.
+ */
+export function isOpaquePathSegment(segment: string): boolean {
+  return /^[A-Za-z0-9]{32,}$/.test(segment) && /[G-Zg-z]/.test(segment) && /\d/.test(segment);
+}
 
 export function isContainerSessionPathParam(name: string, value: string): boolean {
   if (!CONTAINER_SESSION_PATH_PARAMS.has(name.toLowerCase())) return false;

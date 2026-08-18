@@ -6,6 +6,7 @@ import {
   isContainerSessionPathParam,
   isIdentifierPathSegment,
   isIsoTimestamp,
+  isOpaquePathSegment,
   isOpaqueToken,
   isSingleUseProtocolValue,
   isUuid,
@@ -153,6 +154,12 @@ function normalizePathSegment(
   if (withoutHash !== segment) {
     ledger.record(NORMALIZATION_RULES.NET_BUILD_CONTENT_HASH);
     return withoutHash;
+  }
+  // Token opaco como segmento (clique de anúncio, link assinado): identidade
+  // de impressão, não destino. Nos dois propósitos — ver `isOpaquePathSegment`.
+  if (isOpaquePathSegment(segment)) {
+    ledger.record(NORMALIZATION_RULES.NET_OPAQUE_PATH_SEGMENT);
+    return PLACEHOLDER.TOKEN;
   }
   if (forAlignment && isIdentifierPathSegment(segment)) {
     ledger.record(NORMALIZATION_RULES.NET_PATH_IDENTIFIER);
