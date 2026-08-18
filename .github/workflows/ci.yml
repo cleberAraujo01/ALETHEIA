@@ -88,9 +88,21 @@ jobs:
         run: pnpm typecheck
 
       # O runner tem teste de ponta a ponta com browser de verdade (interpretador
-      # da IR contra fixture local). Chromium só; é o que o produto usa.
+      # da IR contra fixture local). Chromium só; é o que o produto usa. O
+      # binário é cacheado pela versão do Playwright: sem cache, o download já
+      # levou 3m34s num runner lento e estourou o orçamento de 5 minutos.
+      - name: cache do chromium
+        id: chromium-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: chromium para os testes do runner
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @aletheia/runner exec playwright install --with-deps chromium
+      - name: dependências de sistema do chromium (cache hit)
+        if: steps.chromium-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @aletheia/runner exec playwright install-deps chromium
 
       - name: testes
         run: pnpm test
