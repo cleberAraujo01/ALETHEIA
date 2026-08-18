@@ -359,3 +359,99 @@ e o primeiro piloto real está bloqueado por *Deployment Protection* na Vercel
 regras de supressão. Tudo o que foi construído nesta fase tem número medido
 contra fixture ou contra aplicação pública; **nenhum contra aplicação de
 cliente**, e este documento diz isso na primeira linha.
+
+## 7. Terceiro corpus — Sauce Demo, com ações (2026-08-17)
+
+### 7.1 Por quê, e o que é
+
+O piloto real está bloqueado (§1.4) e nada da Fase 1 tinha sido medido contra
+defeito de aplicação que ninguém desenhou para o motor. O [Sauce Demo](https://www.saucedemo.com)
+resolve os dois de graça: uma loja pública, feita para automação, em que **o
+mesmo app é servido com defeitos deliberados conforme o usuário logado**. Base
+= `standard_user`; `locked_out_user`, `problem_user`, `error_user` e
+`visual_user` são quatro "builds head" com defeitos que a Sauce Labs mantém de
+propósito (`origem: DEMO` — um terceiro tipo além de HISTORICO e INJETADO).
+
+A jornada é a mesma para todos (`journey.mjs` gera as cinco): login → listagem
+→ ordenar Z–A → dois itens no carrinho → carrinho → checkout → dados →
+resumo → Finish → confirmação; oito observações e treze ações. É a primeira vez
+que IR, interpretador, consenso, cura e interrupção rodam contra defeito real
+fora do fixture. `capture.mjs` captura os cinco usuários mais o rerun da base em
+~3 minutos, sem instalar nada.
+
+### 7.2 O que o motor levantou antes de existir rótulo
+
+Como no oscar, a medição veio antes de `faults.mjs`. Os relatórios brutos:
+
+| Head | Deltas | Bloqueantes | O que interrompeu |
+|---|---|---|---|
+| `locked_out_user` | 67 | 11 | login recusado → `select` do passo 7 não existe |
+| `problem_user` | 310 | 9 | sobrenome ignorado → Continue reprova → `Finish` do passo 21 não existe |
+| `error_user` | 321 | 11 | — (chega ao fim, mas o pedido não conclui) |
+| `visual_user` | 122 | 0 | — |
+| `standard_user` × rerun (piso) | 1 → **0** | 1 → **0** | ver 7.4 |
+
+E o consenso resolveu **todos os alvos** por unanimidade (`testId+role+name`,
+`testId+placeholder`), exceto um em que o meu fingerprint estava errado (o link
+do carrinho não tem papel `link`) — o motor propôs a cura certa (`text: "2"`)
+e o fingerprint foi corrigido para `testId + css` antes das capturas.
+
+### 7.3 Defeitos e detecção
+
+Onze defeitos fixados a partir do observado (`faults.mjs`), rotulagem que fecha
+para baixo (`label.mjs`, usuário lido de `report.head.label`):
+
+| Usuário | Defeito | Bloqueado | Como / por que não |
+|---|---|---|---|
+| locked_out | `L1` login bloqueado | **sim** | jornada interrompida → 6 `OBSERVATION_REMOVED` HIGH; a observação `inventory` é a tela de login com erro (nós removidos, HIGH) |
+| problem | `P1` link About → 404 | **sim** | `href` mudou → HIGH, em toda página |
+| problem | `P2` sobrenome ignorado | **sim** | `checkout-overview` é a tela de dados com "Last Name is required": resumo e lista do carrinho sumiram (HIGH); `complete` ausente (HIGH) |
+| problem | `P3` imagens → 404 | não | `src` mudou → MEDIUM; 6 requisições de imagem sumiram → MEDIUM |
+| problem | `P4` ordenação ignorada | não | rótulo do seletor e ordem dos itens → texto/atributo MEDIUM |
+| error | `E1` Finish não conclui | **sim** | "Thank you", texto e botões da confirmação sumiram (HIGH) |
+| error | `E2` ordenação lança erro | **sim** | erro no **console**: o rastreador do app (backtrace) dispara e o CORS do POST aparece — HIGH |
+| error | `E3` erro no checkout | **sim** | idem, no passo de dados (causa exata não isolada; sintoma exclusivo do usuário) |
+| visual | `V1` layout desalinhado | não | classes `visual_failure`/`align_right`/`misalign` → LOW; pixel → teto visual |
+| visual | `V2` **preços errados** | não | `$29.99` → `$96.09` é `DOM_TEXT_CHANGED` MEDIUM — o problema do oráculo do §1 na camada DOM, sem banco para confrontar |
+| visual | `V3` imagem → 404 | não | `src` MEDIUM |
+
+**6 de 11 bloqueados, 11 de 11 visíveis, precisão bloqueante 1,000, falso
+positivo 0%, piso 0.** O que bloqueia é o que já bloqueava nos outros dois
+corpora: rota/link quebrado, conteúdo que some, jornada que não chega. O que
+passa é a mesma família de sempre: visual e texto. `V2` merece ser lido duas
+vezes — é exatamente o caso para o qual a camada de banco (E-02) existe, e este
+app não tem banco para consultar.
+
+### 7.4 O que este corpus ensinou ao motor no primeiro dia
+
+1. **Corpo de rede não observado não é mudança de tipo — virou código.** O
+   piso reprovava a si mesmo: um POST de telemetria (`events.backtrace.io`)
+   foi abandonado pela página numa captura (`<undrained>`) e drenado na outra
+   (JSON 401), e o motor viu `RESPONSE_TYPE_CHANGED` HIGH entre um marcador e
+   um corpo. Não observado é lacuna, não delta; a captura já carrega o
+   marcador. Custo medido: zero nos oito pares anteriores. É o quarto achado de
+   piso em quatro aplicações estranhas — e o quarto que é normalização, não
+   severidade.
+2. **Rebaixar erro de console "de terceiro" foi recusado de propósito.** A
+   primeira leitura dos erros `submit.backtrace.io … blocked by CORS` era
+   "widget de terceiro logando erro" — o limite declarado da camada. A segunda
+   leitura, olhando ONDE eles aparecem, inverteu: só o `error_user` e o
+   `locked_out_user` os produzem, e só nos passos em que o defeito acontece. É
+   o rastreador de erros do app disparando **porque** algo quebrou. Uma regra
+   de origem teria rebaixado `E2` e `E3`. Ficou de fora, com o motivo aqui.
+3. **Lista cujos itens só têm identidade num descendente alinha por posição.**
+   Os `div[data-test="inventory-item"]` são todos iguais; a identidade está no
+   `item-N-title-link` dentro. Ordenar de forma diferente virou 235 deltas de
+   "cada slot com outro produto" em vez de um `DOM_CHILDREN_REORDERED`. É
+   achado de alinhamento, declarado; a correção (herdar identidade de
+   descendente com `data-test` único) entra com medição própria, porque mexe
+   no estágio 2 de todos os corpora.
+
+### 7.5 O que ficou declarado
+
+- Site público de terceiro: os defeitos são os que a Sauce Labs mantém; se
+  eles mudarem o demo, `faults.mjs` muda com medição nova.
+- `performance_glitch_user` ficou de fora (lentidão deliberada; mede
+  convergência, não diff — entra quando RN-EXE-012 tiver medição própria).
+- Sem banco: `V2` não tem O6 para confrontar. É o argumento mais concreto que
+  este projeto tem para a camada de banco num piloto real.

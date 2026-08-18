@@ -66,8 +66,14 @@ export function isFailure(value: Resolution | ResolutionFailure): value is Resol
 
 function locatorFor(page: Page, target: Target, signal: Signal): Locator {
   switch (signal) {
-    case "testId":
-      return page.getByTestId(target.testId ?? "");
+    case "testId": {
+      // Os três atributos que `observeFingerprint` lê — `data-testid` (React
+      // Testing Library, Playwright), `data-test` (Cypress, Sauce Demo),
+      // `data-qa`. Um só `getByTestId` deixaria de fora quem marcou com os
+      // outros dois, e o sinal mais forte do fingerprint viraria o mais raro.
+      const value = JSON.stringify(target.testId ?? "");
+      return page.locator(`[data-testid=${value}], [data-test=${value}], [data-qa=${value}]`);
+    }
     case "role+name":
       return page.getByRole(target.role as Parameters<Page["getByRole"]>[0], {
         name: target.name ?? "",

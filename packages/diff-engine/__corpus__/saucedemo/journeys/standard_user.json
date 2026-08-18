@@ -1,0 +1,171 @@
+{
+  "irVersion": "1.0.0",
+  "id": "jr_saucedemo_standard_user",
+  "name": "saucedemo-standard_user",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "steps": [
+    {
+      "id": "st_01",
+      "action": "navigate",
+      "path": "/"
+    },
+    {
+      "id": "st_02",
+      "action": "observe",
+      "observationId": "login"
+    },
+    {
+      "id": "st_03",
+      "action": "fill",
+      "target": {
+        "testId": "username",
+        "placeholder": "Username"
+      },
+      "value": "standard_user"
+    },
+    {
+      "id": "st_04",
+      "action": "fill",
+      "target": {
+        "testId": "password",
+        "placeholder": "Password"
+      },
+      "value": "secret_sauce"
+    },
+    {
+      "id": "st_05",
+      "action": "click",
+      "target": {
+        "testId": "login-button",
+        "role": "button",
+        "name": "Login"
+      }
+    },
+    {
+      "id": "st_06",
+      "action": "observe",
+      "observationId": "inventory"
+    },
+    {
+      "id": "st_07",
+      "action": "select",
+      "target": {
+        "testId": "product-sort-container"
+      },
+      "value": "za"
+    },
+    {
+      "id": "st_08",
+      "action": "observe",
+      "observationId": "inventory-sorted"
+    },
+    {
+      "id": "st_09",
+      "action": "click",
+      "target": {
+        "testId": "add-to-cart-sauce-labs-backpack",
+        "role": "button",
+        "name": "Add to cart"
+      }
+    },
+    {
+      "id": "st_10",
+      "action": "click",
+      "target": {
+        "testId": "add-to-cart-sauce-labs-bike-light",
+        "role": "button",
+        "name": "Add to cart"
+      }
+    },
+    {
+      "id": "st_11",
+      "action": "observe",
+      "observationId": "inventory-added"
+    },
+    {
+      "id": "st_12",
+      "action": "click",
+      "target": {
+        "testId": "shopping-cart-link",
+        "css": "a.shopping_cart_link"
+      }
+    },
+    {
+      "id": "st_13",
+      "action": "observe",
+      "observationId": "cart"
+    },
+    {
+      "id": "st_14",
+      "action": "click",
+      "target": {
+        "testId": "checkout",
+        "role": "button",
+        "name": "Checkout"
+      }
+    },
+    {
+      "id": "st_15",
+      "action": "observe",
+      "observationId": "checkout-info"
+    },
+    {
+      "id": "st_16",
+      "action": "fill",
+      "target": {
+        "testId": "firstName",
+        "placeholder": "First Name"
+      },
+      "value": "Ana"
+    },
+    {
+      "id": "st_17",
+      "action": "fill",
+      "target": {
+        "testId": "lastName",
+        "placeholder": "Last Name"
+      },
+      "value": "Souza"
+    },
+    {
+      "id": "st_18",
+      "action": "fill",
+      "target": {
+        "testId": "postalCode",
+        "placeholder": "Zip/Postal Code"
+      },
+      "value": "01000-000"
+    },
+    {
+      "id": "st_19",
+      "action": "click",
+      "target": {
+        "testId": "continue",
+        "role": "button",
+        "name": "Continue"
+      }
+    },
+    {
+      "id": "st_20",
+      "action": "observe",
+      "observationId": "checkout-overview"
+    },
+    {
+      "id": "st_21",
+      "action": "click",
+      "target": {
+        "testId": "finish",
+        "role": "button",
+        "name": "Finish"
+      }
+    },
+    {
+      "id": "st_22",
+      "action": "observe",
+      "observationId": "complete"
+    }
+  ]
+}

@@ -149,8 +149,35 @@ function diffExchange(
     });
   }
 
-  diffJson(observationId, `${path} request`, base.requestBody, head.requestBody, "", emit);
-  diffJson(observationId, `${path} response`, base.responseBody, head.responseBody, "", emit);
+  diffJson(
+    observationId,
+    `${path} request`,
+    base.requestBody,
+    head.requestBody,
+    "",
+    emit,
+    thirdParty,
+  );
+  // Corpo NÃO OBSERVADO de um lado (`<undrained>`: a página abandonou o download;
+  // `<oversized>`: grande demais para a evidência) não é mudança de tipo — é
+  // lacuna, e o marcador já está na captura. Medido no piso do Sauce Demo:
+  // a mesma build reprovava a si mesma porque uma telemetria de terceiro foi
+  // abandonada numa captura e drenada na outra.
+  if (!isUnobserved(base.responseBody) && !isUnobserved(head.responseBody)) {
+    diffJson(
+      observationId,
+      `${path} response`,
+      base.responseBody,
+      head.responseBody,
+      "",
+      emit,
+      thirdParty,
+    );
+  }
+}
+
+function isUnobserved(body: JsonValue | null): boolean {
+  return typeof body === "string" && (body === "<undrained>" || body.startsWith("<oversized:"));
 }
 
 /**
@@ -166,6 +193,7 @@ function diffJson(
   head: JsonValue | null,
   pointer: string,
   emit: (delta: RawDelta) => void,
+  thirdParty: boolean,
 ): void {
   if (base === null && head === null) return;
 
@@ -180,7 +208,7 @@ function diffJson(
       path: `${path}${pointer}`,
       before: truncateValue(render(base)),
       after: truncateValue(render(head)),
-      facts: { baseType, headType },
+      facts: { baseType, headType, thirdParty },
     });
     return;
   }
@@ -218,7 +246,7 @@ function diffJson(
         });
         continue;
       }
-      diffJson(observationId, path, baseValue, headValue, child, emit);
+      diffJson(observationId, path, baseValue, headValue, child, emit, thirdParty);
     }
     return;
   }
@@ -256,7 +284,7 @@ function diffJson(
         });
         continue;
       }
-      diffJson(observationId, path, baseValue, headValue, child, emit);
+      diffJson(observationId, path, baseValue, headValue, child, emit, thirdParty);
     }
     return;
   }

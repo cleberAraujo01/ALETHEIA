@@ -87,13 +87,11 @@ jobs:
       - name: typecheck
         run: pnpm typecheck
 
-      # O runner tem teste de ponta a ponta com browser de verdade (interpretador
-      # da IR contra fixture local). Chromium só; é o que o produto usa.
-      - name: chromium para os testes do runner
-        run: pnpm --filter @aletheia/runner exec playwright install --with-deps chromium
-
+      # Os testes de browser do runner rodam no job `runner-e2e`, em paralelo:
+      # instalar o chromium (`apt-get` do `--with-deps`) já levou 4 minutos num
+      # runner lento e estourou o orçamento deste job. Aqui, tudo menos ele.
       - name: testes
-        run: pnpm test
+        run: pnpm test --filter=!@aletheia/runner
 
       # Arquitetura e o auto-teste dela. O segundo não é zelo excessivo: o
       # repositório não viola nenhum princípio hoje, então um arch-check
@@ -113,3 +111,44 @@ jobs:
       # Toda capability versionada passa pela validação estática (§6.1 passo 3).
       - name: capabilities
         run: pnpm capabilities:validate && pnpm capabilities:validate:fixtures
+
+  # Testes de ponta a ponta do runner — browser de verdade contra fixture local
+  # (interpretador da IR, consenso de seletores, sondas de banco). Job próprio
+  # porque instala o chromium: o `apt-get` do `--with-deps` varia de 40 s a
+  # 4 min conforme o runner, e o orçamento de 5 min de `verificacao` não pode
+  # depender disso. Paralelo, então o gate do PR continua rápido; obrigatório,
+  # então nada entra sem ele. O binário é cacheado por versão do Playwright.
+  runner-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: cache do chromium
+        id: chromium-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      # Só o binário, sem `--with-deps`: a imagem ubuntu-latest já traz as
+      # bibliotecas do Chromium, e o `apt-get` do `--with-deps` travou 12 min
+      # num mirror indisponível. Se um dia a imagem deixar de trazê-las, o
+      # passo seguinte falha alto e o fallback instala — nada fica implícito.
+      - name: chromium
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @aletheia/runner exec playwright install chromium
+      - name: testes do runner
+        id: runner-tests
+        continue-on-error: true
+        run: pnpm --filter @aletheia/runner test
+      - name: fallback — dependências de sistema e nova tentativa
+        if: steps.runner-tests.outcome == 'failure'
+        run: |
+          pnpm --filter @aletheia/runner exec playwright install-deps chromium
+          pnpm --filter @aletheia/runner test
