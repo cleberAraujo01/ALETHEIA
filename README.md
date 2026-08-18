@@ -69,8 +69,15 @@ pnpm demo:banco                                    # a tela é igual; o desconto
 
 Só `READ` e só `APPROVED` executam; PII e SECRET saem como `<masked:hash>` (comparáveis,
 nunca legíveis); `LIMIT` compulsório; a URL de conexão nunca aparece em log, erro
-ou artefato. Engine desta fase: sqlite (`node:sqlite`, somente leitura); PostgreSQL
-e `EXPLAIN` entram com o primeiro piloto.
+ou artefato. Engines: sqlite (`node:sqlite`, somente leitura) e **PostgreSQL**
+(transação `READ ONLY`, `statement_timeout`); `EXPLAIN` e AST entram com o primeiro piloto.
+
+**Banco efêmero por execução** (`--data-strategy template-clone`, RN-DAT-013): o banco
+informado vira TEMPLATE, cada captura roda num clone — cópia do arquivo no sqlite,
+`CREATE DATABASE … TEMPLATE` no PostgreSQL — e o clone é **descartado** no fim (PA-06:
+descartabilidade, não limpeza). O relatório declara `dataStrategy`. A aplicação por PR
+continua vindo da plataforma do cliente (preview URL); `pnpm demo:banco --postgres`
+mostra o caminho inteiro contra um Postgres real (`ALETHEIA_PG_URL`).
 
 ## Observar uma build
 

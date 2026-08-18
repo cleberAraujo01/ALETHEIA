@@ -4,6 +4,7 @@ import type { CapabilitySpec, Environment, ParameterValue } from "../spec.js";
 import { validateCapability } from "../validate.js";
 
 import type { EngineAdapter } from "./adapter.js";
+import { openPostgres } from "./postgres.js";
 import { openSqlite } from "./sqlite.js";
 
 /**
@@ -61,7 +62,7 @@ export interface CapabilityExecutor {
 
 /**
  * Abre o executor para uma URL de conexão. A URL nunca é logada nem guardada
- * em erro. Engines suportados nesta fase: `sqlite:<caminho>` / `file:<caminho>`.
+ * em erro. Engines: `sqlite:<caminho>` / `file:<caminho>` / `postgres://…`.
  */
 export function openExecutor(connectionUrl: string, options: ExecutorOptions): CapabilityExecutor {
   const adapter = adapterFor(connectionUrl);
@@ -166,11 +167,13 @@ export function createExecutor(
 function adapterFor(connectionUrl: string): EngineAdapter {
   if (connectionUrl.startsWith("sqlite:")) return openSqlite(connectionUrl.slice("sqlite:".length));
   if (connectionUrl.startsWith("file:")) return openSqlite(connectionUrl.slice("file:".length));
+  if (connectionUrl.startsWith("postgres://") || connectionUrl.startsWith("postgresql://")) {
+    return openPostgres(connectionUrl);
+  }
   const scheme = connectionUrl.split(":")[0] ?? "";
   throw new PlatformError("DATABASE_UNREACHABLE", {
     engine: scheme,
-    reason:
-      "engine não suportado nesta fase (sqlite: | file:); postgresql entra com o primeiro piloto",
+    reason: "engine não suportado (sqlite: | file: | postgres://)",
   });
 }
 

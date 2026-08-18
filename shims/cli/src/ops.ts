@@ -1,7 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-import { loadCatalog, openExecutor, type CapabilityExecutor } from "@aletheia/capabilities";
+import {
+  loadCatalog,
+  openExecutor,
+  provisionEphemeralDatabase,
+  type CapabilityExecutor,
+  type EphemeralDatabase,
+} from "@aletheia/capabilities";
 import {
   compileLearnedRules,
   parseCapture,
@@ -43,6 +49,7 @@ export interface CaptureOutcome {
 export async function performCapture(
   args: CaptureCommandArgs,
   logger: Logger,
+  runId = "run_local",
 ): Promise<CaptureOutcome> {
   const journeySource = resolve(args.journey);
   const { ir: journey, migrated } = loadJourney(await readJson(journeySource), journeySource);
@@ -57,6 +64,7 @@ export async function performCapture(
   // executor. O runner recebe uma função que executa capability por nome; o
   // catálogo é lido do diretório versionado do cliente.
   let executor: CapabilityExecutor | null = null;
+  let ephemeral: EphemeralDatabase | null = null;
   if (args.db !== null) {
     if (args.capabilities === null) {
       throw new PlatformError("CAPTURE_INVALID", {
@@ -64,7 +72,15 @@ export async function performCapture(
           "--db exige --capabilities <dir|arquivo> — sem catálogo aprovado não há o que executar",
       });
     }
-    executor = openExecutor(args.db, {
+    // E-07: `template-clone` transforma o banco informado em TEMPLATE e a
+    // execução roda num clone descartado no fim (PA-06: descartabilidade, não
+    // limpeza). `shared-degraded` usa o banco como está — e o relatório diz.
+    ephemeral = await provisionEphemeralDatabase(args.db, {
+      strategy: args.dataStrategy ?? "shared-degraded",
+      runId,
+      logger,
+    });
+    executor = openExecutor(ephemeral.url, {
       catalog: loadCatalog(resolve(args.capabilities)),
       environment: args.dbEnvironment,
       logger,
@@ -108,7 +124,10 @@ export async function performCapture(
     database,
     logger,
     clock: systemClock,
-  }).finally(() => opened?.close());
+  }).finally(async () => {
+    await opened?.close();
+    await ephemeral?.dispose();
+  });
 
   await writeJson(captureFilePath, result.capture);
   await writeJson(traceFilePath, result.trace);
@@ -166,6 +185,7 @@ export async function performDiff(
     baseRef: args.baseRef,
     environment: args.environment,
     confidenceMode: args.confidenceMode,
+    dataStrategy: args.dataStrategy,
     autonomyLevel: 1,
     startedAtUtc: systemClock.nowUtcIso(),
   };

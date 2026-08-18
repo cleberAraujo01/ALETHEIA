@@ -37,7 +37,10 @@ export function renderPrComment(report: DiffReport, options: PrCommentOptions = 
     report.verdict.rationale,
     "",
     `Oráculo **${report.oracle}** — teste diferencial: base \`${report.base.label}\`${commitOf(report.base.commit)} × head \`${report.head.label}\`${commitOf(report.head.commit)}. ` +
-      `Modo de confiança **${report.metadata.confidenceMode}**${confidenceNote(report.metadata.confidenceMode)}.`,
+      `Modo de confiança **${report.metadata.confidenceMode}**${confidenceNote(report.metadata.confidenceMode)}.` +
+      (report.metadata.dataStrategy === null
+        ? ""
+        : ` Dados: **${report.metadata.dataStrategy}**${report.metadata.dataStrategy === "template-clone" ? " (banco clonado por execução e descartado — RN-DAT-013)" : ""}.`),
     "",
   );
 

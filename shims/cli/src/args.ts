@@ -1,4 +1,4 @@
-import { PlatformError, type ConfidenceMode } from "@aletheia/shared";
+import { PlatformError, type ConfidenceMode, type DataStrategy } from "@aletheia/shared";
 
 /**
  * Parser de argumentos sem dependência externa.
@@ -27,6 +27,8 @@ export interface DiffCommandArgs {
    * motor recusa `ACTIVE` sem evidência — não há flag para forçar.
    */
   readonly suppressions: string | null;
+  /** §15.2 — como o dado foi isolado nesta execução; vai para os metadados (PA-12). */
+  readonly dataStrategy: DataStrategy | null;
 }
 
 /**
@@ -58,6 +60,7 @@ export interface RunCommandArgs {
   readonly headDb: string | null;
   readonly capabilities: string | null;
   readonly dbEnvironment: DbEnvironment;
+  readonly dataStrategy: DataStrategy | null;
 }
 
 export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
@@ -96,6 +99,12 @@ export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
     headDb: optional(flags, "head-db"),
     capabilities: optional(flags, "capabilities"),
     dbEnvironment: dbEnvironmentOf(flags),
+    dataStrategy: dataStrategyOf(
+      flags,
+      optional(flags, "base-db") === null && optional(flags, "head-db") === null
+        ? null
+        : "shared-degraded",
+    ),
   };
 }
 
@@ -154,6 +163,34 @@ export interface CaptureCommandArgs {
   readonly capabilities: string | null;
   /** Ambiente para `allowedEnvironments` das capabilities. */
   readonly dbEnvironment: DbEnvironment;
+  /**
+   * `template-clone`: o banco de `--db` é TEMPLATE; a execução roda num clone
+   * descartado no fim (RN-DAT-013). `shared-degraded` (default com `--db`):
+   * aponta para o banco como está, e o relatório diz.
+   */
+  readonly dataStrategy: DataStrategy | null;
+}
+
+const DATA_STRATEGIES: readonly DataStrategy[] = [
+  "template-clone",
+  "ephemeral-container",
+  "partition",
+  "shared-degraded",
+];
+
+function dataStrategyOf(
+  flags: Map<string, string>,
+  fallback: DataStrategy | null,
+): DataStrategy | null {
+  const value = flags.get("data-strategy");
+  if (value === undefined || value.length === 0) return fallback;
+  if (!DATA_STRATEGIES.includes(value as DataStrategy)) {
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: `--data-strategy desconhecida: ${value}`,
+      supported: DATA_STRATEGIES.join(", "),
+    });
+  }
+  return value as DataStrategy;
 }
 
 export type DbEnvironment = "ephemeral" | "isolated" | "staging" | "production";
@@ -213,6 +250,7 @@ export function parseCaptureArgs(argv: readonly string[]): CaptureCommandArgs {
     db: optional(flags, "db"),
     capabilities: optional(flags, "capabilities"),
     dbEnvironment: dbEnvironmentOf(flags),
+    dataStrategy: dataStrategyOf(flags, optional(flags, "db") === null ? null : "shared-degraded"),
   };
 }
 
@@ -260,6 +298,7 @@ export function parseDiffArgs(argv: readonly string[]): DiffCommandArgs {
     failOnRegression: flags.get("fail-on") !== "none",
     visual: flags.get("visual") !== "false",
     suppressions: flags.get("suppressions") ?? null,
+    dataStrategy: dataStrategyOf(flags, null),
   };
 }
 

@@ -60,6 +60,7 @@ Opções de run:
   --head-db <url>         Banco da build head (sqlite:<arquivo>)
   --capabilities <dir>    Catálogo de capabilities YAML (§14.3); só READ APPROVED executa
   --db-env <ambiente>     ephemeral | isolated | staging | production (default: staging)
+  --data-strategy <s>     template-clone | shared-degraded (default com banco: shared-degraded)
 
 Opções de capture:
   --url <baseUrl>         URL base da build a observar           (obrigatório)
@@ -72,9 +73,10 @@ Opções de capture:
   --headed                Abre o browser visível, para acompanhar a navegação
   --deadline <ms>         Deadline de convergência               (default: 15000)
   --elements <arquivo>    Repositório de elementos para alvos { ref } na jornada
-  --db <url>              Banco desta build (sqlite:<arquivo>) — só com --capabilities
+  --db <url>              Banco desta build (sqlite:<arquivo> | postgres://…) — só com --capabilities
   --capabilities <dir>    Catálogo de capabilities YAML (§14.3)
   --db-env <ambiente>     ephemeral | isolated | staging | production (default: staging)
+  --data-strategy <s>     template-clone: --db é TEMPLATE, a execução roda num clone descartado no fim
 
 Opções de diff:
   --base <arquivo>        Captura da build de referência         (obrigatório)
@@ -154,7 +156,7 @@ async function captureCommand(
   runId: string,
   logger: Logger,
 ): Promise<number> {
-  const result = await performCapture(args, logger);
+  const result = await performCapture(args, logger, runId);
   process.stdout.write(
     `\n  captura     ${result.capture.captureId}\n` +
       `  execução    ${runId}\n` +

@@ -26,6 +26,13 @@ export interface RunMetadata {
   readonly environment: string;
   /** RN-EXE-007 — aparece em todo relatório. */
   readonly confidenceMode: ConfidenceMode;
+  /**
+   * §15.2 — como o dado desta execução foi isolado. `template-clone` (RN-DAT-013:
+   * banco clonado por execução e descartado) é o único que dá `ISOLATED` de
+   * verdade no data plane; `shared-degraded` é o padrão honesto de quem aponta
+   * para um banco vivo. `null` quando a execução não tocou banco.
+   */
+  readonly dataStrategy: DataStrategy | null;
   /** RN-AUT — Fase 0 opera sempre em L1. */
   readonly autonomyLevel: AutonomyLevel;
   /** UTC, sempre. Conversão só na camada de apresentação. */
@@ -33,6 +40,9 @@ export interface RunMetadata {
 }
 
 export type ConfidenceMode = "ISOLATED" | "PARTITIONED" | "SHARED_DEGRADED";
+
+export type DataStrategy =
+  "template-clone" | "ephemeral-container" | "partition" | "shared-degraded";
 
 export type AutonomyLevel = 1 | 2 | 3 | 4 | 5;
 
