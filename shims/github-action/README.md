@@ -37,8 +37,10 @@ jobs:
           journey: .aletheia/jornada.json
 ```
 
-Sem PR associado ao deploy, o comentário não é publicado (não há onde) e o
-resultado fica no step summary e no artefato.
+No evento `deployment_status` o payload não carrega o PR; o shim o descobre
+pela associação do commit deployado (`/commits/{sha}/pulls`). Sem PR associado
+ao deploy, o comentário não é publicado (não há onde) e o resultado fica no
+step summary e no artefato.
 
 ### Deploy protegido (Vercel Deployment Protection e afins)
 
