@@ -69,6 +69,9 @@ export async function runCommand(
     capabilities: args.capabilities,
     dbEnvironment: args.dbEnvironment,
     dataStrategy: db === null ? null : args.dataStrategy,
+    // O mesmo header vai para base e head: no caso que motiva a flag (Vercel),
+    // o segredo de bypass é do projeto e vale para produção e previews.
+    secretHeaders: args.secretHeaders,
   });
 
   // Base primeiro, sempre: se a base não capturar, o head nem é visitado — e o

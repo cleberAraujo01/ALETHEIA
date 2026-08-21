@@ -131,6 +131,9 @@ describe("interpretador da IR", () => {
     const serialized = JSON.stringify(ola);
     expect(serialized).not.toContain(SECRET);
     expect(serialized).toContain("<secret>");
+    // O trace também é artefato: a URL do passo pós-submit carrega a senha na
+    // query e precisa sair mascarada dele também (PA-09).
+    expect(JSON.stringify(result.trace)).not.toContain(SECRET);
     // A página ecoou nome e perfil — a ação aconteceu de verdade.
     expect(serialized).toContain("Ana");
     expect(serialized).toContain("perfil=editor");
@@ -307,6 +310,84 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
         ),
       ),
     ).rejects.toMatchObject({ code: "IR_INVALID" });
+  }, 60_000);
+});
+
+/**
+ * Header secreto (PA-09; §1.4 da medição da Fase 1): deploy atrás de proteção
+ * — o caso concreto é a Deployment Protection da Vercel, que responde 302 para
+ * o SSO sem o `x-vercel-protection-bypass`. O servidor daqui imita isso e, de
+ * propósito, ECOA o valor do header na página: se o mascaramento falhar, o
+ * segredo aparece na captura e o teste pega.
+ */
+describe("header secreto atravessa proteção de deploy", () => {
+  const BYPASS = "bypass-t0ken-que-nao-pode-vazar";
+  let protectedServer: Server;
+  let protectedUrl = "";
+
+  beforeAll(async () => {
+    protectedServer = createServer((request, response) => {
+      const path = new URL(request.url ?? "/", "http://localhost").pathname;
+      if (path === "/sso") {
+        response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+        response.end("<html><body><h1>Autenticação SSO</h1></body></html>");
+        return;
+      }
+      const received = request.headers["x-vercel-protection-bypass"];
+      if (received !== BYPASS) {
+        response.writeHead(302, { location: "/sso" });
+        response.end();
+        return;
+      }
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end(
+        `<html><body><h1>Área protegida</h1><p data-eco="${received}">ok</p></body></html>`,
+      );
+    });
+    await new Promise<void>((resolve) => protectedServer.listen(0, "127.0.0.1", resolve));
+    const address = protectedServer.address();
+    if (address === null || typeof address === "string") {
+      throw new PlatformError("INTERNAL_INVARIANT_BROKEN", {
+        reason: "servidor protegido sem porta",
+      });
+    }
+    protectedUrl = `http://127.0.0.1:${address.port}`;
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve) => {
+      protectedServer.close(() => {
+        resolve();
+      });
+    });
+  });
+
+  const protectedJourney = journey([
+    { id: "s1", action: "navigate", path: "/" },
+    { id: "s2", action: "observe", observationId: "dentro", masks: [], database: [] },
+  ]);
+
+  it("com o header a página protegida é observada — e o valor não aparece em lugar nenhum", async () => {
+    const result = await capture({
+      ...options(protectedJourney),
+      baseUrl: protectedUrl,
+      secretHeaders: { "x-vercel-protection-bypass": BYPASS },
+    });
+
+    expect(result.capture.interruption).toBeNull();
+    const dentro = JSON.stringify(result.capture.observations[0]);
+    expect(dentro).toContain("Área protegida");
+    // A página ecoou o header (o servidor faz isso de propósito) e o eco saiu
+    // mascarado: o valor não está em observação nem em trace, só o marcador.
+    expect(dentro).toContain("<secret>");
+    expect(JSON.stringify(result.capture)).not.toContain(BYPASS);
+    expect(JSON.stringify(result.trace)).not.toContain(BYPASS);
+  }, 60_000);
+
+  it("sem o header a captura segue o 302 e observa a tela de SSO — comportamento, não erro", async () => {
+    const result = await capture({ ...options(protectedJourney), baseUrl: protectedUrl });
+    expect(result.capture.interruption).toBeNull();
+    expect(JSON.stringify(result.capture.observations[0])).toContain("Autenticação SSO");
   }, 60_000);
 });
 

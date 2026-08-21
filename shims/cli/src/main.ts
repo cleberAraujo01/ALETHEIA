@@ -61,6 +61,10 @@ Opções de run:
   --capabilities <dir>    Catálogo de capabilities YAML (§14.3); só READ APPROVED executa
   --db-env <ambiente>     ephemeral | isolated | staging | production (default: staging)
   --data-strategy <s>     template-clone | shared-degraded (default com banco: shared-degraded)
+  --secret-header <h=V>   Header enviado em toda requisição das duas capturas, com valor lido
+                          da variável de ambiente V (ex.: x-vercel-protection-bypass=VERCEL_
+                          AUTOMATION_BYPASS_SECRET). O valor é segredo: mascarado em captura,
+                          trace e relatório, nunca em argv ou log. Vários: separe por vírgula.
 
 Opções de capture:
   --url <baseUrl>         URL base da build a observar           (obrigatório)
@@ -77,6 +81,7 @@ Opções de capture:
   --capabilities <dir>    Catálogo de capabilities YAML (§14.3)
   --db-env <ambiente>     ephemeral | isolated | staging | production (default: staging)
   --data-strategy <s>     template-clone: --db é TEMPLATE, a execução roda num clone descartado no fim
+  --secret-header <h=V>   Header secreto por variável de ambiente — igual ao de run
 
 Opções de diff:
   --base <arquivo>        Captura da build de referência         (obrigatório)

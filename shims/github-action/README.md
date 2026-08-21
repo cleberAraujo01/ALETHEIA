@@ -40,6 +40,28 @@ jobs:
 Sem PR associado ao deploy, o comentário não é publicado (não há onde) e o
 resultado fica no step summary e no artefato.
 
+### Deploy protegido (Vercel Deployment Protection e afins)
+
+Se as URLs respondem `302` para um SSO (na Vercel, *Vercel Authentication*
+ligado), o runner não tem o que capturar. Na Vercel, crie um segredo em
+*Settings → Deployment Protection → Protection Bypass for Automation*, guarde-o
+como secret do repositório e declare o header:
+
+```yaml
+      - uses: cleberAraujo01/ALETHEIA/shims/github-action@main
+        with:
+          base-url: https://sua-app.exemplo.com
+          head-url: ${{ github.event.deployment_status.environment_url }}
+          journey: .aletheia/jornada.json
+          secret-header: x-vercel-protection-bypass=VERCEL_AUTOMATION_BYPASS_SECRET
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+```
+
+O input carrega o **nome** da variável, nunca o valor: o segredo viaja pelo
+`env` do step (que o GitHub já mascara no log) e o runner o trata como segredo
+em tudo que captura (PA-09) — DOM, rede, console, URL, trace.
+
 `journey` é IR v1 (ações + observações; ver README da raiz) ou, no caso mais
 simples, uma lista de rotas no formato legado — que é migrada na leitura:
 
@@ -59,6 +81,7 @@ simples, uma lista de rotas no formato legado — que é migrada na leitura:
 | `env` | não | `pull-request` | vai para os metadados do relatório |
 | `confidence-mode` | não | `SHARED_DEGRADED` | declare `ISOLATED` só se as duas builds não compartilham nada (RN-EXE-007) |
 | `suppressions` | não | — | arquivo de supressão aprendida do projeto; só regras `ACTIVE` valem |
+| `secret-header` | não | — | `nome=VARIAVEL_DE_AMBIENTE`; atravessa proteção de deploy sem expor o segredo |
 | `comment` | não | `true` | `false` para só publicar no summary/artefato |
 | `token` | não | `github.token` | precisa de `pull-requests: write` para comentar |
 
