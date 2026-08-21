@@ -85,6 +85,14 @@ export interface CaptureOptions {
   readonly quiescence?: QuiescenceOptions;
   /** De onde `{ secretRef }` lê. Default: variáveis de ambiente do processo. */
   readonly secrets?: (name: string) => string | undefined;
+  /**
+   * Headers enviados em TODA requisição do browser, com o valor tratado como
+   * segredo (PA-09): mascarado em DOM, rede, console, URL e trace, nunca
+   * logado. Existe para atravessar proteção de deploy — o caso concreto é o
+   * `x-vercel-protection-bypass` da Vercel (medição da Fase 1, §1.4) —, mas o
+   * runner não conhece provedor: quem nomeia o header é quem invoca.
+   */
+  readonly secretHeaders?: Readonly<Record<string, string>>;
   /** Repositório de elementos (§12.3) para alvos `{ ref }`. Sem ele, `ref` é erro de IR. */
   readonly elements?: ElementRepository | null;
   /**
@@ -184,6 +192,7 @@ export async function capture(options: CaptureOptions): Promise<CaptureResult> {
 }
 
 async function createContext(browser: Browser, options: CaptureOptions): Promise<BrowserContext> {
+  const secretHeaders = options.secretHeaders ?? {};
   const context = await browser.newContext({
     viewport: options.journey.viewport,
     // Toda fonte de variação entre duas execuções que puder ser fixada, é
@@ -193,6 +202,7 @@ async function createContext(browser: Browser, options: CaptureOptions): Promise
     timezoneId: "UTC",
     colorScheme: "light",
     reducedMotion: "reduce",
+    ...(Object.keys(secretHeaders).length > 0 ? { extraHTTPHeaders: secretHeaders } : {}),
   });
   // Ação do Playwright espera o elemento ficar acionável; o limite dessa espera
   // é o mesmo deadline da convergência — um só orçamento, declarado.
@@ -246,6 +256,9 @@ class JourneySession {
   constructor(context: BrowserContext, options: CaptureOptions) {
     this.#context = context;
     this.#options = options;
+    // O valor de um header secreto é segredo desde antes do primeiro passo:
+    // qualquer eco dele (página que o reflete, URL, console) já nasce mascarado.
+    this.#secrets.push(...Object.values(options.secretHeaders ?? {}));
   }
 
   async run(): Promise<{ observations: Observation[]; trace: CaptureTrace }> {
@@ -336,13 +349,19 @@ class JourneySession {
 
     return {
       observations,
-      trace: {
-        irVersion: this.#options.journey.irVersion,
-        journeyId: this.#options.journey.id,
-        steps,
-        interruption,
-        healings: this.#healings,
-      },
+      // O trace também é artefato (trace.json, healing.json) e também cruza a
+      // borda (PA-09): a URL de um passo ou o motivo de uma interrupção podem
+      // ecoar um segredo que a observação já mascara.
+      trace: redactDeep(
+        {
+          irVersion: this.#options.journey.irVersion,
+          journeyId: this.#options.journey.id,
+          steps,
+          interruption,
+          healings: this.#healings,
+        },
+        this.#secrets,
+      ),
     };
   }
 

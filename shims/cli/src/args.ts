@@ -61,6 +61,39 @@ export interface RunCommandArgs {
   readonly capabilities: string | null;
   readonly dbEnvironment: DbEnvironment;
   readonly dataStrategy: DataStrategy | null;
+  /**
+   * Headers secretos enviados em toda requisição das DUAS capturas (proteção
+   * de deploy: `x-vercel-protection-bypass` etc.). A flag carrega o NOME da
+   * variável de ambiente, nunca o valor — argv aparece em log de CI (PA-09).
+   */
+  readonly secretHeaders: readonly SecretHeader[];
+}
+
+export interface SecretHeader {
+  readonly header: string;
+  readonly envVar: string;
+}
+
+/**
+ * `--secret-header nome=VARIAVEL[,nome2=VARIAVEL2]`. O valor vem do ambiente
+ * na hora da captura; aqui só se valida a forma. Estreito de propósito: header
+ * é token HTTP simples, variável é identificador — o que não couber nisso é
+ * erro declarado, não adivinhação.
+ */
+function secretHeadersOf(flags: Map<string, string>): readonly SecretHeader[] {
+  const raw = flags.get("secret-header");
+  if (raw === undefined || raw.length === 0) return [];
+  return raw.split(",").map((entry) => {
+    const equals = entry.indexOf("=");
+    const header = equals === -1 ? "" : entry.slice(0, equals).trim();
+    const envVar = equals === -1 ? "" : entry.slice(equals + 1).trim();
+    if (!/^[A-Za-z0-9-]+$/.test(header) || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVar)) {
+      throw new PlatformError("CAPTURE_INVALID", {
+        reason: `--secret-header espera nome-do-header=VARIAVEL_DE_AMBIENTE, recebeu: ${entry}`,
+      });
+    }
+    return { header, envVar };
+  });
 }
 
 export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
@@ -105,6 +138,7 @@ export function parseRunArgs(argv: readonly string[]): RunCommandArgs {
         ? null
         : "shared-degraded",
     ),
+    secretHeaders: secretHeadersOf(flags),
   };
 }
 
@@ -169,6 +203,8 @@ export interface CaptureCommandArgs {
    * aponta para o banco como está, e o relatório diz.
    */
   readonly dataStrategy: DataStrategy | null;
+  /** Headers secretos por variável de ambiente — ver `RunCommandArgs`. */
+  readonly secretHeaders: readonly SecretHeader[];
 }
 
 const DATA_STRATEGIES: readonly DataStrategy[] = [
@@ -251,6 +287,7 @@ export function parseCaptureArgs(argv: readonly string[]): CaptureCommandArgs {
     capabilities: optional(flags, "capabilities"),
     dbEnvironment: dbEnvironmentOf(flags),
     dataStrategy: dataStrategyOf(flags, optional(flags, "db") === null ? null : "shared-degraded"),
+    secretHeaders: secretHeadersOf(flags),
   };
 }
 

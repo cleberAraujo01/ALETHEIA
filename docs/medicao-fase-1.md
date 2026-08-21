@@ -67,8 +67,18 @@ tentar ligá-lo em 2026-08-17: **produção e previews respondem `302` para
 o runner alcance. Para destravar, uma das duas: desligar *Vercel Authentication*
 no projeto, ou criar *Protection Bypass for Automation* e ensinar o `capture` a
 enviar `x-vercel-protection-bypass` sem que o segredo entre em captura, relatório
-ou log (PA-09). Decisão de configuração do dono do projeto; nenhuma linha de
-código deste repositório muda o resultado.
+ou log (PA-09).
+
+**A metade de código existe desde 2026-08-21:** `--secret-header
+nome=VARIAVEL_DE_AMBIENTE` em `capture` e `run` (e o input `secret-header` do
+shim). A flag carrega o nome da variável, nunca o valor; o runner envia o
+header em toda requisição e trata o valor como segredo — mascarado em DOM,
+rede, console, URL **e trace** (o trace gravava a URL de passo sem mascarar;
+corrigido e testado junto). Testado contra servidor local que imita o 302 da
+Vercel e ecoa o header de propósito: o eco sai `<secret>`. O que resta é a
+decisão de configuração do dono do projeto — criar o segredo de bypass no
+painel da Vercel (ou desligar a autenticação) — e nenhuma linha de código muda
+esse resultado.
 
 ## 2. E-03 + E-04 — IR v1 e runner interpretador
 

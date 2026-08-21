@@ -41,6 +41,14 @@ inputs:
     description: Arquivo de supressão aprendida do projeto (só ACTIVE valem)
     required: false
     default: ""
+  secret-header:
+    description: >-
+      Header secreto por variável de ambiente, no formato nome=VARIAVEL (ex.:
+      x-vercel-protection-bypass=VERCEL_AUTOMATION_BYPASS_SECRET). A variável
+      vem do `env` do step no workflow do cliente; o valor nunca aparece em
+      argv, log ou captura.
+    required: false
+    default: ""
   comment:
     description: Publicar comentário no PR (true/false)
     required: false
@@ -87,7 +95,8 @@ runs:
           --commit "${{ github.event.pull_request.head.sha || github.sha }}" \
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || '' }}" \
           --env "${{ inputs.env }}" --confidence-mode "${{ inputs.confidence-mode }}" \
-          ${{ inputs.suppressions != '' && format('--suppressions "{0}"', inputs.suppressions) || '' }}
+          ${{ inputs.suppressions != '' && format('--suppressions "{0}"', inputs.suppressions) || '' }} \
+          ${{ inputs.secret-header != '' && format('--secret-header "{0}"', inputs.secret-header) || '' }}
         status=$?
         echo "exit-code=$status" >> "$GITHUB_OUTPUT"
         echo "verdict=$(node -p 'try{require("./.aletheia/run/summary.json").verdict}catch{"PLATFORM_FAILURE"}')" >> "$GITHUB_OUTPUT"

@@ -86,6 +86,21 @@ export async function performCapture(
       logger,
     });
   }
+  // Proteção de deploy (§1.4 da medição): a flag nomeia a variável de
+  // ambiente; o valor é lido AQUI e segue direto para o runner, que o trata
+  // como segredo. Faltar a variável é erro de configuração da execução —
+  // plataforma, antes de abrir o browser.
+  const secretHeaders: Record<string, string> = {};
+  for (const { header, envVar } of args.secretHeaders) {
+    const value = process.env[envVar];
+    if (value === undefined || value.length === 0) {
+      throw new PlatformError("CAPTURE_INVALID", {
+        reason: `--secret-header ${header}: variável ${envVar} não definida no ambiente`,
+      });
+    }
+    secretHeaders[header] = value;
+  }
+
   const opened = executor;
   const database: DatabaseAccess | null =
     opened === null
@@ -107,6 +122,8 @@ export async function performCapture(
     steps: journey.steps.length,
     observations: journey.steps.filter((step) => step.action === "observe").length,
     label: args.label,
+    // Só os NOMES dos headers: auditável sem vazar (PA-09).
+    secretHeaders: args.secretHeaders.map((entry) => entry.header).join(",") || null,
   });
 
   const result = await runCapture({
@@ -120,6 +137,7 @@ export async function performCapture(
     screenshots: args.screenshots,
     headed: args.headed,
     quiescence: { deadlineMs: args.deadlineMs, quietWindowMs: 250 },
+    secretHeaders,
     elements,
     database,
     logger,
