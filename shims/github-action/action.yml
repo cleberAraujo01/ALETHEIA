@@ -92,7 +92,7 @@ runs:
         node .aletheia-runner/shims/cli/dist/main.js run \
           --base-url "${{ inputs.base-url }}" --head-url "${{ inputs.head-url }}" \
           --journey "${{ inputs.journey }}" --out .aletheia/run \
-          --commit "${{ github.event.pull_request.head.sha || github.sha }}" \
+          --commit "${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}" \
           --base-ref "${{ github.event.pull_request.base.sha || github.event.before || '' }}" \
           --env "${{ inputs.env }}" --confidence-mode "${{ inputs.confidence-mode }}" \
           ${{ inputs.suppressions != '' && format('--suppressions "{0}"', inputs.suppressions) || '' }} \
@@ -105,8 +105,13 @@ runs:
       shell: bash
       run: |
         if [ -f .aletheia/run/comment.md ]; then cat .aletheia/run/comment.md >> "$GITHUB_STEP_SUMMARY"; fi
-        if [ "${{ inputs.comment }}" = "true" ] && [ -n "${{ github.event.pull_request.number }}" ] && [ -f .aletheia/run/comment.md ]; then
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file .aletheia/run/comment.md
+        # Em `deployment_status` o payload não traz o PR; a associação vem do commit.
+        pr="${{ github.event.pull_request.number }}"
+        if [ -z "$pr" ] && [ -n "${{ github.event.deployment.sha }}" ]; then
+          pr=$(gh api "repos/$GH_REPO/commits/${{ github.event.deployment.sha }}/pulls" --jq '.[0].number // empty' 2>/dev/null || true)
+        fi
+        if [ "${{ inputs.comment }}" = "true" ] && [ -n "$pr" ] && [ -f .aletheia/run/comment.md ]; then
+          gh pr comment "$pr" --body-file .aletheia/run/comment.md
         fi
       env:
         GH_TOKEN: "${{ inputs.token }}"
