@@ -36,18 +36,58 @@ export function normalizeExchange(
   ledger: NormalizationLedger,
 ): NormalizedExchange {
   const method = exchange.method.toUpperCase();
-  const url = normalizeUrl(exchange.url, urlOptions, ledger);
+  const url = maskDeployIdentity(
+    normalizeUrl(exchange.url, urlOptions, ledger),
+    urlOptions,
+    ledger,
+  );
 
   return {
     method,
     url,
     status: exchange.status,
     resourceType: exchange.resourceType,
-    requestBody: normalizeJson(exchange.requestBody, ledger, 0),
-    responseBody: normalizeJson(exchange.responseBody, ledger, 0),
+    requestBody: normalizeJson(
+      maskDeployIdentityInBody(exchange.requestBody, urlOptions, ledger),
+      ledger,
+      0,
+    ),
+    responseBody: normalizeJson(
+      maskDeployIdentityInBody(exchange.responseBody, urlOptions, ledger),
+      ledger,
+      0,
+    ),
     identityKey: stableHash({ method, url }),
     durationMs: exchange.durationMs,
   };
+}
+
+/**
+ * Substitui a ocorrência LITERAL da identidade de deploy do lado (NORM-NET-011).
+ * A identidade vem de `extractDeployIdentity` — declaração do framework, não
+ * heurística — e por isso a substituição pode ser cega: o token é único por
+ * deploy. Corpo que não é string fica como está; buildId dentro de JSON de API
+ * é caso não medido, e entrada não medida é dívida declarada, não cobertura.
+ */
+function maskDeployIdentity(
+  value: string,
+  urlOptions: UrlNormalizationOptions,
+  ledger: NormalizationLedger,
+): string {
+  const identity = urlOptions.deployIdentity;
+  if (identity === undefined || identity === null || !value.includes(identity)) return value;
+  const occurrences = value.split(identity).length - 1;
+  for (let i = 0; i < occurrences; i += 1) ledger.record(NORMALIZATION_RULES.NET_DEPLOY_IDENTITY);
+  return value.replaceAll(identity, PLACEHOLDER.DEPLOY_ID);
+}
+
+function maskDeployIdentityInBody(
+  body: JsonValue | null,
+  urlOptions: UrlNormalizationOptions,
+  ledger: NormalizationLedger,
+): JsonValue | null {
+  if (typeof body !== "string") return body;
+  return maskDeployIdentity(body, urlOptions, ledger);
 }
 
 export function normalizeJson(

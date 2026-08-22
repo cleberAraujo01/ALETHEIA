@@ -130,6 +130,45 @@ describe("corpus checkout — mesma build reexecutada (teste de falso positivo)"
   });
 });
 
+describe("par preview × produção na Vercel — medido no PR #2 do piloto juventude", () => {
+  const loadVercel = (name: string): Capture => {
+    const url = new URL(`../__fixtures__/vercel-next/${name}.json`, import.meta.url);
+    return parseCapture(JSON.parse(readFileSync(url, "utf8")), name);
+  };
+
+  it("buildId do Next.js e toolbar de preview não produzem delta nenhum", () => {
+    // No par real, um PR que só tocava README rendeu 45 deltas: 38 eram o
+    // buildId (novo a cada deploy, mesmo com código idêntico) e 7 eram o
+    // feedback.js que a Vercel injeta SÓ em preview.
+    const report = runDiff(loadVercel("base"), loadVercel("head"), { metadata: METADATA });
+    expect(report.deltas.map((delta) => `${delta.kind} ${delta.path}`)).toEqual([]);
+    expect(report.verdict.code).toBe("NO_REGRESSION_DETECTED");
+  });
+
+  it("registra as duas regras no ledger — nada some em silêncio", () => {
+    const report = runDiff(loadVercel("base"), loadVercel("head"), { metadata: METADATA });
+    // 2 ocorrências por documento (comentário + flight) × 2 lados, mais 1 por
+    // resposta RSC de cada lado = 6; e 1 requisição de toolbar removida.
+    expect(report.normalization.byRule["NORM-NET-011"]).toBe(6);
+    expect(report.normalization.byRule["NORM-NET-012"]).toBe(1);
+  });
+
+  it("mudança REAL no corpo continua visível — a máscara é o token, não o corpo", () => {
+    const report = runDiff(loadVercel("base"), loadVercel("head-com-regressao"), {
+      metadata: METADATA,
+    });
+    const kinds = report.deltas.map((delta) => delta.kind);
+    // O texto que mudou dentro do documento segue detectado…
+    expect(kinds).toContain("RESPONSE_FIELD_CHANGED");
+    const changed = report.deltas.find((delta) => delta.kind === "RESPONSE_FIELD_CHANGED");
+    expect(changed?.before).toContain("Bem-vindo");
+    expect(changed?.after).toContain("Bem viiindo");
+    // …e o analytics de terceiro que sumiu também: o filtro é SÓ para o host
+    // da plataforma de deploy, não para terceiro qualquer.
+    expect(kinds).toContain("REQUEST_REMOVED");
+  });
+});
+
 describe("determinismo (PA-12)", () => {
   it("produz o mesmo relatório para a mesma entrada", () => {
     const first = runDiff(loadFixture("base"), loadFixture("head-with-regressions"), {

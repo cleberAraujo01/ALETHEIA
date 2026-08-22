@@ -7,10 +7,9 @@ aplicação de cliente; 3 clientes-piloto; NPS de piloto ≥ 40.
 da [medição da Fase 0](./medicao-fase-0.md): o que foi medido, contra o quê, o
 que ficou de fora.
 
-> **Leia antes de citar qualquer número daqui:** nenhuma fatia da Fase 1 foi
-> medida contra aplicação de cliente ainda. O piloto real (juventude na Vercel)
-> está bloqueado por *Deployment Protection* — as builds respondem 302 para o
-> SSO da Vercel — e depende de decisão de configuração, não de código (§1.4).
+> **Atualização de 2026-08-22:** o bloqueio do §1.4 caiu e **o primeiro demo
+> real aconteceu** — PR aberto → comentário em **1 min 37 s** numa aplicação
+> de cliente (§9). O que segue valendo: 1 de 3 pilotos, NPS ainda sem medição.
 
 ## 1. E-06 — `aletheia run` e o shim GitHub Actions (PR #12)
 
@@ -79,6 +78,13 @@ Vercel e ecoa o header de propósito: o eco sai `<secret>`. O que resta é a
 decisão de configuração do dono do projeto — criar o segredo de bypass no
 painel da Vercel (ou desligar a autenticação) — e nenhuma linha de código muda
 esse resultado.
+
+> **Destravado em 2026-08-21/22.** O segredo de bypass foi criado no painel,
+> gravado como secret do repositório do cliente, o ALETHEIA virou público (o
+> shim faz checkout dele com o token do job do cliente — de repo privado o
+> checkout falha, e foi exatamente assim que o primeiro run falhou às 20:29Z)
+> e a *branch protection* do §11 do CLAUDE.md foi aplicada na sequência.
+> O demo medido está no §9.
 
 ## 2. E-03 + E-04 — IR v1 e runner interpretador
 
@@ -602,3 +608,91 @@ barreira de 3 execuções é testada por dado real, e ela segurou.
   deadline, e a captura caía em `TIMEOUT_CONVERGENCE` por "oscilação" quando o
   que havia era rede lenta. O deadline continua mandando; a mudança só evita
   declarar oscilação cedo demais.
+
+## 9. O primeiro demo real — piloto juventude na Vercel (2026-08-22)
+
+### 9.1 O destravamento, em ordem
+
+1. Segredo de *Protection Bypass for Automation* criado no painel da Vercel
+   (o plano Hobby tem o recurso) e gravado como secret do repositório do
+   cliente. O valor nunca passou por captura, relatório, log — nem pela
+   sessão do assistente que operou o painel.
+2. **PR #20**: no gatilho `deployment_status` o payload não traz
+   `github.event.pull_request`, e o comentário — o produto da cunha — nunca
+   seria publicado no único gatilho que o cliente real usa. O shim passou a
+   descobrir o PR pela associação do commit (`/commits/{sha}/pulls`) e a usar
+   `github.event.deployment.sha` nos metadados (PA-12). O demo do PR #12 não
+   pegou isso porque roda em `pull_request`, no nosso repositório.
+3. ALETHEIA público + `pnpm protect`: o primeiro run real falhou no checkout
+   (o shim baixa o runner com o token do job do cliente; repo privado → 404).
+   Tornar o repo público destravou o piloto E a *branch protection* do §11,
+   pendente desde a Fase 0. Ref do runner fixada na tag `piloto-1`.
+
+### 9.2 O que foi medido — o critério da fase, pela primeira vez
+
+PR #2 do `associacaoAtleticaJuventude` (mudança invisível: comentário no
+README), 2026-08-22:
+
+| Medida | Valor | Critério |
+|---|---|---|
+| PR aberto → comentário do ALETHEIA publicado | **1 min 37 s** (02:06:27 → 02:08:04 UTC) | < 5 min |
+| Veredito | 🟢 `UNDETERMINED_ONLY`, 0 bloqueante | não bloquear PR inocente |
+| Deltas indeterminados | **45**, em 39 grupos | — |
+
+O relatório declarou `SHARED_DEGRADED`, a seção de honestidade (PA-10) e o
+agrupamento por assinatura. Nenhum humano interveio entre o `git push` e o
+comentário.
+
+### 9.3 Os 45 deltas, dissecados — e as duas regras que nasceram deles
+
+Rotulagem fechada contra as capturas (artefato `aletheia-run` do run
+32545361122): **45 de 45 são ruído do PAR preview × produção, zero são da
+aplicação.**
+
+- **38 × `RESPONSE_FIELD_CHANGED`**: corpos idênticos exceto pelo **buildId
+  do Next.js** (`b8BR8bk…` × `QtLyQum…`), que muda a cada deploy mesmo com
+  código idêntico. Ele aparece em posição estrutural fixa: o comentário
+  após o doctype (`<!DOCTYPE html><!--token-->`) e o campo `"b"` do flight
+  RSC. Hashes de chunk e token `_rsc` foram **determinísticos** — o achado
+  em aberto do §8 do CLAUDE.md (o `_rsc` espalhando grupos) não foi o que
+  mordeu aqui, e segue em aberto.
+- **7 × `REQUEST_ADDED`**: `vercel.live/_next-live/feedback/feedback.js`,
+  o toolbar que a Vercel injeta **somente em preview**. Mobília do ambiente,
+  não comportamento da aplicação.
+
+Isso é ruído de **plataforma**, não de aplicação — qualquer cliente Next.js
+na Vercel produz o mesmo padrão em todo PR. Portanto normalização, não
+supressão aprendida (que é por aplicação e exige 3 execuções):
+
+- **`NORM-NET-011` — identidade de deploy declarada pelo framework:** extrai
+  o buildId do comentário pós-doctype (exige 16–32 chars, letra E dígito —
+  `<!--app-html-->` do Vite não casa) e mascara a ocorrência LITERAL do token
+  extraído, lado a lado com o seu par, em corpos e URLs de rede.
+- **`NORM-NET-012` — mobília da plataforma de deploy:** requisição ao host
+  `vercel.live` (e só ele) sai da comparação, contada no ledger. Netlify e
+  afins só entram quando um par real os mostrar.
+
+### 9.4 Custo medido
+
+| Par | Antes | Depois |
+|---|---|---|
+| **Piloto juventude — PR real #2 (preview × produção)** | 45 deltas · 39 grupos | **0 deltas** |
+| Bancada inteira (4 corpora: 8 pares de defeito/PR + 6 pisos + 4 PRs Vite) | — | **idêntica, número por número** |
+
+Detecção inalterada (6/9, 6/7, 6/11, 1/1), FP inalterado, pisos inalterados.
+`NORM-NET-011` **atuou** nos pares locais do juventude (84–103 mascaramentos
+por par) sem mudar um único delta: os corpos de lá diferem por conteúdo real
+além do buildId — a máscara acerta o token, não o corpo. O teste de regressão
+(`__fixtures__/vercel-next/`) fixa os dois padrões e o contraexemplo: mudança
+real de corpo e sumiço de terceiro comum continuam visíveis.
+
+### 9.5 O que ficou declarado
+
+- O piso de ruído clássico (mesma build contra si mesma) **não exercita**
+  estas regras: buildId igual dos dois lados, toolbar igual dos dois lados. A
+  evidência delas é o par real do piloto — e é por isso que os números do
+  §9.4 saem do par real, não de piso sintético.
+- buildId dentro de corpo JSON de API (não string) é caso não medido e não
+  coberto — dívida declarada.
+- Do critério de saída: demo < 5 min ✅ em aplicação de cliente; **pilotos:
+  1 de 3; NPS: sem medição.** A fase continua aberta.
