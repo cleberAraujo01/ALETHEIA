@@ -43,3 +43,40 @@ describe("corpo não observado — medido no piso do Sauce Demo", () => {
     expect(deltas.map((delta) => delta.kind)).toEqual(["STATUS_CHANGED"]);
   });
 });
+
+describe("prefetch especulativo abortado — medido na rodada 2 do piloto juventude", () => {
+  const prefetch = (overrides: Partial<NormalizedExchange> = {}) =>
+    exchange({
+      method: "GET",
+      url: "/canais?_rsc=<token>",
+      identityKey: "GET /canais?_rsc=<token>",
+      responseBody: '0:{"p":"canais"}',
+      ...overrides,
+    });
+
+  it("corpo null de um lado contra payload do outro NÃO é mudança de tipo", () => {
+    // A navegação abortou o prefetch atrasado: a captura fica com `null`, e
+    // `null` × payload virava RESPONSE_TYPE_CHANGED HIGH — bloqueio por timing.
+    expect(run(prefetch({ responseBody: null }), prefetch())).toEqual([]);
+    expect(run(prefetch(), prefetch({ responseBody: null }))).toEqual([]);
+  });
+
+  it("em endpoint de dado de verdade, null de um lado continua sendo comparado", () => {
+    const deltas = run(
+      exchange({
+        method: "GET",
+        url: "/api/canais",
+        identityKey: "GET /api/canais",
+        responseBody: null,
+      }),
+      exchange({ method: "GET", url: "/api/canais", identityKey: "GET /api/canais" }),
+    );
+    expect(deltas.map((delta) => delta.kind)).toEqual(["RESPONSE_TYPE_CHANGED"]);
+  });
+
+  it("prefetch que sumiu carrega a marca especulativa para a severidade decidir", () => {
+    const deltas = diffNetwork("obs", [prefetch()], [], new DeltaBudget(100));
+    expect(deltas.map((delta) => delta.kind)).toEqual(["REQUEST_REMOVED"]);
+    expect(deltas[0]?.facts["speculative"]).toBe(true);
+  });
+});

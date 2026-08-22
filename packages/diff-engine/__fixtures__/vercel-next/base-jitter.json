@@ -1,0 +1,80 @@
+{
+  "captureVersion": "0.1.0",
+  "captureId": "cap_vercel_next_base_jitter",
+  "target": {
+    "label": "base",
+    "baseUrl": "https://app-black.vercel.example",
+    "commit": "aaaa111",
+    "capturedAtUtc": "2026-08-22T02:40:00.000Z"
+  },
+  "observations": [
+    {
+      "observationId": "home",
+      "route": "/",
+      "url": "https://app-black.vercel.example/",
+      "dom": {
+        "tag": "main",
+        "attributes": {},
+        "text": null,
+        "role": "main",
+        "accessibleName": null,
+        "children": []
+      },
+      "network": [
+        {
+          "method": "GET",
+          "url": "https://app-black.vercel.example/",
+          "status": 200,
+          "resourceType": "document",
+          "requestBody": null,
+          "responseBody": "<!DOCTYPE html><!--b8BR8bkGafMUVJFtivFs1--><html><body>home</body></html>",
+          "durationMs": 90
+        }
+      ],
+      "console": []
+    },
+    {
+      "observationId": "quem-somos",
+      "route": "/quem-somos",
+      "url": "https://app-black.vercel.example/quem-somos",
+      "dom": {
+        "tag": "main",
+        "attributes": {},
+        "text": null,
+        "role": "main",
+        "accessibleName": null,
+        "children": []
+      },
+      "network": [
+        {
+          "method": "GET",
+          "url": "https://app-black.vercel.example/quem-somos",
+          "status": 200,
+          "resourceType": "document",
+          "requestBody": null,
+          "responseBody": "<!DOCTYPE html><!--b8BR8bkGafMUVJFtivFs1--><html><body>quem-somos</body></html>",
+          "durationMs": 90
+        },
+        {
+          "method": "GET",
+          "url": "https://app-black.vercel.example/canais?_rsc=tokHome111",
+          "status": 200,
+          "resourceType": "fetch",
+          "requestBody": null,
+          "responseBody": null,
+          "durationMs": 25
+        },
+        {
+          "method": "GET",
+          "url": "https://app-black.vercel.example/canais?_rsc=tokQuem222",
+          "status": 200,
+          "resourceType": "fetch",
+          "requestBody": null,
+          "responseBody": "0:{\"b\":\"b8BR8bkGafMUVJFtivFs1\",\"p\":\"canais\"}",
+          "durationMs": 25
+        }
+      ],
+      "console": []
+    }
+  ]
+}

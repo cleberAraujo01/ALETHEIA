@@ -1,4 +1,5 @@
 import type { NormalizedExchange } from "../normalize/network.js";
+import { isSpeculativeNavigationRequest } from "../normalize/volatile.js";
 import type { JsonValue } from "../types/capture.js";
 
 import { type DeltaBudget, truncateValue, type RawDelta } from "./types.js";
@@ -46,6 +47,9 @@ export function diffNetwork(
     // o caminho mais rápido para o time desligar o gate.
     const thirdParty = /^[a-z]+:\/\//i.test(sample.url);
     const dataResource = DATA_RESOURCE_TYPES.has(sample.resourceType);
+    // Prefetch do roteador: presença depende do instante do idle, não do
+    // código — a cardinalidade dele carrega o fato e a severidade decide.
+    const speculative = isSpeculativeNavigationRequest(sample.url);
 
     if (baseList.length === 0) {
       emit({
@@ -61,6 +65,7 @@ export function diffNetwork(
           headCount: headList.length,
           thirdParty,
           dataResource,
+          speculative,
         },
       });
       continue;
@@ -80,6 +85,7 @@ export function diffNetwork(
           baseCount: baseList.length,
           thirdParty,
           dataResource,
+          speculative,
         },
       });
       continue;
@@ -100,6 +106,7 @@ export function diffNetwork(
           amplification: Number((headList.length / baseList.length).toFixed(2)),
           thirdParty,
           dataResource,
+          speculative,
         },
       });
     }
@@ -115,6 +122,7 @@ export function diffNetwork(
         baseExchange,
         headExchange,
         thirdParty,
+        speculative,
         emit,
       );
     }
@@ -129,6 +137,7 @@ function diffExchange(
   base: NormalizedExchange,
   head: NormalizedExchange,
   thirdParty: boolean,
+  speculative: boolean,
   emit: (delta: RawDelta) => void,
 ): void {
   if (base.status !== head.status) {
@@ -163,7 +172,18 @@ function diffExchange(
   // lacuna, e o marcador já está na captura. Medido no piso do Sauce Demo:
   // a mesma build reprovava a si mesma porque uma telemetria de terceiro foi
   // abandonada numa captura e drenada na outra.
-  if (!isUnobserved(base.responseBody) && !isUnobserved(head.responseBody)) {
+  //
+  // A variante ESPECULATIVA da mesma lição, medida na rodada 2 do piloto: o
+  // prefetch atrasado que a navegação abortou fica com corpo `null` na
+  // captura, e `null` de um lado contra o payload do outro virava
+  // RESPONSE_TYPE_CHANGED HIGH — bloqueio por timing. Só vale para requisição
+  // especulativa: em endpoint de dado de verdade, `null` de um lado continua
+  // sendo comparado, porque lá pode ser o corpo que deixou de existir.
+  const bodyUnobserved =
+    isUnobserved(base.responseBody) ||
+    isUnobserved(head.responseBody) ||
+    (speculative && (base.responseBody === null) !== (head.responseBody === null));
+  if (!bodyUnobserved) {
     diffJson(
       observationId,
       `${path} response`,

@@ -153,6 +153,26 @@ describe("par preview × produção na Vercel — medido no PR #2 do piloto juve
     expect(report.normalization.byRule["NORM-NET-012"]).toBe(1);
   });
 
+  it("jitter de atribuição de prefetch não bloqueia — medido na rodada 2 do piloto", () => {
+    // No par real (run 32546926736), os prefetches da home caíram na
+    // observação seguinte num lado e não no outro: app idêntico, 4
+    // REQUEST_REMOVED HIGH. Aqui o mesmo mecanismo em miniatura: o prefetch
+    // de /canais aparece na home do head e na quem-somos da base (com o
+    // token do contexto que o disparou).
+    const report = runDiff(loadVercel("base-jitter"), loadVercel("head-jitter"), {
+      metadata: METADATA,
+    });
+    expect(report.verdict.blocking).toBe(false);
+    expect(report.summary.byClassification.REGRESSION).toBe(0);
+    // A divergência continua VISÍVEL para triagem — especulativa, não muda o
+    // veredito; sumir com ela seria supressão sem evidência.
+    const speculative = report.deltas.filter((delta) => delta.facts["speculative"] === true);
+    expect(speculative.length).toBeGreaterThan(0);
+    for (const delta of speculative) expect(delta.severity).toBe("LOW");
+    // E o token de contexto foi fundido no alinhamento (NORM-NET-013).
+    expect(report.normalization.byRule["NORM-NET-013"]).toBeGreaterThan(0);
+  });
+
   it("mudança REAL no corpo continua visível — a máscara é o token, não o corpo", () => {
     const report = runDiff(loadVercel("base"), loadVercel("head-com-regressao"), {
       metadata: METADATA,
