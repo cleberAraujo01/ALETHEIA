@@ -37,6 +37,8 @@ export const NORMALIZATION_RULES = {
   NET_SINGLE_USE_TOKEN: "NORM-NET-008",
   NET_SESSION_PATH_PARAM: "NORM-NET-009",
   NET_OPAQUE_PATH_SEGMENT: "NORM-NET-010",
+  NET_DEPLOY_IDENTITY: "NORM-NET-011",
+  NET_DEPLOY_PLATFORM_FURNITURE: "NORM-NET-012",
 } as const;
 
 /** Marcadores que substituem o valor volátil. Visíveis no relatório de propósito. */
@@ -50,6 +52,7 @@ export const PLACEHOLDER = {
   ID_SEGMENT: ":id",
   CONTENT_HASH: "<hash>",
   BUNDLE_CHUNK: "<chunk>",
+  DEPLOY_ID: "<deploy-id>",
 } as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -221,6 +224,69 @@ const CONTAINER_SESSION_PATH_PARAMS = new Set(["jsessionid", "phpsessid", "sessi
  */
 export function isOpaquePathSegment(segment: string): boolean {
   return /^[A-Za-z0-9]{32,}$/.test(segment) && /[G-Zg-z]/.test(segment) && /\d/.test(segment);
+}
+
+/**
+ * Identidade de deploy declarada pelo próprio framework.
+ *
+ * O Next.js emite o buildId — um token novo A CADA deploy, mesmo com código
+ * idêntico — em posição estrutural fixa: o comentário imediatamente após o
+ * doctype (`<!DOCTYPE html><!--QtLyQumOsnLxPnzpPW71C-->`). O mesmo token
+ * reaparece no flight data RSC (`"b":"<token>"`) de todo documento e de toda
+ * resposta `?_rsc=`.
+ *
+ * MEDIDO no primeiro par real do piloto (juventude, preview × produção na
+ * Vercel, PR #2 — um PR que só tocava README): dos 45 deltas do relatório, 38
+ * eram RESPONSE_FIELD_CHANGED cuja divergência inteira era este token. Não é
+ * ruído de app, é ruído de PLATAFORMA: qualquer cliente Next.js em qualquer
+ * host produz o mesmo padrão em todo PR — por isso é normalização, não
+ * supressão aprendida (que é por aplicação e exige 3 execuções).
+ *
+ * A extração é por DECLARAÇÃO, não por adivinhação: só reconhecemos o token
+ * que o framework afixou na posição estrutural. Nada com espaço, nada curto,
+ * e exige dígito E letra — `<!--app-html-->` (marcador de template do Vite) e
+ * comentários escritos por gente não casam. O que se mascara depois é a
+ * ocorrência LITERAL desse token extraído, lado a lado com o seu par — se a
+ * aplicação exibir o próprio buildId na tela, mascará-lo continua correto,
+ * porque ele É o buildId.
+ */
+const NEXTJS_BUILD_ID_COMMENT = /^<!doctype html><!--([A-Za-z0-9_-]{16,32})-->/i;
+
+export function extractDeployIdentity(documentBody: string): string | null {
+  const match = NEXTJS_BUILD_ID_COMMENT.exec(documentBody);
+  const token = match?.[1];
+  if (token === undefined) return null;
+  if (!(/[A-Za-z]/.test(token) && /\d/.test(token))) return null;
+  return token;
+}
+
+/**
+ * Mobília que a PLATAFORMA DE DEPLOY injeta num dos lados do par — não é a
+ * aplicação, e só existe num dos ambientes por construção.
+ *
+ * MEDIDO no mesmo par do piloto: os outros 7 deltas (um REQUEST_ADDED por
+ * observação) eram `https://vercel.live/_next-live/feedback/feedback.js` — o
+ * toolbar de feedback que a Vercel injeta SOMENTE em preview. Produção nunca
+ * o tem; comparar preview com produção sempre o acusa.
+ *
+ * A lista é curta de propósito e por HOST EXATO: `vercel.live` é domínio da
+ * Vercel, nunca serve conteúdo da aplicação do cliente, e portanto removê-lo
+ * não pode esconder regressão do app. Injeção de outra plataforma (Netlify e
+ * afins) só entra quando um par real a mostrar — entrada não medida é dívida,
+ * não cobertura.
+ */
+const DEPLOY_PLATFORM_HOSTS = new Set(["vercel.live"]);
+
+export function isDeployPlatformFurniture(rawUrl: string): boolean {
+  try {
+    const host = new URL(rawUrl).hostname.toLowerCase();
+    return (
+      DEPLOY_PLATFORM_HOSTS.has(host) ||
+      [...DEPLOY_PLATFORM_HOSTS].some((h) => host.endsWith(`.${h}`))
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function isContainerSessionPathParam(name: string, value: string): boolean {

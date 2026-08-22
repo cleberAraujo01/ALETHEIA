@@ -9,9 +9,14 @@ import { DEFAULT_DELTA_BUDGET_PER_OBSERVATION, DeltaBudget, type RawDelta } from
 import { diffVisual } from "./diff/visual.js";
 import { type DeltaGroup, groupDeltas, groupIdOf } from "./group/index.js";
 import { normalizeDom } from "./normalize/dom.js";
-import { createLedger } from "./normalize/ledger.js";
+import { createLedger, type NormalizationLedger } from "./normalize/ledger.js";
 import { normalizeExchange } from "./normalize/network.js";
 import { originOf, type UrlNormalizationOptions } from "./normalize/url.js";
+import {
+  NORMALIZATION_RULES,
+  extractDeployIdentity,
+  isDeployPlatformFurniture,
+} from "./normalize/volatile.js";
 import { DEFAULT_CALIBRATION, type Calibration } from "./score/calibration.js";
 import { scoreOf, severityOf } from "./score/index.js";
 import { SUPPRESSION_CATALOG } from "./suppress/catalog.js";
@@ -20,7 +25,7 @@ import {
   validateSuppressionRules,
   type SuppressionRule,
 } from "./suppress/rule.js";
-import type { Capture, Observation } from "./types/capture.js";
+import type { Capture, NetworkExchange, Observation } from "./types/capture.js";
 import type { Classification, Delta, DeltaLayer, Severity } from "./types/delta.js";
 import type { RasterSet } from "./types/raster.js";
 import {
@@ -74,8 +79,14 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
   }
 
   const ledger = createLedger();
-  const baseUrlOptions: UrlNormalizationOptions = { selfOrigin: originOf(base.target.baseUrl) };
-  const headUrlOptions: UrlNormalizationOptions = { selfOrigin: originOf(head.target.baseUrl) };
+  const baseUrlOptions: UrlNormalizationOptions = {
+    selfOrigin: originOf(base.target.baseUrl),
+    deployIdentity: deployIdentityOf(base),
+  };
+  const headUrlOptions: UrlNormalizationOptions = {
+    selfOrigin: originOf(head.target.baseUrl),
+    deployIdentity: deployIdentityOf(head),
+  };
 
   const baseById = indexObservations(base);
   const headById = indexObservations(head);
@@ -153,10 +164,10 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       raw.push(
         ...diffNetwork(
           id,
-          baseObservation.network.map((exchange) =>
+          withoutPlatformFurniture(baseObservation.network, ledger).map((exchange) =>
             normalizeExchange(exchange, baseUrlOptions, ledger),
           ),
-          headObservation.network.map((exchange) =>
+          withoutPlatformFurniture(headObservation.network, ledger).map((exchange) =>
             normalizeExchange(exchange, headUrlOptions, ledger),
           ),
           budget,
@@ -482,6 +493,39 @@ function coverageOf(input: CoverageInput): CoverageReport {
     layersNotValidated,
     notes,
   };
+}
+
+/**
+ * Identidade de deploy do lado (NORM-NET-011): o buildId que o framework afixa
+ * no documento. Basta o primeiro documento que a declare — o token é o mesmo
+ * para o deploy inteiro. `null` quando nenhum documento a declara, e aí a
+ * regra simplesmente não atua.
+ */
+function deployIdentityOf(capture: Capture): string | null {
+  for (const observation of capture.observations) {
+    for (const exchange of observation.network ?? []) {
+      if (exchange.resourceType !== "document") continue;
+      if (typeof exchange.responseBody !== "string") continue;
+      const identity = extractDeployIdentity(exchange.responseBody);
+      if (identity !== null) return identity;
+    }
+  }
+  return null;
+}
+
+/**
+ * Remove requisições à mobília da plataforma de deploy (NORM-NET-012) antes do
+ * alinhamento, contando cada remoção no ledger — nada sai em silêncio.
+ */
+function withoutPlatformFurniture(
+  exchanges: readonly NetworkExchange[],
+  ledger: NormalizationLedger,
+): readonly NetworkExchange[] {
+  return exchanges.filter((exchange) => {
+    if (!isDeployPlatformFurniture(exchange.url)) return true;
+    ledger.record(NORMALIZATION_RULES.NET_DEPLOY_PLATFORM_FURNITURE);
+    return false;
+  });
 }
 
 function indexObservations(capture: Capture): Map<string, Observation> {

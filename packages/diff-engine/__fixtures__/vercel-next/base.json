@@ -1,0 +1,64 @@
+{
+  "captureVersion": "0.1.0",
+  "captureId": "cap_vercel_next_base",
+  "target": {
+    "label": "base",
+    "baseUrl": "https://app-black.vercel.example",
+    "commit": "aaaa111",
+    "capturedAtUtc": "2026-08-22T02:00:00.000Z"
+  },
+  "observations": [
+    {
+      "observationId": "home",
+      "route": "/",
+      "url": "https://app-black.vercel.example/",
+      "dom": {
+        "tag": "main",
+        "attributes": {},
+        "text": null,
+        "role": "main",
+        "accessibleName": null,
+        "children": [
+          {
+            "tag": "h1",
+            "attributes": {},
+            "text": "Bem-vindo",
+            "role": "heading",
+            "accessibleName": "Bem-vindo",
+            "children": []
+          }
+        ]
+      },
+      "network": [
+        {
+          "method": "GET",
+          "url": "https://app-black.vercel.example/",
+          "status": 200,
+          "resourceType": "document",
+          "requestBody": null,
+          "responseBody": "<!DOCTYPE html><!--b8BR8bkGafMUVJFtivFs1--><html lang=\"pt-BR\"><head></head><body><main><h1>Bem-vindo</h1></main><script>self.__next_f.push([1,\"0:{\\\"P\\\":null,\\\"b\\\":\\\"b8BR8bkGafMUVJFtivFs1\\\",\\\"p\\\":\\\"\\\"}\"])</script></body></html>",
+          "durationMs": 90
+        },
+        {
+          "method": "GET",
+          "url": "https://app-black.vercel.example/quem-somos?_rsc=1p4b",
+          "status": 200,
+          "resourceType": "fetch",
+          "requestBody": null,
+          "responseBody": "1:\"$Sreact.fragment\"\n0:{\"P\":null,\"b\":\"b8BR8bkGafMUVJFtivFs1\",\"p\":\"\"}",
+          "durationMs": 30
+        },
+        {
+          "method": "GET",
+          "url": "https://plausible.io/js/script.js",
+          "status": 200,
+          "resourceType": "script",
+          "requestBody": null,
+          "responseBody": null,
+          "durationMs": 20
+        }
+      ],
+      "console": []
+    }
+  ]
+}

@@ -44,6 +44,13 @@ export interface UrlNormalizationOptions {
    * é a pior falha possível deste produto.
    */
   readonly purpose?: "ALIGNMENT" | "VALUE";
+  /**
+   * Identidade de deploy do LADO sendo normalizado (`extractDeployIdentity`),
+   * extraída da própria captura. Cada lado tem a sua — o par existe porque são
+   * dois deploys. `null` quando o framework não declara (não é Next.js, ou a
+   * jornada não observou um documento).
+   */
+  readonly deployIdentity?: string | null;
 }
 
 /** Extrai a origem (`scheme://host:port`) de uma URL, ou `null` se inválida. */
