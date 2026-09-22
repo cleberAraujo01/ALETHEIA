@@ -849,10 +849,9 @@ já produziu no motor, e o primeiro em que se pode dizer que o ruído restante
    `index-<hash>.js`, o outro fica literal, e o par vê `REQUEST_REMOVED`
    MEDIUM + `REQUEST_ADDED` LOW onde não há nada. Não bloqueia. É o sexto
    achado de identidade de token em seis aplicações, e o primeiro dentro de
-   uma regra que já existia. **Fica registrado, não corrigido**: regra de
-   normalização entra com fixture, bancada antes/depois e piso, em PR
-   próprio — e a forma precisa de cuidado (aceitar 8 caracteres sem dígito
-   é aceitar `index-Settings.js`).
+   uma regra que já existia. Ficou registrado aqui e **corrigido no mesmo
+   dia, §10.4**, com o cuidado que a forma pedia: aceitar 8 caracteres sem
+   dígito não pode ser aceitar `index-Settings.js`.
 2. **`deltaId` não carrega valor, e a dedup da supressão aprendida conta
    por ele.** `deltaId = hash(camada, tipo, observação, caminho)`. Os 17 ids
    gerados têm o mesmo caminho em cinco pares de **quatro builds distintas**
@@ -860,9 +859,9 @@ já produziu no motor, e o primeiro em que se pode dizer que o ruído restante
    regras `PROPOSED` no primeiro PR e não reforçou nenhuma nos outros:
    evidência deduplicada, seis execuções reais contam como uma. O custo foi
    declarado em §8.5 como anti-jogo (re-diffar o mesmo par não conta); aqui
-   ele barra pares que são genuinamente distintos. Não é regra para o motor
-   mudar sozinho — é decisão de desenho: o que distingue "execução distinta"
-   quando o caminho é o mesmo e a build não é. Fica para o Cleber.
+   ele barra pares que são genuinamente distintos. A decisão de desenho
+   está em §10.4: "execução distinta" é outro par de capturas — o mesmo
+   par re-diffado continua não contando.
 3. **Telemetria de terceiro (Sentry, Simple Analytics) é ruído em todo par,
    inclusive no piso, e não vira regra por projeto de propósito.** São 3
    deltas MEDIUM/LOW por par — sessão, timestamp, fingerprint do browser.
@@ -881,3 +880,44 @@ já produziu no motor, e o primeiro em que se pode dizer que o ruído restante
 - Os rótulos são de `label.mjs`, com regras declaradas no cabeçalho; a
   revisão humana está pendente e as 5 regras de supressão continuam
   `PROPOSED`, com 1 execução cada.
+
+### 10.4 Os dois achados viraram código (2026-09-22, mesmo dia)
+
+O Cleber pediu para corrigir o que havia a corrigir. Duas mudanças, em PR
+único, cada uma estreita e medida.
+
+**Hash sem dígito em `NORM-NET-007`.** A exigência de dígito continua — é o
+que separa `plugin.controller.js` de bundle. A exceção é a forma exata do
+hash do Vite/Rollup: 8 caracteres base64url, maiúscula e minúscula, e `-`,
+`_` ou maiúscula depois da primeira posição. `Settings`, `Dropdown`,
+`settings` e `SETTINGS` ficam como estão; `DataGrid` entraria, e o custo é
+só `index-DataGrid.js` alinhar consigo mesmo por outro nome. Testes
+adicionados nos dois sentidos.
+
+**Dedup da supressão aprendida por par de capturas.** A evidência ganha
+`pairId` = captura e instante de cada lado. O mesmo par re-diffado não conta
+(o anti-jogo de §8.5 continua); outra captura — de outra build ou da mesma —
+conta. Evidência gravada antes de existir `pairId` deduplica só por
+`deltaId`, recuando para o conservador. Teste cobre os três casos: re-diff
+do mesmo par, outra build com o mesmo caminho, evidência antiga.
+
+| Par | Antes | Depois |
+|---|---|---|
+| Vite docs #23237 · #23092 · #23201 | 806 · 1182 · 1063 deltas | **792 · 1116 · 929** deltas — bloqueantes e detecção iguais (6 · 35 · 56, 1 de 1) |
+| Excalidraw #12143 · #12139 · #12076 | 23 · 31 · 85 deltas | **21 · 29 · 81** — bloqueantes iguais (0 · 0 · 4) |
+| As outras 18 linhas, inclusive os 7 pisos | — | **idênticas, número por número** |
+| Detecção nos quatro corpora de defeito | 6/9 · 6/7 · 6/11 · 1/1 | **6/9 · 6/7 · 6/11 · 1/1** |
+
+O Vite docs também tinha hashes sem dígito — 14, 66 e 134 deltas de rede que
+nunca foram bloqueantes e agora não existem. Nenhuma linha perdeu detecção;
+nenhum piso mudou.
+
+`suppress propose` de novo sobre os seis relatórios do Excalidraw: as
+mesmas 5 regras, agora com **6 execuções distintas cada** (cinco pares de
+quatro builds e o piso). É a primeira vez que a barreira de três é atingida
+com dado real. **Continuam `PROPOSED`**: a promoção é edição humana com
+`reviewedBy`, e os rótulos vieram de `label.mjs`, não de uma pessoa — a
+revisão do Cleber é o que falta, e está declarado no arquivo. As 4 regras do
+Vite docs seguem com 2 execuções: foram gravadas sem `pairId` e a dedup
+recua para `deltaId`; re-propor sobre a bancada as levaria a 4, mas isso é
+decisão de quem revisa, não efeito colateral de PR.

@@ -62,8 +62,18 @@ function delta(overrides: Partial<Delta> & Pick<Delta, "deltaId" | "path">): Del
   };
 }
 
-function reportWith(deltas: readonly Delta[], runId = "run_pr_1"): DiffReport {
-  return { ...real, metadata: { ...real.metadata, runId }, deltas };
+function reportWith(
+  deltas: readonly Delta[],
+  runId = "run_pr_1",
+  pair?: { readonly base: string; readonly head: string },
+): DiffReport {
+  const report = { ...real, metadata: { ...real.metadata, runId }, deltas };
+  if (pair === undefined) return report;
+  return {
+    ...report,
+    base: { ...real.base, captureId: pair.base, capturedAtUtc: `${pair.base}T00:00:00Z` },
+    head: { ...real.head, captureId: pair.head, capturedAtUtc: `${pair.head}T00:00:00Z` },
+  };
 }
 
 const MENU = (item: string): string =>
@@ -150,9 +160,9 @@ describe("proposeSuppressions", () => {
     expect(again.reinforced).toEqual([]);
     expect(again.set.rules[0]?.evidence).toHaveLength(1);
 
-    // O mesmo par re-diffado ganha OUTRO runId, mas os deltaIds são os mesmos:
-    // não é evidência nova. Sem isto, três `diff` do mesmo PR "provariam" três
-    // execuções distintas.
+    // O mesmo par re-diffado ganha OUTRO runId, mas o par de capturas e os
+    // deltaIds são os mesmos: não é evidência nova. Sem isto, três `diff` do
+    // mesmo PR "provariam" três execuções distintas.
     const rerun = propose(
       reportWith([delta({ deltaId: "d1", path: MENU("Fiction") })], "run_pr_1_rerun"),
       { d1: { label: "NOISE" } },
@@ -160,6 +170,47 @@ describe("proposeSuppressions", () => {
     );
     expect(rerun.reinforced).toEqual([]);
     expect(rerun.set.rules[0]?.evidence.map((entry) => entry.runId)).toEqual(["run_pr_1"]);
+
+    // OUTRO par de capturas com o MESMO deltaId é evidência nova: o deltaId é
+    // função do caminho, não do valor, e o mesmo id gerado em outra build tem o
+    // mesmo caminho. Cinco builds distintas eram uma evidência só (excalidraw).
+    const otherBuild = propose(
+      reportWith([delta({ deltaId: "d1", path: MENU("Fiction") })], "run_pr_1b", {
+        base: "cap_base_b",
+        head: "cap_head_b",
+      }),
+      { d1: { label: "NOISE" } },
+      first.set,
+    );
+    expect(otherBuild.reinforced).toEqual(["SUP-loja-001"]);
+    expect(otherBuild.set.rules[0]?.evidence.map((entry) => entry.runId)).toEqual([
+      "run_pr_1",
+      "run_pr_1b",
+    ]);
+    expect(otherBuild.set.rules[0]?.evidence[1]?.pairId).toContain("cap_base_b@");
+
+    // Evidência gravada antes de existir pairId deduplica só por deltaId — recua
+    // para o conservador: o mesmo deltaId não conta de novo, venha de onde vier.
+    const legacy: SuppressionSet = {
+      ...first.set,
+      rules: first.set.rules.map((rule) => ({
+        ...rule,
+        evidence: rule.evidence.map((entry) => {
+          const { pairId, ...rest } = entry;
+          void pairId;
+          return rest;
+        }),
+      })),
+    };
+    const againstLegacy = propose(
+      reportWith([delta({ deltaId: "d1", path: MENU("Fiction") })], "run_pr_1c", {
+        base: "cap_base_c",
+        head: "cap_head_c",
+      }),
+      { d1: { label: "NOISE" } },
+      legacy,
+    );
+    expect(againstLegacy.reinforced).toEqual([]);
 
     const second = propose(
       reportWith([delta({ deltaId: "d9", path: MENU("Clothing") })], "run_pr_2"),
