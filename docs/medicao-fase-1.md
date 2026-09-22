@@ -1010,3 +1010,47 @@ edição foi a `base-url`) e que o "< 5 min" cabe com folga numa aplicação
 estática. Não diz nada sobre detecção — a loja tem regras de negócio
 quebráveis de propósito (desconto, preço, estoque, total, link), e os PRs
 com defeito injetado são o próximo passo, cada um medido do mesmo jeito.
+
+### 11.6 Quatro defeitos injetados, quatro bloqueios (2026-09-22, 20:03 UTC)
+
+Quatro PRs abertos no `aletheia-demo` no mesmo minuto, um por defeito,
+cada um contra a produção pelo mesmo workflow. Nenhum foi mesclado; ficam
+abertos como registro.
+
+| PR | Defeito injetado | Veredito | Regressões · grupos | O que acusou | PR → comentário |
+|---|---|---|---|---|---|
+| #2 D1 | desconto 15% → 10% em `data/produtos.json` | 🔴 bloqueia | 3 · 1 | `RESPONSE_FIELD_CHANGED` HIGH em `descontoPercentual` (`15` → `10`), nas 3 páginas que buscam o JSON | 56 s |
+| #3 D2 | Caneca com escudo removida do JSON | 🔴 bloqueia | 18 · 8 | `RESPONSE_FIELD_REMOVED` + 4 campos "mudados" por posição, `href` de 2 cartões trocado, `Esgotado` sumido | 63 s |
+| #4 D3 | link Sobre do rodapé → `/sobre-nos` (6 páginas) | 🔴 bloqueia | 6 · 1 | `DOM_ATTRIBUTE_CHANGED` HIGH em `footer … a@href`, 6 páginas, um grupo só | 75 s |
+| #5 D4 | checagem de estoque invertida em `app.js` | 🔴 bloqueia | 6 · 6 | `DOM_NODE_REMOVED` HIGH: os 6 botões "Adicionar ao carrinho" | 62 s |
+
+**4 de 4 bloqueados, precisão 1,000, entre 56 e 75 segundos do PR ao
+comentário.** Mais o PR #1 legítimo sem bloqueio (§11.5): 5 PRs, 0 falso
+positivo, 0 falso negativo — no que a jornada vê.
+
+Três leituras que importam mais que o placar:
+
+1. **D1 é o problema do oráculo, ao vivo.** A tela do catálogo com 10% de
+   desconto renderiza, os preços mudam de texto, e texto que muda é
+   MEDIUM — 18 deltas indeterminados, nenhum bloqueante. Quem bloqueou foi
+   a **rede**: `descontoPercentual` num recurso de dado da própria
+   aplicação. Sem esse JSON observável (um app que calcula o desconto no
+   servidor e devolve só o HTML pronto), o D1 passava. É o argumento da
+   camada de banco (E-02, §4) demonstrado num PR de verdade: a verdade
+   contra a qual se julga está no dado, não na tela.
+2. **D2 foi bloqueado com a explicação errada.** A caneca era o item 3 de
+   6; o motor viu os itens 3 e 4 "mudarem" de preço e estoque e o item 5
+   sumir — alinhamento por posição numa lista cuja identidade (`id`) está
+   dentro do elemento, a mesma limitação declarada no Sauce Demo (§7). O
+   veredito está certo, o grupo está certo em número, o "exemplo" aponta o
+   meião em vez da caneca. Corrigir é alinhar lista de objetos por chave
+   declarada — o que a camada DATABASE já faz com `keyColumns` — e entra
+   quando um piloto o pedir, com este par como fixture.
+3. **D3 e D4 são a assinatura ideal:** um grupo por causa, todas as páginas
+   afetadas dentro dele, exemplo exato. É o agrupamento por assinatura de
+   §10.13 da Fase 0 fazendo o que promete num app que ele nunca viu.
+
+Declarado: a jornada não exercita o carrinho com itens nem o envio do
+formulário — um defeito no total do carrinho passaria. É a mesma fronteira
+do §11.5, e é o que uma jornada com ações, escrita por quem conhece a loja,
+cobre em seguida.
