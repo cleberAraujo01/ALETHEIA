@@ -20,7 +20,7 @@
  *  - rede da própria aplicação (`/assets/index-<hash>.*`, o HTML de `/`):
  *    INTENDED_CHANGE — outra build, hash de conteúdo. É onde se viu que o
  *    hash do Vite sem dígito (`DVNY-aUO`) escapa de `NORM-NET-007` de um
- *    lado só (§9.8 da medição);
+ *    lado só (§10 da medição);
  *  - DOM/pixel numa observação em que o PR é `visivel`: INTENDED_CHANGE,
  *    com a nota dizendo qual PR;
  *  - qualquer outra coisa: NOISE. Fechamento para baixo — um PR que não toca
