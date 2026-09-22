@@ -39,6 +39,7 @@ export const NORMALIZATION_RULES = {
   NET_OPAQUE_PATH_SEGMENT: "NORM-NET-010",
   NET_DEPLOY_IDENTITY: "NORM-NET-011",
   NET_DEPLOY_PLATFORM_FURNITURE: "NORM-NET-012",
+  NET_NAV_CONTEXT_PARAM: "NORM-NET-013",
 } as const;
 
 /** Marcadores que substituem o valor volátil. Visíveis no relatório de propósito. */
@@ -287,6 +288,44 @@ export function isDeployPlatformFurniture(rawUrl: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Parâmetro de CONTEXTO DE NAVEGAÇÃO do roteador — `_rsc=<hash>` do Next.js
+ * App Router. O nome é reservado pelo framework; o valor é hash do estado do
+ * roteador NO MOMENTO do prefetch, ou seja: dois prefetches da MESMA rota,
+ * disparados de páginas diferentes, carregam tokens diferentes. É identidade
+ * de contexto, não destino.
+ *
+ * MEDIDO no par real do piloto (juventude, rodada 2, run 32546926736): a
+ * observação `quem-somos` da base tinha os prefetches da home (token da home,
+ * atrasados) E os seus próprios (token dela) — a mesma rota duas vezes, sob
+ * dois tokens. Sem fundir os tokens, cada contexto vira uma requisição
+ * distinta no alinhamento e a diferença de timing vira ADDED/REMOVED.
+ *
+ * A conjunção segue a disciplina da casa: nome exato reservado pelo framework
+ * E valor com forma de token. `_rsc=1` hipotético não é normalizado.
+ */
+export function isNavContextParam(name: string, value: string): boolean {
+  return name === "_rsc" && /^[A-Za-z0-9_-]{8,}$/.test(value);
+}
+
+/**
+ * Requisição ESPECULATIVA do roteador: o `GET <rota>?_rsc=…` que o Next.js
+ * dispara em idle para pré-carregar navegação. A URL normalizada preserva o
+ * parâmetro (com o valor já fundido em `<token>`), e é por ele que a classe é
+ * reconhecida.
+ *
+ * O que a classe muda é a CARDINALIDADE, não o corpo: presença de prefetch
+ * depende do instante em que o idle aconteceu — no par real do piloto
+ * (rodada 2), os prefetches da home caíram na observação seguinte num lado e
+ * não no outro, e um app IDÊNTICO levou 4 REQUEST_REMOVED HIGH. É o análogo
+ * de origem própria do script de analytics que calibrou REQUEST_REMOVED: o
+ * sinal diz "o timing variou", não "o código mudou". Corpo alinhado continua
+ * comparado normalmente — foi nele que o buildId apareceu (NORM-NET-011).
+ */
+export function isSpeculativeNavigationRequest(normalizedUrl: string): boolean {
+  return /[?&]_rsc=/.test(normalizedUrl);
 }
 
 export function isContainerSessionPathParam(name: string, value: string): boolean {

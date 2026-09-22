@@ -41,6 +41,14 @@ export function severityOf(delta: RawDelta): Severity {
     }
 
     case "REQUEST_REMOVED": {
+      // Prefetch do roteador (`_rsc`): presença depende do instante do idle.
+      // MEDIDO no piloto (juventude, rodada 2): os prefetches da home caíram
+      // na observação seguinte num lado e não no outro, e um app IDÊNTICO
+      // levou 4 REQUEST_REMOVED HIGH — falso positivo bloqueante. É o análogo
+      // de origem própria do caso do analytics abaixo: o sinal diz "o timing
+      // variou". Se a navegação de fato quebrar, DOM e console acusam (foi
+      // assim no vite-docs #23201).
+      if (delta.facts["speculative"] === true) return "LOW";
       // Calibração vinda de execução real: comparar duas capturas da MESMA
       // build de uma aplicação em produção produziu exatamente um delta — um
       // script de analytics de terceiro que carregou numa execução e não na
@@ -54,6 +62,9 @@ export function severityOf(delta: RawDelta): Severity {
     case "REQUEST_ADDED":
       return "LOW";
     case "REQUEST_COUNT_CHANGED": {
+      // Contagem de prefetch varia com o timing do idle — mesmo racional do
+      // REQUEST_REMOVED especulativo acima.
+      if (delta.facts["speculative"] === true) return "LOW";
       const amplification = numberFact(delta.facts["amplification"]);
       if (delta.facts["thirdParty"] === true) return "LOW";
       if (amplification !== null && amplification >= N_PLUS_ONE_AMPLIFICATION) return "HIGH";

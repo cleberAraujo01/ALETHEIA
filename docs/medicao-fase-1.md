@@ -696,3 +696,57 @@ real de corpo e sumiço de terceiro comum continuam visíveis.
   coberto — dívida declarada.
 - Do critério de saída: demo < 5 min ✅ em aplicação de cliente; **pilotos:
   1 de 3; NPS: sem medição.** A fase continua aberta.
+
+### 9.6 Rodada 2 — o falso positivo que as duas regras destaparam (2026-08-22)
+
+Segundo run real no mesmo PR (`8b82b4f`, run 32546926736), já com
+`NORM-NET-011/012` na tag do runner. Os 45 sumiram e, no lugar, **4
+`REQUEST_REMOVED` HIGH em 4 grupos — `REGRESSION_DETECTED`, PR bloqueado**,
+num app idêntico. Os quatro:
+`GET /canais|/escolinha|/quem-somos|/time?_rsc=1p-R_iEY6bj0jY31`.
+
+É o achado que o §8 do CLAUDE.md deixara em aberto desde a Fase 0, agora
+mordendo de verdade. O mecanismo, lido nas capturas:
+
+- `_rsc` é o hash do estado do roteador **no momento** do prefetch — dois
+  prefetches da mesma rota, disparados de páginas diferentes, carregam
+  tokens diferentes. É identidade de contexto, não de destino.
+- Os prefetches da home, em idle, caíram na observação **seguinte**
+  (`quem-somos`) de um lado e não do outro. Sem fundir tokens, o alinhamento
+  vê a mesma rota como duas requisições, e a diferença de timing vira
+  `REQUEST_REMOVED` com severidade de endpoint próprio: HIGH.
+- O prefetch que a navegação abortou fica com corpo `null`; `null` × payload
+  virava `RESPONSE_TYPE_CHANGED` HIGH pela mesma razão.
+
+Três mudanças, todas estreitas e carregadas no relatório:
+
+- **`NORM-NET-013` — contexto de navegação do roteador:** `_rsc` com valor
+  de token (nome exato E `[A-Za-z0-9_-]{8,}`) é fundido em `<token>` na URL
+  normalizada. `_rsc=1` hipotético não é tocado.
+- **Fato `speculative` no delta de rede** (presença de `_rsc` na URL
+  normalizada): `REQUEST_REMOVED` e `REQUEST_COUNT_CHANGED` especulativos
+  caem para LOW — o análogo de origem própria do analytics de terceiro que
+  calibrou `REQUEST_REMOVED`. O delta continua **visível** para triagem;
+  sumir com ele seria supressão sem evidência. Endpoint próprio sem a marca
+  segue HIGH.
+- Corpo `null` de um lado só deixa de ser comparado quando a requisição é
+  especulativa; em endpoint de dado, `null` continua sendo "o corpo que
+  deixou de existir".
+
+| Par | Antes | Depois |
+|---|---|---|
+| **Piloto juventude — PR real #2, rodada 2** | 20 deltas · **4 bloq** · 4 grupos de regressão · `REGRESSION_DETECTED` | 20 deltas · **0 bloq** · `UNDETERMINED_ONLY` · 62 fusões `NORM-NET-013` |
+| Bancada inteira (18 linhas: 8 pares de defeito/PR, 4 PRs Vite, 6 pisos) | — | **idêntica, número por número** |
+
+Nenhum corpus da bancada é Next.js App Router, logo a regra é neutra ali por
+construção — a evidência é o par real, guardado em
+`.aletheia/juventude-piloto-rodada2/` (fora do git, como os demais). O teste de
+regressão (`__fixtures__/vercel-next/*-jitter.json`) reproduz o mecanismo em
+miniatura: prefetch de `/canais` na home do head e na `quem-somos` da base,
+com o token do contexto que o disparou e o corpo `null` do abortado.
+
+Declarado: se a navegação de fato quebrar, quem acusa é DOM e console (foi
+assim no vite-docs #23201), não a cardinalidade do prefetch. É uma aposta
+medida em um par; a série que a confirma ou derruba é a dos próximos runs
+do piloto. O caso de um prefetch que **muda de status** (200 → 500) não é
+especulativo por timing e continua `STATUS_CHANGED` HIGH.

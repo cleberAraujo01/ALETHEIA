@@ -6,6 +6,7 @@ import {
   isContainerSessionPathParam,
   isIdentifierPathSegment,
   isIsoTimestamp,
+  isNavContextParam,
   isOpaquePathSegment,
   isOpaqueToken,
   isSingleUseProtocolValue,
@@ -108,6 +109,14 @@ export function normalizeUrl(
     // apagar `state=SP` nem id de vídeo do YouTube.
     if (isSingleUseProtocolValue(name, value) || isOpaqueToken(value)) {
       ledger.record(NORMALIZATION_RULES.NET_SINGLE_USE_TOKEN);
+      params.push([name, PLACEHOLDER.TOKEN]);
+      continue;
+    }
+    // Contexto de navegação do roteador (`_rsc`): identidade do MOMENTO do
+    // prefetch, não do destino. Fundir os tokens é o que permite alinhar o
+    // prefetch da mesma rota disparado de páginas diferentes.
+    if (isNavContextParam(name, value)) {
+      ledger.record(NORMALIZATION_RULES.NET_NAV_CONTEXT_PARAM);
       params.push([name, PLACEHOLDER.TOKEN]);
       continue;
     }

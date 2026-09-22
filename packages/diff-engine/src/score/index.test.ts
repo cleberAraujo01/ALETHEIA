@@ -44,6 +44,38 @@ describe("severidade de rede — sinal próprio vs. ruído de terceiro", () => {
     expect(severityOf(delta({ facts: { dataResource: false, thirdParty: false } }))).toBe("MEDIUM");
   });
 
+  // MEDIDO no piloto (juventude, rodada 2, run 32546926736): os prefetches da
+  // home caíram na observação seguinte num lado e não no outro — app idêntico,
+  // 4 REQUEST_REMOVED HIGH, PR bloqueado por timing de idle.
+  it("prefetch do roteador que sumiu é timing, não regressão — nunca bloqueia", () => {
+    expect(
+      severityOf(
+        delta({
+          path: "GET /quem-somos?_rsc=<token>",
+          facts: { dataResource: true, thirdParty: false, speculative: true },
+        }),
+      ),
+    ).toBe("LOW");
+  });
+
+  it("contagem de prefetch que varia é timing também", () => {
+    expect(
+      severityOf(
+        delta({
+          kind: "REQUEST_COUNT_CHANGED",
+          path: "GET /canais?_rsc=<token>",
+          facts: { dataResource: true, thirdParty: false, speculative: true, amplification: 2 },
+        }),
+      ),
+    ).toBe("LOW");
+  });
+
+  it("endpoint próprio SEM a marca especulativa continua HIGH — a classe é estreita", () => {
+    expect(
+      severityOf(delta({ facts: { dataResource: true, thirdParty: false, speculative: false } })),
+    ).toBe("HIGH");
+  });
+
   it("erro de terceiro é indisponibilidade de ambiente, não regressão do cliente", () => {
     expect(
       severityOf(
