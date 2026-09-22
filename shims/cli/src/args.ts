@@ -339,6 +339,71 @@ export function parseDiffArgs(argv: readonly string[]): DiffCommandArgs {
   };
 }
 
+export interface InitCommandArgs {
+  /** URL da aplicação em produção — de onde as rotas são descobertas. */
+  readonly url: string;
+  /** Nome do projeto; vira o `name` da jornada. Default: host da URL. */
+  readonly name: string | null;
+  readonly journeyOut: string;
+  /** `null` = não gerar o workflow. */
+  readonly workflowOut: string | null;
+  readonly aletheiaRef: string;
+  readonly maxRoutes: number;
+  readonly maxDepth: number;
+  readonly deadlineMs: number;
+  /** Header secreto a declarar no workflow (nome=VARIAVEL), sem valor. */
+  readonly secretHeader: string | null;
+  /** Rotas dadas à mão em vez de descobertas: `--routes /,/sobre,/contato`. */
+  readonly routes: readonly string[] | null;
+}
+
+export function parseInitArgs(argv: readonly string[]): InitCommandArgs {
+  const flags = toFlagMap(argv);
+  const positive = (name: string, fallback: number): number => {
+    const value = Number(flags.get(name) ?? String(fallback));
+    if (!Number.isInteger(value) || value <= 0) {
+      throw new PlatformError("CAPTURE_INVALID", {
+        reason: `--${name} precisa ser um inteiro positivo: ${String(flags.get(name))}`,
+      });
+    }
+    return value;
+  };
+  const url = required(flags, "url");
+  try {
+    new URL(url);
+  } catch {
+    throw new PlatformError("CAPTURE_INVALID", { reason: `--url não é uma URL válida: ${url}` });
+  }
+  const secretHeader = optional(flags, "secret-header");
+  if (secretHeader !== null && secretHeadersOf(flags).length !== 1) {
+    throw new PlatformError("CAPTURE_INVALID", {
+      reason: "--secret-header em init aceita um único header nome=VARIAVEL",
+    });
+  }
+  const routesRaw = optional(flags, "routes");
+  return {
+    url,
+    name: optional(flags, "name"),
+    journeyOut: flags.get("journey-out") ?? ".aletheia/jornada.json",
+    workflowOut:
+      flags.get("workflow") === "none"
+        ? null
+        : (flags.get("workflow") ?? ".github/workflows/aletheia.yml"),
+    aletheiaRef: flags.get("aletheia-ref") ?? "main",
+    maxRoutes: positive("max-routes", 12),
+    maxDepth: positive("max-depth", 2),
+    deadlineMs: positive("deadline", 15000),
+    secretHeader,
+    routes:
+      routesRaw === null
+        ? null
+        : routesRaw
+            .split(",")
+            .map((entry) => entry.trim())
+            .filter((entry) => entry.length > 0),
+  };
+}
+
 function toFlagMap(argv: readonly string[]): Map<string, string> {
   const flags = new Map<string, string>();
   for (let index = 0; index < argv.length; index += 1) {

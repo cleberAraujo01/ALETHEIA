@@ -921,3 +921,59 @@ revisão do Cleber é o que falta, e está declarado no arquivo. As 4 regras do
 Vite docs seguem com 2 execuções: foram gravadas sem `pairId` e a dedup
 recua para `deltaId`; re-propor sobre a bancada as levaria a 4, mas isso é
 decisão de quem revisa, não efeito colateral de PR.
+
+## 11. Kit de onboarding — `aletheia init` e o ambiente de validação (2026-09-22)
+
+A proposta da fase diz "zero configuração". Até aqui era "uma jornada
+escrita à mão e um workflow copiado do piloto". Agora é um comando.
+
+### 11.1 O que o `init` faz
+
+`aletheia init --url <produção>` abre a aplicação num browser real, segue
+os links da mesma origem em largura (profundidade 2, 12 rotas, ambos
+ajustáveis), descarta query, fragmento, arquivo, `mailto:` e outra origem,
+e escreve dois arquivos: `.aletheia/jornada.json` (IR v1, `navigate` +
+`observe` por rota, `observationId` = slug do caminho, home primeiro e o
+resto em ordem alfabética) e `.github/workflows/aletheia.yml` (o workflow
+do piloto juventude, parametrizado: `deployment_status`, shim na tag dada,
+header secreto pelo nome da variável via `secrets`). A jornada é validada
+por `parseIr` antes de ser escrita. O `networkidle` do carregamento é
+sinal de rede, não espera fixa: é o que faz um link montado a partir de
+um fetch (catálogo em JSON) existir no DOM na hora da leitura.
+
+O que ele não faz, de propósito: não inventa ações, não escolhe rotas
+"importantes", não conhece provedor além do gatilho que a Vercel emite.
+Mostra a lista e o humano apaga.
+
+### 11.2 Validação 1 — contra o piloto real
+
+`init` contra a produção do juventude devolveu **as mesmas 7 rotas** da
+jornada escrita à mão em agosto, na mesma forma, sem edição. 7 páginas
+abertas, 7 links de outra origem e 2 `mailto`/`tel` descartados e
+declarados.
+
+### 11.3 Validação 2 — o ambiente de validação
+
+Sem segundo piloto, o Cleber pediu um ambiente dele para validar:
+[`cleberAraujo01/aletheia-demo`](https://github.com/cleberAraujo01/aletheia-demo),
+uma loja estática sem build — catálogo em JSON com preço, desconto e
+estoque; produto; carrinho com total; contato com validação; sobre. Tudo
+"regra de negócio quebrável" de propósito, para PRs com defeito injetado.
+
+- `init` contra a loja servida localmente: **6 rotas** (`/`, `/carrinho`,
+  `/catalogo`, `/contato`, `/produto`, `/sobre`) em 5 páginas abertas.
+  `/produto` só existe no DOM depois do fetch do catálogo — foi o
+  `networkidle` que o achou.
+- `aletheia run` da loja contra ela mesma, com a jornada gerada:
+  **6 observações, 0 deltas** — piso limpo no primeiro run, sem regra nova.
+- Os dois arquivos gerados estão no repositório como saíram; a única
+  edição foi a `base-url` do workflow, da porta local para a URL de
+  produção na Vercel.
+
+### 11.4 O que falta, e é de quem tem a conta
+
+Ligar o repositório a um projeto da Vercel (login é do Cleber), gravar o
+secret de bypass se os previews vierem protegidos, e abrir o primeiro PR.
+A partir daí a loja é o lugar onde PR legítimo e PR com defeito injetado
+podem ser medidos de ponta a ponta — "PR aberto → comentário" — sem
+depender de aplicação de terceiro.
