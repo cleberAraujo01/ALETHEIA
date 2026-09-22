@@ -977,3 +977,36 @@ secret de bypass se os previews vierem protegidos, e abrir o primeiro PR.
 A partir daí a loja é o lugar onde PR legítimo e PR com defeito injetado
 podem ser medidos de ponta a ponta — "PR aberto → comentário" — sem
 depender de aplicação de terceiro.
+
+### 11.5 A ponta a ponta no ambiente de validação (2026-09-22, 19:56 UTC)
+
+O que faltava era de quem tem a conta, e foi feito na mesma noite: `vercel
+link` criou o projeto `aletheia-demo` e o ligou ao repositório; a produção
+ficou em `aletheia-demo-tau.vercel.app` (o nome curto `aletheia-demo` já era
+de outro projeto — a `base-url` do workflow não se presume, se lê). Os
+previews vieram com Vercel Authentication, como no juventude. A decisão foi
+**desligar a proteção do projeto** (loja pública de demonstração; nada a
+proteger; um segredo a menos) — o assistente não pôde executar, por
+política, e o Cleber rodou o `PATCH` de uma linha. O workflow perdeu as
+linhas do header secreto.
+
+**PR #1 do `aletheia-demo`** — mudança legítima de conteúdo (uma frase a
+mais em `/sobre`):
+
+| Instante (UTC) | Evento |
+|---|---|
+| 19:56:09 | PR aberto |
+| 19:56:18 | preview pronto; `deployment_status` dispara o workflow |
+| 19:57:07 | comentário do ALETHEIA publicado |
+
+**58 segundos do PR aberto ao comentário.** Veredito `UNDETERMINED_ONLY`:
+3 deltas em 3 grupos — 1 de DOM, 1 de rede, 1 visual, todos em `/sobre` —,
+zero bloqueante, zero normalização aplicada, 6 observações comparadas.
+É exatamente a mudança do PR, vista pelas três camadas, abaixo do limiar.
+
+O que este run diz e o que não diz: diz que o kit de onboarding fecha o
+ciclo sem uma linha escrita à mão (jornada e workflow gerados; a única
+edição foi a `base-url`) e que o "< 5 min" cabe com folga numa aplicação
+estática. Não diz nada sobre detecção — a loja tem regras de negócio
+quebráveis de propósito (desconto, preço, estoque, total, link), e os PRs
+com defeito injetado são o próximo passo, cada um medido do mesmo jeito.
