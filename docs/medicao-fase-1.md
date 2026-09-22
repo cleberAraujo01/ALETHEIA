@@ -1054,3 +1054,50 @@ Declarado: a jornada não exercita o carrinho com itens nem o envio do
 formulário — um defeito no total do carrinho passaria. É a mesma fronteira
 do §11.5, e é o que uma jornada com ações, escrita por quem conhece a loja,
 cobre em seguida.
+
+### 11.7 Jornada com ações e o quinto defeito — o falso negativo que a tela não resolve (2026-09-22, 20:14 UTC)
+
+A jornada por URL do `init` não chega ao carrinho com itens nem ao
+formulário enviado (§11.6). A loja ganhou uma jornada com ações, escrita
+à mão: adiciona dois produtos (um deles duas vezes), observa o catálogo
+depois do clique, o produto, o carrinho com total, envia o contato e
+observa a confirmação. Sete observações; os botões ganharam `data-testid`.
+Piso local: 0 deltas. A jornada do `init` fica no repositório como
+`jornada-inicial.json`.
+
+**PR #6, D5 — o total do carrinho ignora a quantidade** (`total += unit`
+em vez de `total += sub`). Com a camisa e duas bolas, o total certo é
+`R$ 382,26`; o errado, `R$ 271,84`. É o defeito que só a jornada com ações
+alcança.
+
+| Instante | Evento |
+|---|---|
+| 20:14:01 | PR aberto |
+| 20:15:08 | comentário: 🟢 `UNDETERMINED_ONLY`, 3 deltas, 0 bloqueante |
+
+**Passou.** Os três deltas são exatamente o defeito — `DOM_TEXT_CHANGED` e
+`DOM_ACCESSIBLE_NAME_CHANGED` MEDIUM na célula do total, `R$ 382,26` →
+`R$ 271,84`, e um pixel LOW na mesma célula — e nenhum atinge o limiar.
+A jornada chegou ao lugar certo, o motor viu a mudança certa, e o
+veredito está certo pelas regras que existem: **texto que muda é MEDIUM**,
+porque o motor não tem como saber se `R$ 271,84` é o valor errado ou o
+valor novo. É o problema do oráculo (§1 do CLAUDE.md) na forma mais nua:
+a tela renderiza, a rede não muda, o cálculo está errado.
+
+O que este par diz sobre o que fazer, e o que não fazer:
+
+- **Não é caso de severidade.** Subir texto monetário a HIGH bloquearia
+  todo reajuste de preço legítimo; a Fase 0 mediu que mexer em severidade
+  custa defeito de um lado e falso positivo do outro (§10.8 da medição da
+  Fase 0). Fica como está.
+- **É caso de fonte de verdade.** Duas resolvem: a camada DATABASE
+  (E-02), se o total viesse de um dado observável por capability — no
+  D1 foi o JSON do catálogo que bloqueou; ou uma **relação metamórfica**
+  (§1: "propriedades entre execuções"), aqui trivial — total = soma dos
+  subtotais, que a própria tela mostra. Nenhuma das duas está no escopo
+  de código da Fase 1; o par fica registrado como o primeiro caso real que
+  pede uma delas.
+- **PA-10 vale para o placar:** com o D5, a loja tem 5 defeitos, 4
+  bloqueados, 1 passado e declarado — e a jornada com ações, que não
+  bloqueou nada a mais, foi o que tornou o falso negativo visível em vez
+  de invisível.
