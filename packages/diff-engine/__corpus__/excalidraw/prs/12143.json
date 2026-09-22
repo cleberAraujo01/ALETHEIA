@@ -1,0 +1,15 @@
+{
+  "pr": 12143,
+  "title": "fix(editor): Tab convert bound arrow update",
+  "state": "closed",
+  "mergedAt": "2026-09-22T08:26:19Z",
+  "headSha": "ccdb6f4a5556de462af12b15e416e25554de9ed2",
+  "baseSha": "97c68dd371e13c017a8dcca49f8b3995ba7890a8",
+  "basePreview": "https://excalidraw-5wco15qjx-excalidraw.vercel.app",
+  "headPreview": "https://excalidraw-nb8haemw7-excalidraw.vercel.app",
+  "files": [
+    "packages/element/src/binding.ts",
+    "packages/excalidraw/components/ConvertElementTypePopup.tsx",
+    "packages/excalidraw/tests/convertElementType.binding.test.tsx"
+  ]
+}

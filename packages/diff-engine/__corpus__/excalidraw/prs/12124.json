@@ -1,0 +1,18 @@
+{
+  "pr": 12124,
+  "title": "feat(packages/excalidraw): support onDuplicate replacements, vetoes and lookups",
+  "state": "closed",
+  "mergedAt": "2026-09-19T08:00:47Z",
+  "headSha": "369ab335f35dbc4d9b2ca06e55e25def13ad2ece",
+  "baseSha": "c0ad61c6743aef7623e641cd1460d757cc6cacf3",
+  "basePreview": "https://excalidraw-9zzmpccfx-excalidraw.vercel.app",
+  "headPreview": "https://excalidraw-gnpmp05vr-excalidraw.vercel.app",
+  "files": [
+    "packages/element/src/duplicate.ts",
+    "packages/excalidraw/CHANGELOG.md",
+    "packages/excalidraw/actions/actionDuplicateSelection.tsx",
+    "packages/excalidraw/components/App.tsx",
+    "packages/excalidraw/tests/onDuplicate.test.tsx",
+    "packages/excalidraw/types.ts"
+  ]
+}

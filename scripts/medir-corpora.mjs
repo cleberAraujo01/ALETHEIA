@@ -120,6 +120,25 @@ const PARES = [
     head: ".aletheia/vite-docs/23201",
     rotulador: "packages/diff-engine/__corpus__/vite-docs/label.mjs",
   },
+  // Quinto corpus: excalidraw (PRs reais do excalidraw/excalidraw, preview do
+  // head contra preview do MERGE-BASE — par exato, sem drift). Cinco PRs
+  // legítimos; três invisíveis à jornada, dois visíveis (prs.mjs). Capturas via
+  // `node packages/diff-engine/__corpus__/excalidraw/capture.mjs 12143 12139 12125 12124 12076 piso`.
+  ...[
+    ["12143", "97c68dd"],
+    ["12139", "97c68dd"],
+    ["12125", "14e1c61"],
+    ["12124", "c0ad61c"],
+    ["12076", "afa3a65"],
+  ].map(([pr, base]) => ({
+    id: `excalidraw-${pr}`,
+    titulo: `Excalidraw — PR real #${pr} (par exato)`,
+    projeto: "excalidraw",
+    base: `.aletheia/excalidraw/base-${base}`,
+    head: `.aletheia/excalidraw/pr-${pr}`,
+    rotulador: "packages/diff-engine/__corpus__/excalidraw/label.mjs",
+    semDefeito: true,
+  })),
   {
     id: "juventude-piso",
     titulo: "Piso — juventude, mesma build",
@@ -150,6 +169,14 @@ const PARES = [
     projeto: "vite-docs",
     base: ".aletheia/vite-docs/base",
     head: ".aletheia/vite-docs/base-rerun",
+    piso: true,
+  },
+  {
+    id: "excalidraw-piso",
+    titulo: "Piso — Excalidraw, mesma base",
+    projeto: "excalidraw",
+    base: ".aletheia/excalidraw/base-97c68dd",
+    head: ".aletheia/excalidraw/base-97c68dd-rerun",
     piso: true,
   },
   {

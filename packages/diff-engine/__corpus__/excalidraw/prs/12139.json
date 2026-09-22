@@ -1,0 +1,16 @@
+{
+  "pr": 12139,
+  "title": "Display filename on UI",
+  "state": "open",
+  "mergedAt": null,
+  "headSha": "b043637528f1f4dd385a49c02beef5b312afbb55",
+  "baseSha": "97c68dd371e13c017a8dcca49f8b3995ba7890a8",
+  "basePreview": "https://excalidraw-5wco15qjx-excalidraw.vercel.app",
+  "headPreview": "https://excalidraw-dcp4a4bjg-excalidraw.vercel.app",
+  "files": [
+    "excalidraw-app/app_constants.ts",
+    "packages/excalidraw/components/App.tsx",
+    "packages/excalidraw/components/EditableFileName.tsx",
+    "packages/excalidraw/components/LayerUI.tsx"
+  ]
+}

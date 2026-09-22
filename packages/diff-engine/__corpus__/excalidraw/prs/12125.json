@@ -1,0 +1,16 @@
+{
+  "pr": 12125,
+  "title": "refactor(editor): split out duplication logic into App.duplicate.ts",
+  "state": "closed",
+  "mergedAt": "2026-09-19T09:53:32Z",
+  "headSha": "929b4f1f7ff7f80e0856101f31778dc690fa3718",
+  "baseSha": "14e1c614d477f8e53f71e2f31b2c74b9e597e59b",
+  "basePreview": "https://excalidraw-ctpo8sgqj-excalidraw.vercel.app",
+  "headPreview": "https://excalidraw-41i5go6n6-excalidraw.vercel.app",
+  "files": [
+    "packages/excalidraw/actions/actionDuplicateSelection.tsx",
+    "packages/excalidraw/components/App.duplicate.ts",
+    "packages/excalidraw/components/App.tsx",
+    "packages/excalidraw/types.ts"
+  ]
+}
