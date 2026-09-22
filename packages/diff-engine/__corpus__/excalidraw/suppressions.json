@@ -1,0 +1,205 @@
+{
+  "version": "0.1.0",
+  "projectId": "excalidraw",
+  "rules": [
+    {
+      "id": "SUP-excalidraw-001",
+      "projectId": "excalidraw",
+      "status": "PROPOSED",
+      "description": "DOM_ATTRIBUTE_CHANGED em body > div > div > div[1] > div > h2[role=heading]@id — rotulado NOISE em 1 delta(s) de 1 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ATTRIBUTE_CHANGED",
+        "pathSkeleton": "body > div > div > div[1] > div > h2[role=heading]@id"
+      },
+      "evidence": [
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "85e99080c5f3ef4e",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        }
+      ],
+      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-excalidraw-002",
+      "projectId": "excalidraw",
+      "status": "PROPOSED",
+      "description": "DOM_ATTRIBUTE_CHANGED em body > div#root > div > div > div[0] > div[1] > div > section[role=region] > div > div[1] > div > div > h2[role=heading]@id — rotulado NOISE em 4 delta(s) de 4 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ATTRIBUTE_CHANGED",
+        "pathSkeleton": "body > div#root > div > div > div[0] > div[1] > div > section[role=region] > div > div[1] > div > div > h2[role=heading]@id"
+      },
+      "evidence": [
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "6b884cea37592287",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "71b05966f7bfc32e",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "701f557f9e14024a",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "c94343c8c9cd8775",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        }
+      ],
+      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-excalidraw-003",
+      "projectId": "excalidraw",
+      "status": "PROPOSED",
+      "description": "DOM_ATTRIBUTE_CHANGED em body > div#root > div > div > div[0] > div[1] > div > section[role=region]@aria-labelledby — rotulado NOISE em 4 delta(s) de 4 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ATTRIBUTE_CHANGED",
+        "pathSkeleton": "body > div#root > div > div > div[0] > div[1] > div > section[role=region]@aria-labelledby"
+      },
+      "evidence": [
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "94ab6b933e364be8",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "2b68a4fee514c00c",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "7dbeef47ebb24000",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "af58f4664b437ecd",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        }
+      ],
+      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-excalidraw-004",
+      "projectId": "excalidraw",
+      "status": "PROPOSED",
+      "description": "DOM_ATTRIBUTE_CHANGED em body > div#root > div > div > div[0] > footer > div[0] > div > section[role=region] > h2[role=heading]@id — rotulado NOISE em 4 delta(s) de 4 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ATTRIBUTE_CHANGED",
+        "pathSkeleton": "body > div#root > div > div > div[0] > footer > div[0] > div > section[role=region] > h2[role=heading]@id"
+      },
+      "evidence": [
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "a0b00c4187778f7f",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "0559e0241dd3d554",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "5feab2f9a8bf6afb",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "65ad143ad0723db9",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        }
+      ],
+      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    },
+    {
+      "id": "SUP-excalidraw-005",
+      "projectId": "excalidraw",
+      "status": "PROPOSED",
+      "description": "DOM_ATTRIBUTE_CHANGED em body > div#root > div > div > div[0] > footer > div[0] > div > section[role=region]@aria-labelledby — rotulado NOISE em 4 delta(s) de 4 observação(ões), 0 bloqueante(s). Descreva aqui, antes de ativar, POR QUE isto é rotina nesta aplicação e o que o motor deixa de ver.",
+      "signature": {
+        "layer": "DOM",
+        "kind": "DOM_ATTRIBUTE_CHANGED",
+        "pathSkeleton": "body > div#root > div > div > div[0] > footer > div[0] > div > section[role=region]@aria-labelledby"
+      },
+      "evidence": [
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "562d0562bb110a93",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "4d6c5ddd0808834b",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "84ff8ca7ee19233f",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "deltaId": "2ebbff87c13403ef",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        }
+      ],
+      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "reviewedBy": null,
+      "reviewedAtUtc": null
+    }
+  ]
+}

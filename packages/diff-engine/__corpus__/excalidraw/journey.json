@@ -1,0 +1,18 @@
+{
+  "irVersion": "1.0.0",
+  "id": "jr_excalidraw",
+  "name": "excalidraw",
+  "viewport": { "width": 1280, "height": 900 },
+  "steps": [
+    { "id": "st_01", "action": "navigate", "path": "/" },
+    { "id": "st_02", "action": "observe", "observationId": "home", "masks": [], "database": [] },
+    { "id": "st_03", "action": "click", "target": { "testId": "main-menu-trigger" } },
+    { "id": "st_04", "action": "observe", "observationId": "main-menu", "masks": [], "database": [] },
+    { "id": "st_05", "action": "press", "key": "Escape" },
+    { "id": "st_06", "action": "press", "key": "?" },
+    { "id": "st_07", "action": "observe", "observationId": "help-dialog", "masks": [], "database": [] },
+    { "id": "st_08", "action": "press", "key": "Escape" },
+    { "id": "st_09", "action": "click", "target": { "testId": "dropdown-menu-button" } },
+    { "id": "st_10", "action": "observe", "observationId": "more-tools", "masks": [], "database": [] }
+  ]
+}

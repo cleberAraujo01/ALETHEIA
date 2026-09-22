@@ -1,0 +1,16 @@
+{
+  "pr": 12076,
+  "title": "fix: Add search/filter to HelpDialog for Ctrl+F support (issue #9276)",
+  "state": "closed",
+  "mergedAt": null,
+  "headSha": "24e0af030220797d0c50c880f9baae8b2bc1dfed",
+  "baseSha": "afa3a653fc5d2b742adcbd5a6063187b056d2419",
+  "basePreview": "https://excalidraw-6oz25w9ow-excalidraw.vercel.app",
+  "headPreview": "https://excalidraw-3szhca4wu-excalidraw.vercel.app",
+  "files": [
+    "packages/excalidraw/components/HelpDialog.scss",
+    "packages/excalidraw/components/HelpDialog.test.tsx",
+    "packages/excalidraw/components/HelpDialog.tsx",
+    "packages/excalidraw/locales/en.json"
+  ]
+}

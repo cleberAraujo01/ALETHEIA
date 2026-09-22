@@ -802,3 +802,82 @@ Fica declarado o que continua fora: nenhuma regra de supressão em vigor
 (zero evidência rotulada ainda), nenhuma capability de banco na jornada,
 e o piloto segue sendo um PR sem mudança de aplicação — o próximo PR real
 do juventude que mude algo é o que testa detecção, não ruído.
+
+## 10. Quinto corpus — PRs reais do Excalidraw, par exato (2026-09-22)
+
+A busca por um segundo piloto não achou piloto — achou algo que nenhum
+corpus tinha. A integração da Vercel no `excalidraw/excalidraw` registra um
+deployment na API do GitHub para **cada commit da `master`**, não só para o
+head dos PRs. Logo a base de um PR pode ser o preview do **merge-base
+exato**, e base e head passam a diferir só pelo PR. O drift que custou 86
+bloqueantes no vite-docs (§8: preview da base do PR contra a `main` de hoje)
+deixa de existir por construção.
+
+Receita em `packages/diff-engine/__corpus__/excalidraw/`: jornada IR v1 com
+ações (menu principal, tecla `?` para o diálogo de ajuda, "Mais
+ferramentas"), `capture.mjs` que resolve merge-base e previews pela API de
+deployments, `prs.mjs` com a natureza dos PRs, rotulador que fecha para
+baixo. Cinco PRs: três mesclados por mantenedores que não tocam a UI da
+jornada (#12143, #12125, #12124), um que reestrutura o diálogo de ajuda
+(#12076) e um que mostra o nome do arquivo em toda tela (#12139). Mais o
+piso: a base compartilhada `97c68dd` capturada duas vezes.
+
+### 10.1 O que foi medido
+
+| Par | Deltas | Bloqueantes | O que é |
+|---|---|---|---|
+| #12143, #12125, #12124 — invisíveis à jornada | 23 · 21 · 21 | **0 · 0 · 0** | 17 ids gerados por render, 3 de telemetria, 1–3 de hash de build |
+| #12139 — nome do arquivo na UI | 31 | **0** | + 1 nó e 1 região de pixel por observação: o `EditableFileName`, onde o PR diz |
+| #12076 — busca no diálogo de ajuda | 85 | **4** | 4 `DOM_NODE_REMOVED` HIGH no diálogo reestruturado; 60 deltas de DOM/pixel ali, todos do PR |
+| Piso — mesma base, duas capturas | 20 | **0** | os 17 ids gerados e as 3 de telemetria |
+| Bancada anterior (18 linhas) | — | — | **idêntica, número por número** — o corpus só adiciona linhas |
+
+**Falso positivo contra mudança legítima: 4 em 5 PRs, os quatro no PR que
+reestrutura exatamente a observação onde aparecem.** É a família da Fase 0
+(nó com texto some de uma posição e reaparece noutra; §10.8 da medição da
+Fase 0), agora sem drift para disfarçar a causa. Nos três PRs que não tocam
+a UI, e no que toca de leve, zero — o placar mais limpo que um PR legítimo
+já produziu no motor, e o primeiro em que se pode dizer que o ruído restante
+é da aplicação ou do motor, nunca do par.
+
+### 10.2 Três achados, nenhum código
+
+1. **Hash do Vite sem dígito escapa de `NORM-NET-007` de um lado só.** A
+   regra exige dígito no hash para não confundir `plugin.controller.js` com
+   bundle. O Vite gera base64url de 8 caracteres e uma fração não tem dígito
+   (`DVNY-aUO`, `DLRddqGH`, `CjXHWcnA`): o lado com dígito vira
+   `index-<hash>.js`, o outro fica literal, e o par vê `REQUEST_REMOVED`
+   MEDIUM + `REQUEST_ADDED` LOW onde não há nada. Não bloqueia. É o sexto
+   achado de identidade de token em seis aplicações, e o primeiro dentro de
+   uma regra que já existia. **Fica registrado, não corrigido**: regra de
+   normalização entra com fixture, bancada antes/depois e piso, em PR
+   próprio — e a forma precisa de cuidado (aceitar 8 caracteres sem dígito
+   é aceitar `index-Settings.js`).
+2. **`deltaId` não carrega valor, e a dedup da supressão aprendida conta
+   por ele.** `deltaId = hash(camada, tipo, observação, caminho)`. Os 17 ids
+   gerados têm o mesmo caminho em cinco pares de **quatro builds distintas**
+   e no piso, com valores diferentes em todos. `suppress propose` criou 5
+   regras `PROPOSED` no primeiro PR e não reforçou nenhuma nos outros:
+   evidência deduplicada, seis execuções reais contam como uma. O custo foi
+   declarado em §8.5 como anti-jogo (re-diffar o mesmo par não conta); aqui
+   ele barra pares que são genuinamente distintos. Não é regra para o motor
+   mudar sozinho — é decisão de desenho: o que distingue "execução distinta"
+   quando o caminho é o mesmo e a build não é. Fica para o Cleber.
+3. **Telemetria de terceiro (Sentry, Simple Analytics) é ruído em todo par,
+   inclusive no piso, e não vira regra por projeto de propósito.** São 3
+   deltas MEDIUM/LOW por par — sessão, timestamp, fingerprint do browser.
+   `suppress propose` os ignora ("ruído de rede é normalização ou máscara").
+   Nunca bloqueiam.
+
+### 10.3 O que fica declarado
+
+- Não é piloto: não há cliente, PR aberto por alguém que receba o
+  comentário, nem NPS. É corpus — o quinto, e o primeiro com par exato.
+- A jornada não vê o canvas. Um PR que quebre o desenho sem tocar a moldura
+  passa. É o mesmo teto do juventude, dito de outro jeito.
+- As capturas ficam fora do git, como as demais; `prs/<n>.json` guarda shas
+  e URLs para reconstituir. Se um PR for rebaseado, o merge-base muda e
+  `capture.mjs` recusa até `prs.mjs` ser atualizado.
+- Os rótulos são de `label.mjs`, com regras declaradas no cabeçalho; a
+  revisão humana está pendente e as 5 regras de supressão continuam
+  `PROPOSED`, com 1 execução cada.
