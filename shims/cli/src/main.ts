@@ -11,6 +11,7 @@ import {
 import {
   parseCaptureArgs,
   parseDiffArgs,
+  parseInitArgs,
   parseMeasureArgs,
   parseRunArgs,
   parseSuppressProposeArgs,
@@ -18,6 +19,7 @@ import {
   type CaptureCommandArgs,
   type DiffCommandArgs,
 } from "./args.js";
+import { initCommand } from "./init.js";
 import { measureCommand } from "./measure.js";
 import { performCapture, performDiff, renderConsoleSummary } from "./ops.js";
 import { runCommand } from "./run.js";
@@ -26,6 +28,7 @@ import { suppressProposeCommand, suppressSimulateCommand } from "./suppress.js";
 const USAGE = `
 aletheia — plataforma de engenharia de qualidade autônoma
 
+  aletheia init    --url <produção> [--aletheia-ref <tag>] [--secret-header <h=V>] [opções]
   aletheia run     --base-url <url> --head-url <url> --journey <jornada.json> [opções]
   aletheia capture --url <baseUrl> --journey <jornada.json> [opções]
   aletheia diff    --base <captura.json> --head <captura.json> [opções]
@@ -33,6 +36,8 @@ aletheia — plataforma de engenharia de qualidade autônoma
   aletheia suppress propose  --report <report.json> --labels <rotulos.json> --rules <arquivo> --labeled-by <quem>
   aletheia suppress simulate --report <report.json> --rules <arquivo> [--labels <rotulos.json>]
 
+\`init\` é o kit de onboarding: descobre as rotas públicas da aplicação num
+browser real e escreve a jornada (IR v1) e o workflow do GitHub Actions.
 \`run\` é o contrato com os shims de CI: captura base e head, difere, e deixa
 prontos report.json, report.html, comment.md (comentário de PR) e summary.json.
 \`capture\` observa uma build e produz um artefato de captura.
@@ -40,6 +45,18 @@ prontos report.json, report.html, comment.md (comentário de PR) e summary.json.
 \`measure\` confronta o relatório com rotulagem humana e mede precisão e recall.
 \`suppress\` fecha o laço de RN-ORC-010: rótulos NOISE viram regras PROPOSED por
 projeto, e a simulação diz o que elas fariam antes de alguém ativá-las.
+
+Opções de init:
+  --url <produção>        URL da aplicação; as rotas saem dela    (obrigatório)
+  --name <nome>           Nome do projeto na jornada             (default: host da URL)
+  --journey-out <arq>     Onde escrever a jornada                (default: .aletheia/jornada.json)
+  --workflow <arq|none>   Onde escrever o workflow               (default: .github/workflows/aletheia.yml)
+  --aletheia-ref <ref>    Tag/branch do ALETHEIA no workflow     (default: main)
+  --secret-header <h=V>   Header secreto a declarar no workflow (nome=VARIAVEL; valor via secrets)
+  --routes <a,b,c>        Rotas dadas à mão, sem descoberta
+  --max-routes <n>        Limite de rotas descobertas            (default: 12)
+  --max-depth <n>         Profundidade da descoberta             (default: 2)
+  --deadline <ms>         Orçamento por página                   (default: 15000)
 
 Opções de run:
   --base-url <url>        Build de referência                     (obrigatório)
@@ -131,6 +148,9 @@ async function main(argv: readonly string[]): Promise<number> {
   const runId = newRunId();
   const logger = createLogger({ context: { runId, orgId: null, projectId: null } });
 
+  if (command === "init") {
+    return initCommand(parseInitArgs(argv.slice(1)), logger);
+  }
   if (command === "run") {
     return runCommand(parseRunArgs(argv.slice(1)), runId, logger);
   }
