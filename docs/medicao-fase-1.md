@@ -750,3 +750,55 @@ assim no vite-docs #23201), não a cardinalidade do prefetch. É uma aposta
 medida em um par; a série que a confirma ou derruba é a dos próximos runs
 do piloto. O caso de um prefetch que **muda de status** (200 → 500) não é
 especulativo por timing e continua `STATUS_CHANGED` HIGH.
+
+### 9.7 Rodada 3 — primeira execução da série (2026-09-22)
+
+O que a rodada 2 deixou foi uma aposta medida em um par: prefetch sumido é
+timing, e navegação quebrada acusa em DOM e console. A série que a confirma
+ou derruba é a dos runs seguintes. Este é o primeiro.
+
+Antes dele, um dado que ficou fora do §9.6 e importa: no mesmo dia da
+rodada 2, ainda em `piloto-2` (sem `NORM-NET-013`), o run seguinte do mesmo
+PR (`e3beb75`, run 32546999819) veio **`NO_REGRESSION_DETECTED`, 0 deltas,
+2813 normalizações**. Mesmo motor, mesmo app, um run bloqueado e o outro
+limpo — o próprio par de runs já era evidência de que o bloqueio do
+`8b82b4f` era coincidência de timing, não diferença de aplicação.
+
+A rodada 3 sobe o runner para `piloto-3` (squash do #22, `c055507`) e
+repete o gesto: merge da `main` na branch do PR e uma linha no README
+(`014af5c`, run 35757978318).
+
+| | Rodada 2, 1º run (`8b82b4f`, piloto-2) | Rodada 2, 2º run (`e3beb75`, piloto-2) | **Rodada 3** (`014af5c`, piloto-3) |
+|---|---|---|---|
+| Veredito | `REGRESSION_DETECTED` | `NO_REGRESSION_DETECTED` | **`NO_REGRESSION_DETECTED`** |
+| Deltas · bloqueantes | 20 · 4 | 0 · 0 | **0 · 0** |
+| Observações comparadas | 7 | 7 | 7 |
+| Normalizações aplicadas | — | 2813 | **2875** |
+| Deploy pronto → comentário | — | 1 min 09 s | 2 min 00 s |
+
+Duas leituras, com o peso certo:
+
+- **2875 − 2813 = 62**, e 62 foi exatamente o número de fusões de
+  `NORM-NET-013` na re-medição do par da rodada 2 (§9.6). A jornada tem as
+  mesmas 7 rotas e o roteador dispara o mesmo padrão de prefetch, então a
+  coincidência é esperada — mas é consistência com a regra ter atuado, não
+  prova; o relatório não discrimina fusões por regra. Discriminar é uma
+  linha no resumo, e entra quando outro run pedir.
+- **A aposta ainda não foi exercitada.** Com zero deltas, o run não mostra
+  a peça que importa: um prefetch caindo na observação seguinte de um lado
+  só e aparecendo como LOW especulativo em vez de HIGH. Isso só se vê no
+  run em que o jitter voltar a acontecer. Até lá o que a série diz é
+  modesto e verdadeiro: dois runs limpos seguidos num PR idêntico, um
+  antes e um depois da regra.
+
+Tempo total do gesto ao comentário: push às 16:55:11Z, deploy pronto às
+17:01:38Z, comentário às 17:03:38Z — **8 min 27 s**, dos quais 6 min 27 s
+são a fila e a build da Vercel, fora do nosso controle. O intervalo que o
+critério da fase mede (deploy pronto → comentário) ficou em 2 min, dentro
+dos 5. Browser `chromium/151.0.7922.34`, `SHARED_DEGRADED` declarado,
+bloco de honestidade completo (PA-10).
+
+Fica declarado o que continua fora: nenhuma regra de supressão em vigor
+(zero evidência rotulada ainda), nenhuma capability de banco na jornada,
+e o piloto segue sendo um PR sem mudança de aplicação — o próximo PR real
+do juventude que mude algo é o que testa detecção, não ruído.
