@@ -482,6 +482,16 @@ export function collapseWhitespace(value: string): string {
 const BUNDLE_ASSET = /^(.+?)[.-]([0-9A-Za-z_-]{8,})\.(js|mjs|cjs|css|map|woff2?|ttf|otf)$/;
 const NUMERIC_CHUNK = /^\d+$/;
 
+/** Hash base64url de 8 caracteres sem dígito (Vite/Rollup) — ver `stripContentHash`. */
+function isDigitlessBase64Hash(hash: string): boolean {
+  return (
+    /^[A-Za-z_-]{8}$/.test(hash) &&
+    /[A-Z]/.test(hash) &&
+    /[a-z]/.test(hash) &&
+    /[-_]|^.[^A-Z]*[A-Z]/.test(hash)
+  );
+}
+
 export function stripContentHash(segment: string): string {
   const match = BUNDLE_ASSET.exec(segment);
   if (match === null) return segment;
@@ -490,7 +500,15 @@ export function stripContentHash(segment: string): string {
   if (name === undefined || hash === undefined || extension === undefined) return segment;
   // Exige dígito no hash: separa `main.a1b2c3d4.js` de `plugin.controller.js`,
   // onde o "hash" seria uma palavra e o arquivo, escrito por uma pessoa.
-  if (!/\d/.test(hash)) return segment;
+  // Exceção medida: o hash do Vite/Rollup é base64url de 8 caracteres, e uma
+  // fração dele não tem dígito (`DVNY-aUO`, `DLRddqGH`, `CjXHWcnA` — corpus
+  // excalidraw, §10 da medição da Fase 1). Sem a exceção, a regra atuava de um
+  // lado só do par e o motor via `index-<hash>.js` sumir e `index-DVNY-aUO.js`
+  // aparecer. A forma é estreita: 8 caracteres exatos, maiúscula E minúscula, e
+  // `-`/`_` ou maiúscula depois da primeira posição — `Settings` e `Dropdown`
+  // (palavra capitalizada) ficam de fora; `DataGrid` entra, e o custo disso é só
+  // `index-DataGrid.js` alinhar consigo mesmo por outro nome.
+  if (!/\d/.test(hash) && !isDigitlessBase64Hash(hash)) return segment;
 
   const stableName = NUMERIC_CHUNK.test(name) ? PLACEHOLDER.BUNDLE_CHUNK : name;
   return `${stableName}-${PLACEHOLDER.CONTENT_HASH}.${extension}`;

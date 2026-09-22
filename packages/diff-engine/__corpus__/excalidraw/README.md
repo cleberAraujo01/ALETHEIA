@@ -35,7 +35,7 @@ lados.
 | `prs/<n>.json` | Título, estado, shas, URLs dos previews e arquivos alterados, no momento da captura |
 | `prs.mjs` | A natureza de cada PR e em que observações ele é `visivel` |
 | `label.mjs` | Um rotulador para os cinco PRs e o piso. Fecha para baixo |
-| `suppressions.json` | 5 regras `PROPOSED` do id gerado por render — cada uma com **1** execução (ver abaixo) |
+| `suppressions.json` | 5 regras `PROPOSED` do id gerado por render — **6 execuções distintas cada** desde a dedup por par de capturas (§10.4 da medição); ativar é revisão humana |
 
 O que **não** tem: capturas e relatórios — se refazem em dez minutos com
 `capture.mjs`. Os previews da Vercel podem sumir; `prs/<n>.json` guarda os
@@ -76,17 +76,21 @@ noutra), sem drift para confundir. Nos três PRs invisíveis e no #12139, zero.
    lado com dígito vira `index-<hash>.js`, o outro fica literal, e o par vê
    `REQUEST_REMOVED` MEDIUM + `REQUEST_ADDED` LOW onde não há nada. Não
    bloqueia; é o sexto achado de "identidade de token" em seis aplicações,
-   e o primeiro que a regra existente já cobria pela metade. **Não corrigido
-   neste PR** — é regra de normalização, entra com medição própria.
+   e o primeiro que a regra existente já cobria pela metade. **Corrigido no
+   mesmo dia** (§10.4 da medição): exceção estreita para a forma exata do
+   hash base64url de 8 caracteres; bancada sem perda de detecção, pisos
+   iguais, e o Vite docs perdeu 214 deltas de rede que nunca bloquearam.
 2. **A supressão aprendida conta execuções por `deltaId`, e `deltaId` é
    `hash(camada, tipo, observação, caminho)` — sem os valores.** Os 17 ids
    gerados aparecem, com o mesmo caminho e valores diferentes, em cinco pares
    de quatro builds distintas e no piso. `suppress propose` criou 5 regras no
    primeiro PR e **não reforçou nenhuma nos outros quatro**: mesmo caminho,
    mesmo `deltaId`, evidência deduplicada. Seis execuções reais contam como
-   uma. É o custo declarado em §8.5 da Fase 1, agora medido num corpus onde
-   ele é claramente conservador demais — decisão de desenho para o Cleber,
-   não regra para o motor.
+   uma. Era o custo declarado em §8.5 da Fase 1, medido aqui onde é
+   conservador demais. **Corrigido no mesmo dia** (§10.4): a evidência
+   carrega `pairId` (captura e instante de cada lado); o mesmo par
+   re-diffado não conta, outra captura conta. As 5 regras foram
+   regeneradas e têm 6 execuções cada — e continuam `PROPOSED`.
 3. **Ruído de rede não vira regra por projeto, de propósito.** Sentry e
    Simple Analytics (sessão, timestamp, fingerprint do browser) são 3 deltas
    em todo par, inclusive no piso; `suppress propose` os ignora ("ruído lá é

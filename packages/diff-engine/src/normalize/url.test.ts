@@ -67,6 +67,23 @@ describe("hash de conteúdo de bundle", () => {
     expect(norm("/js/plugin.controller.js")).toBe("/js/plugin.controller.js");
   });
 
+  // Corpus excalidraw (§10 da medição da Fase 1): o hash do Vite é base64url de
+  // 8 caracteres e uma fração dele não tem dígito. Sem isto a regra atuava de
+  // um lado só do par.
+  it("hash do Vite sem dígito também é hash: 8 caracteres, caixa mista, `-`/`_` ou maiúscula interna", () => {
+    expect(norm("/assets/index-DVNY-aUO.js")).toBe("/assets/index-<hash>.js");
+    expect(norm("/assets/index-DLRddqGH.js")).toBe("/assets/index-<hash>.js");
+    expect(norm("/assets/index-CjXHWcnA.css")).toBe("/assets/index-<hash>.css");
+    expect(norm("/assets/index-DVNY-aUO.js")).toBe(norm("/assets/index-DkG7f8Xz.js"));
+  });
+
+  it("palavra capitalizada de 8 letras não é hash: `Settings`, `Dropdown` ficam", () => {
+    expect(norm("/assets/index-Settings.js")).toBe("/assets/index-Settings.js");
+    expect(norm("/assets/index-Dropdown.css")).toBe("/assets/index-Dropdown.css");
+    expect(norm("/assets/index-settings.js")).toBe("/assets/index-settings.js");
+    expect(norm("/assets/index-SETTINGS.js")).toBe("/assets/index-SETTINGS.js");
+  });
+
   it("vale nos dois propósitos: nome de bundle não é conteúdo de negócio", () => {
     expect(norm("/assets/index-DkG7f8Xz.js", "VALUE")).toBe("/assets/index-<hash>.js");
   });

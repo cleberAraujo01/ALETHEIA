@@ -142,6 +142,7 @@ export function parseSuppressionSet(raw: unknown, source: string): SuppressionSe
       return {
         runId: item["runId"],
         deltaId: item["deltaId"],
+        ...(typeof item["pairId"] === "string" ? { pairId: item["pairId"] } : {}),
         labeledBy: item["labeledBy"],
         labeledAtUtc: item["labeledAtUtc"],
         note: item["note"],

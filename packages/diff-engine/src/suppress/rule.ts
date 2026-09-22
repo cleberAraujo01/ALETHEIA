@@ -21,6 +21,15 @@ export interface EvidenceRef {
   /** Execução em que o delta foi observado — permite reconstituir (PA-12). */
   readonly runId: string;
   readonly deltaId: string;
+  /**
+   * Identidade do PAR de capturas (captura base e head, cada uma com o instante
+   * em que foi feita). É o que distingue "o mesmo par re-diffado" (não conta
+   * de novo) de "outro par com o mesmo caminho" (conta): o `deltaId` é
+   * função só de camada, tipo, observação e caminho, e por isso cinco builds
+   * distintas produzem o mesmo `deltaId` para o mesmo id gerado. Ausente em
+   * evidência gravada antes de existir; aí a dedup recua para `deltaId`.
+   */
+  readonly pairId?: string;
   /** Quem rotulou como NOISE. Supressão nunca é anônima. */
   readonly labeledBy: string;
   readonly labeledAtUtc: string;

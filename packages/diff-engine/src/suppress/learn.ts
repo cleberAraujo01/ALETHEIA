@@ -67,9 +67,20 @@ export interface ProposalOutcome {
   readonly outOfScope: number;
 }
 
+/**
+ * Identidade do par de capturas de um relatório: captura e instante de cada
+ * lado. Duas chamadas de `diff` sobre os mesmos arquivos dão o mesmo par;
+ * qualquer captura nova, de outra build ou da mesma, dá outro.
+ */
+export function pairIdOf(report: DiffReport): string {
+  const side = (s: DiffReport["base"]): string => `${s.captureId}@${s.capturedAtUtc}`;
+  return `${side(report.base)}>${side(report.head)}`;
+}
+
 export function proposeSuppressions(input: ProposalInput): ProposalOutcome {
   const { report, labels, existing } = input;
   const runId = report.metadata.runId;
+  const pairId = pairIdOf(report);
 
   const labeled = (label: HumanLabel): Delta[] =>
     report.deltas.filter((delta) => labels[delta.deltaId]?.label === label);
@@ -117,6 +128,7 @@ export function proposeSuppressions(input: ProposalInput): ProposalOutcome {
     const evidence = group.deltas.map((delta): EvidenceRef => ({
       runId,
       deltaId: delta.deltaId,
+      pairId,
       labeledBy: input.labeledBy,
       labeledAtUtc: input.nowUtc,
       note: labels[delta.deltaId]?.note ?? "",
@@ -128,12 +140,22 @@ export function proposeSuppressions(input: ProposalInput): ProposalOutcome {
         contradicted.push(current.id);
         continue;
       }
-      // Dedup por deltaId, NÃO por (runId, deltaId). O deltaId é estável para o
-      // mesmo par de capturas; o runId muda a cada `diff`. Deduplicar pelo par
-      // deixaria alguém "acumular três execuções" re-diffando o mesmo PR três
-      // vezes — e a barreira de evidência viraria decoração.
-      const known = new Set(current.evidence.map((entry) => entry.deltaId));
-      const fresh = evidence.filter((entry) => !known.has(entry.deltaId));
+      // Dedup por (par de capturas, deltaId), NÃO por (runId, deltaId). O runId
+      // muda a cada `diff`; deduplicar por ele deixaria alguém "acumular três
+      // execuções" re-diffando o mesmo PR três vezes. O deltaId sozinho erra
+      // para o outro lado: é função de caminho, não de valor, então o mesmo id
+      // gerado em cinco builds distintas era UMA evidência (corpus excalidraw,
+      // §10 da medição da Fase 1). O par de capturas é a identidade certa: o
+      // mesmo par re-diffado não conta; outra captura, de outra build ou da
+      // mesma, conta. Evidência antiga sem pairId continua deduplicando por
+      // deltaId — recua para o conservador, nunca para o permissivo.
+      const known = new Set(
+        current.evidence.map((entry) => `${entry.pairId ?? "*"}|${entry.deltaId}`),
+      );
+      const fresh = evidence.filter(
+        (entry) =>
+          !known.has(`${entry.pairId ?? "*"}|${entry.deltaId}`) && !known.has(`*|${entry.deltaId}`),
+      );
       if (fresh.length === 0) continue;
       const index = rules.findIndex((rule) => rule.id === current.id);
       rules[index] = { ...current, evidence: [...current.evidence, ...fresh] };

@@ -14,14 +14,55 @@
       },
       "evidence": [
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "85e99080c5f3ef4e",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "85e99080c5f3ef4e",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "85e99080c5f3ef4e",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "85e99080c5f3ef4e",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "85e99080c5f3ef4e",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "85e99080c5f3ef4e",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         }
       ],
-      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "proposedAtUtc": "2026-09-22T18:29:22.383Z",
       "reviewedBy": null,
       "reviewedAtUtc": null
     },
@@ -37,35 +78,199 @@
       },
       "evidence": [
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "6b884cea37592287",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "71b05966f7bfc32e",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "701f557f9e14024a",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "c94343c8c9cd8775",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "6b884cea37592287",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "71b05966f7bfc32e",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "701f557f9e14024a",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "c94343c8c9cd8775",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "6b884cea37592287",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "71b05966f7bfc32e",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "701f557f9e14024a",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "c94343c8c9cd8775",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "6b884cea37592287",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "71b05966f7bfc32e",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "701f557f9e14024a",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "c94343c8c9cd8775",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "6b884cea37592287",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "71b05966f7bfc32e",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "701f557f9e14024a",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "c94343c8c9cd8775",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "6b884cea37592287",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "71b05966f7bfc32e",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "701f557f9e14024a",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "c94343c8c9cd8775",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         }
       ],
-      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "proposedAtUtc": "2026-09-22T18:29:22.383Z",
       "reviewedBy": null,
       "reviewedAtUtc": null
     },
@@ -81,35 +286,199 @@
       },
       "evidence": [
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "94ab6b933e364be8",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "2b68a4fee514c00c",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "7dbeef47ebb24000",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "af58f4664b437ecd",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "94ab6b933e364be8",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "2b68a4fee514c00c",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "7dbeef47ebb24000",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "af58f4664b437ecd",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "94ab6b933e364be8",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "2b68a4fee514c00c",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "7dbeef47ebb24000",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "af58f4664b437ecd",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "94ab6b933e364be8",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "2b68a4fee514c00c",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "7dbeef47ebb24000",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "af58f4664b437ecd",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "94ab6b933e364be8",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "2b68a4fee514c00c",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "7dbeef47ebb24000",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "af58f4664b437ecd",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "94ab6b933e364be8",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "2b68a4fee514c00c",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "7dbeef47ebb24000",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "af58f4664b437ecd",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         }
       ],
-      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "proposedAtUtc": "2026-09-22T18:29:22.383Z",
       "reviewedBy": null,
       "reviewedAtUtc": null
     },
@@ -125,35 +494,199 @@
       },
       "evidence": [
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "a0b00c4187778f7f",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "0559e0241dd3d554",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "5feab2f9a8bf6afb",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "65ad143ad0723db9",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "a0b00c4187778f7f",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "0559e0241dd3d554",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "5feab2f9a8bf6afb",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "65ad143ad0723db9",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "a0b00c4187778f7f",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "0559e0241dd3d554",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "5feab2f9a8bf6afb",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "65ad143ad0723db9",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "a0b00c4187778f7f",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "0559e0241dd3d554",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "5feab2f9a8bf6afb",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "65ad143ad0723db9",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "a0b00c4187778f7f",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "0559e0241dd3d554",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "5feab2f9a8bf6afb",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "65ad143ad0723db9",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "a0b00c4187778f7f",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "0559e0241dd3d554",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "5feab2f9a8bf6afb",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "65ad143ad0723db9",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         }
       ],
-      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "proposedAtUtc": "2026-09-22T18:29:22.383Z",
       "reviewedBy": null,
       "reviewedAtUtc": null
     },
@@ -169,35 +702,199 @@
       },
       "evidence": [
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "562d0562bb110a93",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "4d6c5ddd0808834b",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "84ff8ca7ee19233f",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         },
         {
-          "runId": "run_4d6d43b3-64e6-4042-bf3a-791b1a33fb0f",
+          "runId": "run_bee667e7-ce3a-4ad1-869d-5d2766940733",
           "deltaId": "2ebbff87c13403ef",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12143_excalidraw@2026-09-22T17:53:48.830Z",
           "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
-          "labeledAtUtc": "2026-09-22T18:01:41.510Z",
+          "labeledAtUtc": "2026-09-22T18:29:22.383Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "562d0562bb110a93",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "4d6c5ddd0808834b",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "84ff8ca7ee19233f",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_41b6ba2e-ad16-43c8-a0bc-db13d8d68f17",
+          "deltaId": "2ebbff87c13403ef",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_pr-12139_excalidraw@2026-09-22T17:54:01.051Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:22.957Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "562d0562bb110a93",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "4d6c5ddd0808834b",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "84ff8ca7ee19233f",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_18e95083-b8e7-49b0-b7fc-2faae45ebb70",
+          "deltaId": "2ebbff87c13403ef",
+          "pairId": "cap_base-14e1c61_excalidraw@2026-09-22T17:54:13.726Z>cap_pr-12125_excalidraw@2026-09-22T17:54:20.864Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:23.549Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "562d0562bb110a93",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "4d6c5ddd0808834b",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "84ff8ca7ee19233f",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_a3d7d68a-b1ac-4207-bf24-5e3caefd9a48",
+          "deltaId": "2ebbff87c13403ef",
+          "pairId": "cap_base-c0ad61c_excalidraw@2026-09-22T17:54:33.678Z>cap_pr-12124_excalidraw@2026-09-22T17:54:40.118Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.217Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "562d0562bb110a93",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "4d6c5ddd0808834b",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "84ff8ca7ee19233f",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_c79030a2-00dd-4aae-a5a6-f91e1d308b20",
+          "deltaId": "2ebbff87c13403ef",
+          "pairId": "cap_base-afa3a65_excalidraw@2026-09-22T17:54:54.512Z>cap_pr-12076_excalidraw@2026-09-22T17:55:00.132Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:24.808Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "562d0562bb110a93",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "4d6c5ddd0808834b",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "84ff8ca7ee19233f",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
+          "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
+        },
+        {
+          "runId": "run_709498f2-5ab3-466e-bcdf-e6bdd7550216",
+          "deltaId": "2ebbff87c13403ef",
+          "pairId": "cap_base-97c68dd_excalidraw@2026-09-22T17:53:41.174Z>cap_base-97c68dd-rerun_excalidraw@2026-09-22T17:55:07.937Z",
+          "labeledBy": "label.mjs do corpus excalidraw (regras declaradas; revisão humana pendente)",
+          "labeledAtUtc": "2026-09-22T18:29:25.377Z",
           "note": "id gerado por render (token aleatório antes de `-dialog-title` e afins, no id e no aria-labelledby): muda a cada carga da mesma build; o sufixo, que é o que identifica, não muda."
         }
       ],
-      "proposedAtUtc": "2026-09-22T18:01:41.510Z",
+      "proposedAtUtc": "2026-09-22T18:29:22.383Z",
       "reviewedBy": null,
       "reviewedAtUtc": null
     }
