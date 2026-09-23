@@ -1101,3 +1101,28 @@ O que este par diz sobre o que fazer, e o que não fazer:
   bloqueados, 1 passado e declarado — e a jornada com ações, que não
   bloqueou nada a mais, foi o que tornou o falso negativo visível em vez
   de invisível.
+
+### 11.8 D2 corrigido — lista JSON de objetos alinha por `id` (2026-09-23)
+
+O D2 (§11.6) foi bloqueado com a explicação errada: por posição, a caneca
+que saiu do meio do catálogo virava "itens 3 e 4 mudaram de preço e
+estoque, item 5 sumiu". Agora, no diff de corpo JSON, uma lista em que
+todo elemento dos dois lados é objeto com `id` escalar único alinha por
+`id`; o caminho vira `produtos/[id=caneca-escudo]`.
+
+Estreito de propósito: só `id`; ids comuns têm que estar na mesma ordem
+relativa nos dois lados — lista reordenada cai na comparação por posição,
+que é a que existia, porque ordenação que muda é defeito (P4 do Sauce
+Demo) e não pode sumir. Quatro testes cobrem: item que some no meio,
+campo que muda dentro de um item, lista reordenada, elemento sem `id` ou
+`id` repetido.
+
+| Par | Antes | Depois |
+|---|---|---|
+| D2 real (artefato do PR #3 do `aletheia-demo`, re-diffado) | 18 bloqueantes · 8 grupos | **6 bloqueantes · 4 grupos** — rede: 1 delta por página, `produtos/[id=caneca-escudo]` removido; DOM: os mesmos 3 (dois `href` deslocados e o `Esgotado`) |
+| Bancada, 24 linhas | — | **idêntica, número por número** — nenhum corpus tem lista JSON de objetos com `id` |
+
+O que continua declarado: o DOM ainda alinha os cartões por posição —
+`article[3]` "muda" de caneca para bola. É a limitação da lista com
+identidade só no descendente (§7, Sauce Demo), e é outra fatia: alinhar
+irmãos de DOM por chave declarada, com este par como fixture.
