@@ -84,6 +84,29 @@ export interface DatabaseProbe {
   readonly params: Readonly<Record<string, string | number | boolean>>;
 }
 
+/**
+ * Relação metamórfica declarada numa observação (O3, §1: "propriedades entre
+ * execuções" — aqui, entre valores da MESMA tela). É a resposta ao problema
+ * do oráculo quando o valor vem da tela e não de um dado observável: o motor
+ * não sabe se `R$ 271,84` é o total errado ou o novo, mas sabe somar.
+ *
+ * O contrato é da aplicação: ela marca as partes e o total com atributos
+ * `data-*` de valor inteiro (centavos, unidades), e a relação diz que a soma
+ * das partes é igual ao total. Nada é lido de texto formatado — moeda,
+ * separador e locale ficam fora de propósito.
+ *
+ * Só `SUM_EQUALS` nesta fatia; o D5 do `aletheia-demo` foi o par que a pediu.
+ */
+export interface Relation {
+  /** `[a-z0-9-]+`, único na observação. */
+  readonly id: string;
+  readonly kind: "SUM_EQUALS";
+  /** Atributo `data-*` presente em cada parte; valor inteiro. */
+  readonly parts: string;
+  /** Atributo `data-*` presente em exatamente um elemento; valor inteiro. */
+  readonly total: string;
+}
+
 export type IrStep =
   | { readonly id: string; readonly action: "navigate"; readonly path: string }
   | { readonly id: string; readonly action: "click"; readonly target: TargetSpec }
@@ -114,6 +137,8 @@ export type IrStep =
       readonly masks: readonly Rect[];
       /** Capabilities READ a executar neste ponto da jornada. */
       readonly database: readonly DatabaseProbe[];
+      /** Relações metamórficas a verificar nesta tela (O3). */
+      readonly relations: readonly Relation[];
     };
 
 export type IrAction = IrStep["action"];

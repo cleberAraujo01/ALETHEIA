@@ -5,6 +5,7 @@ import { diffConsole } from "./diff/console.js";
 import { diffDatabase } from "./diff/database.js";
 import { diffDom } from "./diff/dom.js";
 import { diffNetwork } from "./diff/network.js";
+import { diffRelations } from "./diff/relations.js";
 import { DEFAULT_DELTA_BUDGET_PER_OBSERVATION, DeltaBudget, type RawDelta } from "./diff/types.js";
 import { diffVisual } from "./diff/visual.js";
 import { type DeltaGroup, groupDeltas, groupIdOf } from "./group/index.js";
@@ -110,6 +111,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
   const visualGaps: string[] = [];
   const databaseGaps: string[] = [];
   let databaseProbes = 0;
+  let relationsDeclared = 0;
   const budgetLimit = options.deltaBudgetPerObservation ?? DEFAULT_DELTA_BUDGET_PER_OBSERVATION;
 
   for (const id of onlyInBase) {
@@ -209,6 +211,14 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       databaseGaps.push(id);
     }
 
+    // Relações metamórficas (O3): a declaração do HEAD manda — é a jornada da
+    // build sob teste. A base entra só para dizer se a violação é nova.
+    const relations = headObservation.relations ?? [];
+    if (relations.length > 0) {
+      relationsDeclared += relations.length;
+      raw.push(...diffRelations(id, relations, baseObservation.dom, headObservation.dom, budget));
+    }
+
     if (budget.truncated) truncated.push(id);
   }
 
@@ -239,6 +249,7 @@ export function runDiff(base: Capture, head: Capture, options: DiffOptions): Dif
       visualGaps,
       databaseGaps,
       databaseProbes,
+      relationsDeclared,
       baseInterruption: base.interruption,
       headInterruption: head.interruption,
     }),
@@ -396,6 +407,7 @@ interface CoverageInput {
   readonly consoleGaps: readonly string[];
   readonly databaseGaps: readonly string[];
   readonly databaseProbes: number;
+  readonly relationsDeclared: number;
   readonly baseInterruption: Capture["interruption"];
   readonly headInterruption: Capture["interruption"];
 }
@@ -412,6 +424,19 @@ function coverageOf(input: CoverageInput): CoverageReport {
   // Banco: a camada existe (E-02), mas só compara o que uma capability aprovada
   // devolveu. Sem sonda declarada na jornada, é lacuna — e a razão diz que a
   // lacuna é de declaração, não de motor.
+  // Relações metamórficas (O3): sem declaração, texto de valor que muda
+  // (preço, total, data) fica em MEDIUM e não bloqueia — o motor não sabe se
+  // é o valor errado ou o novo. A lacuna diz isso, para quem lê o relatório
+  // saber que o D5 passaria.
+  if (input.relationsDeclared === 0) {
+    layersNotValidated.unshift({
+      layer: "RELATION",
+      reason:
+        "nenhuma relação metamórfica declarada nos `observe` da jornada — total, soma e valor calculado só são verificados contra uma relação que a aplicação declare (O3)",
+      observations: [],
+    });
+  }
+
   if (input.databaseProbes === 0) {
     layersNotValidated.unshift({
       layer: "DATABASE",

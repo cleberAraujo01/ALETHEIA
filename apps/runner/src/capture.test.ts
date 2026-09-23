@@ -91,7 +91,14 @@ describe("interpretador da IR", () => {
       options(
         journey([
           { id: "s1", action: "navigate", path: "/" },
-          { id: "s2", action: "observe", observationId: "entrar", masks: [], database: [] },
+          {
+            id: "s2",
+            action: "observe",
+            observationId: "entrar",
+            masks: [],
+            database: [],
+            relations: [],
+          },
           { id: "s3", action: "fill", target: { label: "Nome" }, value: "Ana" },
           {
             id: "s4",
@@ -101,7 +108,14 @@ describe("interpretador da IR", () => {
           },
           { id: "s5", action: "select", target: { label: "Perfil" }, value: "editor" },
           { id: "s6", action: "click", target: { role: "button", name: "Entrar" } },
-          { id: "s7", action: "observe", observationId: "ola", masks: [], database: [] },
+          {
+            id: "s7",
+            action: "observe",
+            observationId: "ola",
+            masks: [],
+            database: [],
+            relations: [],
+          },
         ]),
       ),
     );
@@ -148,9 +162,23 @@ describe("interpretador da IR", () => {
       options(
         journey([
           { id: "s1", action: "navigate", path: "/" },
-          { id: "s2", action: "observe", observationId: "entrar", masks: [], database: [] },
+          {
+            id: "s2",
+            action: "observe",
+            observationId: "entrar",
+            masks: [],
+            database: [],
+            relations: [],
+          },
           { id: "s3", action: "click", target: { role: "button", name: "Sair" } },
-          { id: "s4", action: "observe", observationId: "depois", masks: [], database: [] },
+          {
+            id: "s4",
+            action: "observe",
+            observationId: "depois",
+            masks: [],
+            database: [],
+            relations: [],
+          },
         ]),
       ),
     );
@@ -170,7 +198,14 @@ describe("interpretador da IR", () => {
         journey([
           { id: "s1", action: "navigate", path: "/" },
           { id: "s2", action: "click", target: { text: "Ver" } },
-          { id: "s3", action: "observe", observationId: "x", masks: [], database: [] },
+          {
+            id: "s3",
+            action: "observe",
+            observationId: "x",
+            masks: [],
+            database: [],
+            relations: [],
+          },
         ]),
       ),
     );
@@ -181,7 +216,14 @@ describe("interpretador da IR", () => {
         journey([
           { id: "s1", action: "navigate", path: "/" },
           { id: "s2", action: "click", target: { text: "Ver", nth: 1 } },
-          { id: "s3", action: "observe", observationId: "x", masks: [], database: [] },
+          {
+            id: "s3",
+            action: "observe",
+            observationId: "x",
+            masks: [],
+            database: [],
+            relations: [],
+          },
         ]),
       ),
     );
@@ -204,7 +246,14 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
     journey([
       { id: "s1", action: "navigate", path: `/${page}` },
       { id: "s2", action: "click", target },
-      { id: "s3", action: "observe", observationId: "depois", masks: [], database: [] },
+      {
+        id: "s3",
+        action: "observe",
+        observationId: "depois",
+        masks: [],
+        database: [],
+        relations: [],
+      },
     ]);
 
   const CASES: {
@@ -289,7 +338,14 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
         journey([
           { id: "s1", action: "navigate", path: "/mut-testid-renomeado.html" },
           { id: "s2", action: "click", target: { ref: "el_btn_entrar" } },
-          { id: "s3", action: "observe", observationId: "depois", masks: [], database: [] },
+          {
+            id: "s3",
+            action: "observe",
+            observationId: "depois",
+            masks: [],
+            database: [],
+            relations: [],
+          },
         ]),
         repository,
       ),
@@ -305,7 +361,14 @@ describe("consenso multi-sinal — corpus de mutações do fixture", () => {
           journey([
             { id: "s1", action: "navigate", path: "/index.html" },
             { id: "s2", action: "click", target: { ref: "el_x" } },
-            { id: "s3", action: "observe", observationId: "d", masks: [], database: [] },
+            {
+              id: "s3",
+              action: "observe",
+              observationId: "d",
+              masks: [],
+              database: [],
+              relations: [],
+            },
           ]),
         ),
       ),
@@ -364,7 +427,14 @@ describe("header secreto atravessa proteção de deploy", () => {
 
   const protectedJourney = journey([
     { id: "s1", action: "navigate", path: "/" },
-    { id: "s2", action: "observe", observationId: "dentro", masks: [], database: [] },
+    {
+      id: "s2",
+      action: "observe",
+      observationId: "dentro",
+      masks: [],
+      database: [],
+      relations: [],
+    },
   ]);
 
   it("com o header a página protegida é observada — e o valor não aparece em lugar nenhum", async () => {
@@ -398,6 +468,7 @@ describe("sondas de banco no observe (O6)", () => {
     observationId: "entrar",
     masks: [],
     database: capabilities.map((capability) => ({ capability, params: { orderId: 42 } })),
+    relations: [],
   });
   const withAccess = (ir: IrJourney) => ({
     ...options(ir),

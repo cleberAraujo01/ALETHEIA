@@ -274,6 +274,51 @@ function diffJson(
   if (baseType === "array") {
     const baseArray = base as JsonValue[];
     const headArray = head as JsonValue[];
+
+    // Lista de objetos com `id` dos dois lados alinha por `id`, não por
+    // posição — ver `keyedIds`. Fora disso, posição, como sempre.
+    const keyed = keyedIds(baseArray, headArray);
+    if (keyed !== null) {
+      const ids = [...new Set([...keyed.base.keys(), ...keyed.head.keys()])];
+      for (const id of ids) {
+        const child = `${pointer}/[id=${escapePointer(id)}]`;
+        const baseValue = keyed.base.get(id);
+        const headValue = keyed.head.get(id);
+        const facts = {
+          alignedBy: "id",
+          id,
+          baseLength: baseArray.length,
+          headLength: headArray.length,
+        };
+        if (baseValue === undefined) {
+          emit({
+            layer: "NETWORK",
+            kind: "RESPONSE_FIELD_ADDED",
+            observationId,
+            path: `${path}${child}`,
+            before: null,
+            after: truncateValue(render(headValue ?? null)),
+            facts,
+          });
+          continue;
+        }
+        if (headValue === undefined) {
+          emit({
+            layer: "NETWORK",
+            kind: "RESPONSE_FIELD_REMOVED",
+            observationId,
+            path: `${path}${child}`,
+            before: truncateValue(render(baseValue)),
+            after: null,
+            facts,
+          });
+          continue;
+        }
+        diffJson(observationId, path, baseValue, headValue, child, emit, thirdParty);
+      }
+      return;
+    }
+
     const length = Math.max(baseArray.length, headArray.length);
     for (let index = 0; index < length; index += 1) {
       const child = `${pointer}/${index}`;
@@ -320,6 +365,48 @@ function diffJson(
       facts: { valueType: baseType },
     });
   }
+}
+
+/**
+ * Alinhamento de lista de objetos por `id` — medido no D2 do `aletheia-demo`
+ * (§11.6 da medição da Fase 1): a caneca era o item 3 de 6 e sumiu; por
+ * posição, o motor viu os itens 3 e 4 "mudarem" de preço e estoque e o item 5
+ * sumir — veredito certo, explicação errada. Com `id`, o delta é um só e diz
+ * qual item saiu.
+ *
+ * Estreito de propósito. Alinha por chave só quando, dos DOIS lados, todo
+ * elemento é objeto com `id` escalar (string ou número), os ids são únicos em
+ * cada lado, e os ids comuns aparecem NA MESMA ORDEM relativa. Se a ordem
+ * mudou, cai na comparação por posição, que é a que já existia — uma lista
+ * reordenada é o P4 do Sauce Demo (ordenação ignorada) e continua visível.
+ * Só `id`: `key`, `sku`, `uuid` entram quando um par real pedir.
+ */
+function keyedIds(
+  base: readonly JsonValue[],
+  head: readonly JsonValue[],
+): { base: Map<string, JsonValue>; head: Map<string, JsonValue> } | null {
+  if (base.length === 0 && head.length === 0) return null;
+  const index = (array: readonly JsonValue[]): Map<string, JsonValue> | null => {
+    const map = new Map<string, JsonValue>();
+    for (const item of array) {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) return null;
+      const id = (item as Record<string, JsonValue>)["id"];
+      if (typeof id !== "string" && typeof id !== "number") return null;
+      const key = String(id);
+      if (map.has(key)) return null;
+      map.set(key, item);
+    }
+    return map;
+  };
+  const baseMap = index(base);
+  const headMap = index(head);
+  if (baseMap === null || headMap === null) return null;
+  const sharedInBase = [...baseMap.keys()].filter((id) => headMap.has(id));
+  const sharedInHead = [...headMap.keys()].filter((id) => baseMap.has(id));
+  for (let i = 0; i < sharedInBase.length; i += 1) {
+    if (sharedInBase[i] !== sharedInHead[i]) return null;
+  }
+  return { base: baseMap, head: headMap };
 }
 
 function groupByIdentity(
