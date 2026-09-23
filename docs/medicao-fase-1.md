@@ -1126,3 +1126,46 @@ O que continua declarado: o DOM ainda alinha os cartões por posição —
 `article[3]` "muda" de caneca para bola. É a limitação da lista com
 identidade só no descendente (§7, Sauce Demo), e é outra fatia: alinhar
 irmãos de DOM por chave declarada, com este par como fixture.
+
+### 11.9 D5 fechado — relação metamórfica declarada na jornada (2026-09-23)
+
+O §11.7 disse que o total errado do carrinho não era caso de severidade, era
+caso de fonte de verdade, e apontou duas: banco por capability ou relação
+metamórfica. A segunda entrou, na forma mais estreita que resolve o D5:
+
+- **IR v1, `observe.relations`**: `{ id, kind: "SUM_EQUALS", parts, total }`,
+  em que `parts` e `total` são nomes de atributos `data-*` de valor inteiro.
+  Nada é lido de texto formatado — moeda, separador e locale ficam fora de
+  propósito. A jornada continua sem valor nenhum dentro dela.
+- **Captura 0.5.0** só carrega a declaração; quem verifica é o diff, sobre o
+  DOM dos dois lados, de forma determinística (PA-01, PA-05).
+- **`RELATION_VIOLATED`**: violada no head e válida na base é HIGH
+  (regressão); violada nos dois lados é defeito pré-existente — LOW, visível,
+  não bloqueia, porque este oráculo não atribui ao PR o que já estava errado.
+  **`RELATION_UNEVALUABLE`** (atributo ausente, total duplicado, valor não
+  inteiro) é LOW: jornada e aplicação fora de sincronia, nunca regressão.
+- Sem relação declarada, o relatório ganha a lacuna `RELATION`: "total, soma e
+  valor calculado só são verificados contra uma relação que a aplicação
+  declare". É o D5 dito antes de acontecer.
+
+A loja marcou os subtotais com `data-centavos-subtotal` e o total com
+`data-centavos-total`, e a jornada declarou `total = soma dos subtotais` no
+`observe` do carrinho. Prova local, loja instrumentada como base e uma cópia
+com o D5 como head, com a mesma jornada:
+
+| | Antes (§11.7) | Depois |
+|---|---|---|
+| Veredito do D5 | 🟢 `UNDETERMINED_ONLY` | 🔴 **`REGRESSION_DETECTED`** |
+| O que acusou | 3 deltas MEDIUM/LOW na célula do total | `RELATION_VIOLATED` HIGH: `soma(2 partes)=38226 · total=27184 · VIOLADA` — mais os mesmos 3 de antes, agora acompanhados |
+| Piso (loja × loja) | 0 | **0** |
+| Bancada, 24 linhas | — | **idêntica** — nenhum corpus declara relação |
+| Reajuste de preço legítimo (partes e total mudam juntos) | — | nada: a relação vale dos dois lados (teste unitário) |
+
+Placar da loja com o motor novo: 5 defeitos, **5 bloqueados**; 1 PR legítimo
+sem bloqueio. Na Vercel isso só aparece depois da tag `piloto-4` e do
+workflow da loja apontar para ela — o D5 do PR #6 foi medido em `piloto-3`
+e fica como estava; um PR novo com o mesmo defeito mede o motor novo.
+
+Declarado: só `SUM_EQUALS`, só atributos `data-*`, só inteiros. Relações
+com mais forma (produto, percentual, ordenação) entram quando um par real
+pedir, cada uma com o seu D5.

@@ -18,6 +18,7 @@ import {
   type IrStep,
   type IrValue,
   type Rect,
+  type Relation,
   type Target,
   type TargetSpec,
 } from "@aletheia/ir";
@@ -430,6 +431,7 @@ class JourneySession {
           step.observationId,
           step.masks,
           step.database,
+          step.relations,
           step.id,
         );
         return { observation, convergenceMs: null, rounds: null, resolution: null };
@@ -580,6 +582,7 @@ class JourneySession {
     observationId: string,
     masks: readonly Rect[],
     probes: readonly DatabaseProbe[],
+    relations: readonly Relation[],
     stepId: string,
   ): Promise<Observation> {
     const dom = redactDeep(await page.evaluate(serializeDomInPage), this.#secrets);
@@ -613,6 +616,9 @@ class JourneySession {
       console: consoleEntries,
       screenshot,
       database: await this.#probeDatabase(probes, stepId),
+      // A captura só carrega a declaração; verificar é do diff, sobre o DOM
+      // dos dois lados (O3). Vazio vira `null`: lacuna declarada, não lista.
+      relations: relations.length > 0 ? relations.map((r) => ({ ...r })) : null,
     };
   }
 

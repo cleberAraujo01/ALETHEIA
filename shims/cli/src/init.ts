@@ -78,6 +78,7 @@ export function journeyFromRoutes(name: string, routes: readonly string[]): IrJo
       observationId: id,
       masks: [],
       database: [],
+      relations: [],
     });
   }
   const journey: IrJourney = {

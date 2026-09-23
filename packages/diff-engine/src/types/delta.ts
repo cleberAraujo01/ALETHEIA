@@ -22,6 +22,9 @@ export type DeltaKind =
   | "DOM_ROLE_CHANGED"
   | "DOM_ACCESSIBLE_NAME_CHANGED"
   | "DOM_CHILDREN_REORDERED"
+  // Relação metamórfica declarada (O3), verificada sobre o DOM
+  | "RELATION_VIOLATED"
+  | "RELATION_UNEVALUABLE"
   // Rede
   | "REQUEST_ADDED"
   | "REQUEST_REMOVED"

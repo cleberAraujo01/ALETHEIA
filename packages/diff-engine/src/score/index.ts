@@ -128,6 +128,18 @@ export function severityOf(delta: RawDelta): Severity {
       return "LOW";
     case "DOM_TEXT_CHANGED":
       return "MEDIUM";
+    case "RELATION_VIOLATED":
+      // A relação é da aplicação, declarada na jornada: "total = soma das
+      // partes". Violada no head e válida na base é o D5 do aletheia-demo — o
+      // total do carrinho errado que o texto MEDIUM não bloqueava (§11.7 da
+      // medição da Fase 1). Violada nos DOIS lados é defeito pré-existente:
+      // o oráculo diferencial não o atribui ao PR — visível, não bloqueia.
+      return delta.facts["alreadyBroken"] === true ? "LOW" : "HIGH";
+    case "RELATION_UNEVALUABLE":
+      // Atributo declarado que não está na tela (ou total ausente/duplicado):
+      // é a jornada e a aplicação fora de sincronia, não regressão. Aparece
+      // para quem declarou corrigir; nunca bloqueia.
+      return "LOW";
     case "DOM_ROLE_CHANGED":
       return "HIGH";
     case "DOM_ACCESSIBLE_NAME_CHANGED": {

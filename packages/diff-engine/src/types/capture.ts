@@ -7,7 +7,7 @@
  * contra corpus versionado (§7 do CLAUDE.md).
  */
 
-export const CAPTURE_VERSION = "0.4.0";
+export const CAPTURE_VERSION = "0.5.0";
 
 /**
  * Versões de captura que esta build do motor sabe ler.
@@ -18,7 +18,13 @@ export const CAPTURE_VERSION = "0.4.0";
  * interrompida. Rejeitar versão antiga invalidaria o corpus de referência já
  * coletado, que é o ativo mais caro do projeto.
  */
-export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.3.0", "0.4.0"];
+export const SUPPORTED_CAPTURE_VERSIONS: readonly string[] = [
+  "0.1.0",
+  "0.2.0",
+  "0.3.0",
+  "0.4.0",
+  "0.5.0",
+];
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -83,6 +89,22 @@ export interface Observation {
    * lacuna declarada. Versões ≤ 0.3.0 não têm o campo e são lidas como `null`.
    */
   readonly database: readonly DatabaseObservation[] | null;
+  /**
+   * Relações metamórficas DECLARADAS na jornada para esta observação (O3).
+   * A captura só carrega a declaração; quem verifica é o diff, sobre o DOM
+   * dos dois lados. `null` = nenhuma declarada; versões ≤ 0.4.0 não têm o
+   * campo e são lidas como `null`.
+   */
+  readonly relations: readonly RelationSpec[] | null;
+}
+
+export interface RelationSpec {
+  readonly id: string;
+  readonly kind: "SUM_EQUALS";
+  /** Atributo `data-*` de cada parte; valor inteiro. */
+  readonly parts: string;
+  /** Atributo `data-*` do total; exatamente um elemento. */
+  readonly total: string;
 }
 
 /**

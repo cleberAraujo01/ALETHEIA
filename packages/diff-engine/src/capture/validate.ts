@@ -5,6 +5,7 @@ import {
   type Capture,
   type ConsoleEntry,
   type DatabaseObservation,
+  type RelationSpec,
   type DomNode,
   type JsonValue,
   type NetworkExchange,
@@ -109,10 +110,34 @@ function parseObservation(raw: unknown, path: string, source: string): Observati
         : requireArray(node["database"], `${path}.database`, source).map((entry, index) =>
             parseDatabaseObservation(entry, `${path}.database[${index}]`, source),
           ),
+    relations:
+      node["relations"] == null
+        ? null
+        : requireArray(node["relations"], `${path}.relations`, source).map((entry, index) =>
+            parseRelationSpec(entry, `${path}.relations[${index}]`, source),
+          ),
     screenshot:
       node["screenshot"] == null
         ? null
         : parseScreenshot(node["screenshot"], `${path}.screenshot`, source),
+  };
+}
+
+function parseRelationSpec(raw: unknown, path: string, source: string): RelationSpec {
+  const node = requireObject(raw, path, source);
+  const kind = requireString(node["kind"], `${path}.kind`, source);
+  if (kind !== "SUM_EQUALS") {
+    throw new PlatformError("CAPTURE_INVALID", {
+      path: `${path}.kind`,
+      reason: `relação desconhecida: ${kind}`,
+      source,
+    });
+  }
+  return {
+    id: requireString(node["id"], `${path}.id`, source),
+    kind,
+    parts: requireString(node["parts"], `${path}.parts`, source),
+    total: requireString(node["total"], `${path}.total`, source),
   };
 }
 

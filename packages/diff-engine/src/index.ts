@@ -9,6 +9,7 @@ export type {
   CaptureTarget,
   ConsoleEntry,
   DatabaseObservation,
+  RelationSpec,
   DomNode,
   JsonValue,
   NetworkExchange,

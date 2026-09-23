@@ -24,6 +24,7 @@ export function journeyToIr(journey: LegacyJourney): IrJourney {
       observationId: observation.observationId,
       masks: observation.masks,
       database: [],
+      relations: [],
     });
   });
   return {
@@ -51,6 +52,14 @@ export function irToJourney(ir: IrJourney): LegacyJourney {
           path: step.id,
           reason:
             "sonda de banco não existe no formato 0.1.0 — a migração para baixo perderia a capability",
+        });
+      }
+      if (step.relations.length > 0) {
+        throw new PlatformError("IR_INVALID", {
+          source: ir.id,
+          path: step.id,
+          reason:
+            "relação metamórfica não existe no formato 0.1.0 — a migração para baixo perderia a verificação",
         });
       }
       if (pendingPath === null) {

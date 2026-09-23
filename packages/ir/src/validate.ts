@@ -9,6 +9,7 @@ import {
   type IrValue,
   type DatabaseProbe,
   type Rect,
+  type Relation,
   type Target,
   type TargetSpec,
 } from "./schema.js";
@@ -133,7 +134,20 @@ export function parseIr(raw: unknown, source: string): IrJourney {
         const database = Array.isArray(databaseRaw)
           ? databaseRaw.map((probe, at) => parseProbe(probe, `${where}.database[${at}]`, fail))
           : [];
-        return { id: stepId, action: "observe", observationId, masks, database };
+        const relationsRaw = entry["relations"];
+        const relations = Array.isArray(relationsRaw)
+          ? relationsRaw.map((relation, at) =>
+              parseRelation(relation, `${where}.relations[${at}]`, fail),
+            )
+          : [];
+        const relationIds = new Set<string>();
+        for (const relation of relations) {
+          if (relationIds.has(relation.id)) {
+            return fail(`${where}.relations`, `id de relação duplicado: ${relation.id}`);
+          }
+          relationIds.add(relation.id);
+        }
+        return { id: stepId, action: "observe", observationId, masks, database, relations };
       }
     }
   });
@@ -258,6 +272,40 @@ function parseProbe(
     params[key] = value;
   }
   return { capability, params };
+}
+
+const RELATION_ID = /^[a-z0-9][a-z0-9-]*$/;
+const DATA_ATTRIBUTE = /^data-[a-z0-9-]+$/;
+
+function parseRelation(
+  raw: unknown,
+  where: string,
+  fail: (path: string, reason: string) => never,
+): Relation {
+  if (!isRecord(raw)) return fail(where, "objeto esperado");
+  const id = raw["id"];
+  if (typeof id !== "string" || !RELATION_ID.test(id)) {
+    return fail(`${where}.id`, "esperado identificador `[a-z0-9-]+`");
+  }
+  if (raw["kind"] !== "SUM_EQUALS") {
+    return fail(`${where}.kind`, "relação desconhecida — só SUM_EQUALS nesta versão");
+  }
+  const parts = raw["parts"];
+  const total = raw["total"];
+  for (const [name, value] of [
+    ["parts", parts],
+    ["total", total],
+  ] as const) {
+    if (typeof value !== "string" || !DATA_ATTRIBUTE.test(value)) {
+      return fail(
+        `${where}.${name}`,
+        "esperado nome de atributo `data-*` — a relação lê valor inteiro declarado, nunca texto formatado",
+      );
+    }
+  }
+  if (parts === total)
+    return fail(`${where}.total`, "parts e total precisam ser atributos distintos");
+  return { id, kind: "SUM_EQUALS", parts: parts as string, total: total as string };
 }
 
 function parseRect(
